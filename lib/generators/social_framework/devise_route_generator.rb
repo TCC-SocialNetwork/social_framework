@@ -5,7 +5,9 @@ module SocialFramework
       desc "Add devise routes to app"
 
       def add_devise_routes
-        route "devise_for :users, class_name: 'SocialFramework::User'"
+      	devise_route = "devise_for :users, class_name: 'SocialFramework::User'," <<
+    	"controllers: {sessions: 'users/sessions', registrations: 'users/registrations'}"
+        route devise_route
       end
     end
   end
