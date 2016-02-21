@@ -34,3 +34,7 @@ bower.json
 # Ignore pow environment settings
 .powenv
 Gemfile.lock
+
+*.log
+log
+test/dummy/db

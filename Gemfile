@@ -18,3 +18,5 @@ group :development, :test do
 end
 
 gem 'devise'
+
+gem "codeclimate-test-reporter", group: :test, require: nil

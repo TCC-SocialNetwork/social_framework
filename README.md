@@ -1,5 +1,7 @@
-# social_framework
+Social Framework ![License MIT](https://go-shields.herokuapp.com/license-MIT-blue.png)
+======
 
+[![Code Climate](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/badges/gpa.svg)](https://codeclimate.com/github/TCC-SocialNetwork/social_framework)	[![Test Coverage](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/badges/coverage.svg)](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/coverage)
 ---
 
 [![Throughput Graph](https://graphs.waffle.io/TCC-SocialNetwork/social_framework/throughput.svg)](https://waffle.io/TCC-SocialNetwork/social_framework/metrics)
