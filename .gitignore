@@ -37,4 +37,4 @@ Gemfile.lock
 
 *.log
 log
-test/dummy/db
+spec/dummy/db
