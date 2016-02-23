@@ -1,4 +1,4 @@
-unless File.exists? "config/initializers/devise.rb"
+if /[\w]+$/.match(Dir.pwd).to_s == "social_framework" or not File.exists? "config/initializers/devise.rb"
   # Use this hook to configure devise mailer, warden hooks and so forth.
   # Many of these configuration options can be set straight in your model.
   Devise.setup do |config|
