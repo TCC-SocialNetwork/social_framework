@@ -7,12 +7,14 @@ module SocialFramework
     devise :database_authenticatable, :registerable,
            :recoverable, :rememberable, :trackable, :validatable
 
-    def login=(login)
-      @login = login
-    end
-
     def login
-      @login || self.username || self.email
+      if not @login.nil? and not @login.blank?
+        @login
+      elsif not self.username.nil? and not self.username.empty?
+        self.username
+      else
+        self.email
+      end
     end
 
     def self.find_for_database_authentication(warden_conditions)
