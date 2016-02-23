@@ -1,6 +1,6 @@
 module SocialFramework
   module Generators
-    class DeviseRouteGenerator < Rails::Generators::Base
+    class InstallDeviseGenerator < Rails::Generators::Base
 
       source_root File.expand_path('../../templates/initializers/', __FILE__)
 
@@ -15,6 +15,10 @@ module SocialFramework
           "controllers: {sessions: 'users/sessions', registrations: 'users/registrations'}"
         
         route devise_route
+      end
+
+      def add_views
+        generate "social_framework:views -v registrations sessions"
       end
     end
   end
