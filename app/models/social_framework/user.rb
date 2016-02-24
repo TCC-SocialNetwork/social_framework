@@ -1,4 +1,6 @@
 module SocialFramework
+
+  # User class based in devise, represents the user entity to authenticate in system
   class User < ActiveRecord::Base
     attr_accessor :login
 
@@ -7,6 +9,8 @@ module SocialFramework
     devise :database_authenticatable, :registerable,
            :recoverable, :rememberable, :trackable, :validatable
 
+    # Get login if not blank, username or email
+    # Used to autenticate in system
     def login
       if not @login.nil? and not @login.blank?
         @login
@@ -17,6 +21,10 @@ module SocialFramework
       end
     end
 
+    # In authentication get user with key passed.
+    # ====== Params:
+    # +warden_conditions+:: +Hash+ with login, email or username to authenticate user, if login search users by username or email
+    # Returns User in case user found or nil if not
     def self.find_for_database_authentication(warden_conditions)
       conditions = warden_conditions.dup
      
