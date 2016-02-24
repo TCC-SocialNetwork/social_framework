@@ -3,7 +3,6 @@ capybara-*.html
 .rspec
 /log
 /tmp
-/db/*.sqlite3
 /db/*.sqlite3-journal
 /public/system
 /coverage/
@@ -37,4 +36,4 @@ Gemfile.lock
 
 *.log
 log
-spec/dummy/db
+*.sqlite3
