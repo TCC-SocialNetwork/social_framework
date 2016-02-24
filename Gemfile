@@ -20,6 +20,7 @@ end
 group :test do
   gem "codeclimate-test-reporter", require: nil
   gem "factory_girl"
+  gem "generator_spec"
 end
 
 gem 'devise'
