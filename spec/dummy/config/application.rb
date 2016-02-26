@@ -25,7 +25,7 @@ module Dummy
 
   class ActiveRecord::Schema
     def migrations_paths
-        ActiveRecord::Migrator.migrations_paths.uniq
-      end
+      ActiveRecord::Migrator.migrations_paths.uniq
+    end
   end
 end

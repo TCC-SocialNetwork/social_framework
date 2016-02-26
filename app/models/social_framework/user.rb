@@ -4,6 +4,7 @@ module SocialFramework
   class User < ActiveRecord::Base
     has_many :edges, class_name: "SocialFramework::Edge", foreign_key: "origin_id"
 
+    # Username or email to search
     attr_accessor :login
 
     # Include default devise modules. Others available are:
