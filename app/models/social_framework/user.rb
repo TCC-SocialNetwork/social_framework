@@ -2,6 +2,8 @@ module SocialFramework
 
   # User class based in devise, represents the user entity to authenticate in system
   class User < ActiveRecord::Base
+    has_many :edges, class_name: "SocialFramework::Edge", foreign_key: "origin_id"
+
     attr_accessor :login
 
     # Include default devise modules. Others available are:

@@ -22,5 +22,10 @@ module Dummy
     # Do not swallow errors in after_commit/after_rollback callbacks.
     config.active_record.raise_in_transactional_callbacks = true
   end
-end
 
+  class ActiveRecord::Schema
+    def migrations_paths
+        ActiveRecord::Migrator.migrations_paths.uniq
+      end
+  end
+end

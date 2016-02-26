@@ -11,7 +11,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160129004111) do
+ActiveRecord::Schema.define(version: 20160226123409) do
+
+  create_table "social_framework_edges", force: :cascade do |t|
+    t.integer  "origin_id"
+    t.integer  "destiny_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
+  add_index "social_framework_edges", ["destiny_id"], name: "index_social_framework_edges_on_destiny_id"
+  add_index "social_framework_edges", ["origin_id"], name: "index_social_framework_edges_on_origin_id"
 
   create_table "social_framework_users", force: :cascade do |t|
     t.string   "username",               default: "", null: false
