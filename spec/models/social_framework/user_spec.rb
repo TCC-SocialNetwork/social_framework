@@ -50,7 +50,13 @@ module SocialFramework
       it "When an user follow an invalid user" do
         user = create(:user)
         result = user.follow(nil)
-        expect(result).to be(nil)
+        expect(result).to be_nil
+      end
+
+      it "When an user follow himself" do
+        user = create(:user)
+        result = user.follow(user)
+        expect(result).to be_nil
       end
 
       it "When an user follow a valid user" do
@@ -59,6 +65,46 @@ module SocialFramework
         result = user.follow(user2)
         expect(result.count).to eq(1)
         expect(result.first.label).to eq("following")
+      end
+    end
+
+    describe "Unfollow" do
+      before(:each) do
+        @user = create(:user)
+        @user2 = create(:user2)
+      end
+      it "When the relationship exist" do
+        @user.follow(@user2)
+        
+        @user.unfollow(@user2)
+        expect(@user.edges).to be_empty
+      end
+
+      it "When the parameter is invalid" do
+        @user.follow(@user2)
+        
+        result = @user.unfollow(nil)
+        expect(result).to be_nil
+        expect(@user.edges.count).to eq(1)
+      end
+
+      it "When the relationship not exist" do
+        result = @user.unfollow(@user2)
+        expect(result).to be_nil
+      end
+
+      it "When an user unfollow himself" do
+        result = @user.unfollow(@user)
+        expect(result).to be_nil
+      end
+
+      it "When multiple relationships" do
+        @user.follow(@user2)
+        relationship = create(:relationship)
+        @user.edges.first.relationships << relationship
+        expect(@user.edges.first.relationships.count).to eq(2)
+        @user.unfollow(@user2)
+        expect(@user.edges.first.relationships.count).to eq(1)
       end
     end
   end

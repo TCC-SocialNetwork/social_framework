@@ -10,4 +10,8 @@ FactoryGirl.define do
     email "user2@email.com"
     password "password"
   end
+
+  factory :relationship, class: SocialFramework::Relationship do
+    label "relationship_test"
+  end
 end
