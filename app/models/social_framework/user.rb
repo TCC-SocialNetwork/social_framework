@@ -45,9 +45,9 @@ module SocialFramework
     def follow(user)
       return if user.nil? or user == self
       
-      edge = Edge.create(origin: self, destiny: user)
+      edge = Edge.find_or_create_by(origin: self, destiny: user)
       relationship = Relationship.find_or_create_by(label: "following")
-      edge.relationships << relationship
+      edge.relationships << relationship unless edge.relationships.include? relationship
     end
 
     # Unfollow someone user

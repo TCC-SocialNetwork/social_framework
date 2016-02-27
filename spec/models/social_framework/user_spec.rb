@@ -47,24 +47,33 @@ module SocialFramework
     end
 
     describe "Follow" do
+      before(:each) do
+        @user = create(:user)
+        @user2 = create(:user2)
+
+      end
       it "When an user follow an invalid user" do
-        user = create(:user)
-        result = user.follow(nil)
+        result = @user.follow(nil)
         expect(result).to be_nil
       end
 
       it "When an user follow himself" do
-        user = create(:user)
-        result = user.follow(user)
+        result = @user.follow(@user)
         expect(result).to be_nil
       end
 
       it "When an user follow a valid user" do
-        user = create(:user)
-        user2 = create(:user2)
-        result = user.follow(user2)
+        result = @user.follow(@user2)
         expect(result.count).to eq(1)
         expect(result.first.label).to eq("following")
+      end
+
+      it "When an user try follow multiple times" do
+        @user.follow(@user2)
+        expect(@user.edges.first.relationships.count).to eq(1)
+        result = @user.follow(@user2)
+        expect(@user.edges.first.relationships.count).to eq(1)
+        expect(result).to be_nil
       end
     end
 

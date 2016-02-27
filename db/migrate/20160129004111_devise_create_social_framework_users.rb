@@ -36,6 +36,7 @@ class DeviseCreateSocialFrameworkUsers < ActiveRecord::Migration
     end
 
     add_index :social_framework_users, :email,                unique: true
+    add_index :social_framework_users, :username,             unique: true
     add_index :social_framework_users, :reset_password_token, unique: true
     # add_index :social_framework_users, :confirmation_token,   unique: true
     # add_index :social_framework_users, :unlock_token,         unique: true

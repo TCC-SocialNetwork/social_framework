@@ -11,6 +11,11 @@ FactoryGirl.define do
     password "password"
   end
 
+  factory :edge, class: SocialFramework::Edge do
+    origin nil
+    destiny nil
+  end
+
   factory :relationship, class: SocialFramework::Relationship do
     label "relationship_test"
   end

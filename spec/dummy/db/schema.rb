@@ -28,6 +28,7 @@ ActiveRecord::Schema.define(version: 20160226173910) do
     t.integer "relationship_id"
   end
 
+  add_index "social_framework_edges_relationships", ["edge_id", "relationship_id"], name: "edges_and_relationships_unique", unique: true
   add_index "social_framework_edges_relationships", ["edge_id"], name: "index_social_framework_edges_relationships_on_edge_id"
   add_index "social_framework_edges_relationships", ["relationship_id"], name: "index_social_framework_edges_relationships_on_relationship_id"
 
@@ -36,6 +37,8 @@ ActiveRecord::Schema.define(version: 20160226173910) do
     t.datetime "created_at",              null: false
     t.datetime "updated_at",              null: false
   end
+
+  add_index "social_framework_relationships", ["label"], name: "index_social_framework_relationships_on_label", unique: true
 
   create_table "social_framework_users", force: :cascade do |t|
     t.string   "username",               default: "", null: false
@@ -55,5 +58,6 @@ ActiveRecord::Schema.define(version: 20160226173910) do
 
   add_index "social_framework_users", ["email"], name: "index_social_framework_users_on_email", unique: true
   add_index "social_framework_users", ["reset_password_token"], name: "index_social_framework_users_on_reset_password_token", unique: true
+  add_index "social_framework_users", ["username"], name: "index_social_framework_users_on_username", unique: true
 
 end
