@@ -45,5 +45,21 @@ module SocialFramework
         expect(User.find_for_database_authentication({email: "user_invalid@email.com"})).to eq(nil)
       end
     end
+
+    describe "Follow" do
+      it "When an user follow an invalid user" do
+        user = create(:user)
+        result = user.follow(nil)
+        expect(result).to be(nil)
+      end
+
+      it "When an user follow a valid user" do
+        user = create(:user)
+        user2 = create(:user2)
+        result = user.follow(user2)
+        expect(result.count).to eq(1)
+        expect(result.first.label).to eq("following")
+      end
+    end
   end
 end

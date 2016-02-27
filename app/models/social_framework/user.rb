@@ -37,5 +37,16 @@ module SocialFramework
         where(conditions.to_h).first
       end
     end
+
+    # Follow someone user
+    # ====== Params:
+    # +user+:: +User+ to follow
+    # Returns Relationship types between the users
+    def follow(user)
+      return if user.nil?
+      edge = Edge.create(origin: self, destiny: user)
+      relationship = Relationship.find_or_create_by(label: "following")
+      edge.relationships << relationship
+    end
   end
 end
