@@ -2,6 +2,8 @@ module SocialFramework
 
   # User class based in devise, represents the user entity to authenticate in system
   class User < ActiveRecord::Base
+    include UserHelper
+
     has_many :edges, class_name: "SocialFramework::Edge", foreign_key: "origin_id"
 
     # Username or email to search
@@ -42,18 +44,9 @@ module SocialFramework
     # ====== Params:
     # +user+:: +User+ to follow
     # +active+:: +Boolean+ define relationship like active or inactive
-    # Returns Relationship types between the users
+    # Returns Relationship type or a new edge relationship
     def follow(user, active=true)
-      return if user.nil? or user == self
-      
-      edge = Edge.find_or_create_by(origin: self, destiny: user)
-      relationship = Relationship.find_or_create_by(label: "following")
-      unless edge.relationships.include? relationship
-        edge_relationship = EdgeRelationship.find_or_create_by(edge: edge, relationship: relationship)
-        edge_relationship.active = active
-        edge_relationship.save
-      end
-      # edge.relationships << relationship unless edge.relationships.include? relationship
+      UserHelper.create_relationship(self, user, "following", active)
     end
 
     # Unfollow someone user
@@ -68,6 +61,16 @@ module SocialFramework
         edge.relationships.each { |r| edge.relationships.destroy(r) if r.label == "following" }
         self.edges.destroy(edge) if edge.relationships.empty?
       end
+    end
+
+    # Add someone user as a friend
+    # ====== Params:
+    # +user+:: +User+ to add as a friend
+    # +active+:: +Boolean+ define relationship like active or inactive
+    # Returns Relationship types between the users
+    def add_friend(user, active=false)
+      UserHelper.create_relationship(self, user, "friend", active)
+      UserHelper.create_relationship(user, self, "friend", active)
     end
   end
 end

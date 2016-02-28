@@ -52,33 +52,16 @@ module SocialFramework
         @user2 = create(:user2)
 
       end
-      it "When an user follow an invalid user" do
-        result = @user.follow(nil)
-        expect(result).to be_nil
-      end
-
-      it "When an user follow himself" do
-        result = @user.follow(@user)
-        expect(result).to be_nil
-      end
-
-      it "When an user follow a valid user" do
+      it "When an user follow an other user" do
         @user.follow(@user2)
+        expect(@user.edges.count).to eq(1)
         expect(@user.edges.first.relationships.count).to eq(1)
         expect(@user.edges.first.relationships.first.label).to eq("following")
-      end
-
-      it "When an user try follow multiple times" do
-        @user.follow(@user2)
-        expect(@user.edges.first.relationships.count).to eq(1)
-        result = @user.follow(@user2)
-        expect(@user.edges.first.relationships.count).to eq(1)
-        expect(result).to be_nil
+        expect(@user.edges.first.edge_relationships.first.active).to be(true)
       end
 
       it "When the relationship should be inactive" do
         @user.follow(@user2, false)
-        expect(@user.edges.first.relationships.count).to eq(1)
         expect(@user.edges.first.relationships.first.label).to eq("following")
         expect(@user.edges.first.edge_relationships.first.active).to be(false)
       end
@@ -121,6 +104,50 @@ module SocialFramework
         expect(@user.edges.first.relationships.count).to eq(2)
         @user.unfollow(@user2)
         expect(@user.edges.first.relationships.count).to eq(1)
+      end
+    end
+
+    describe "Add friend" do
+      before(:each) do
+        @user = create(:user)
+        @user2 = create(:user2)
+      end
+
+      it "When an user add a new friend" do
+        @user.add_friend(@user2)
+        expect(@user.edges.count).to eq(1)
+        expect(@user.edges.first.relationships.count).to eq(1)
+        expect(@user.edges.first.relationships.first.label).to eq("friend")
+        expect(@user.edges.first.edge_relationships.first.active).to be(false)
+
+        expect(@user2.edges.count).to eq(1)
+        expect(@user2.edges.first.relationships.count).to eq(1)
+        expect(@user2.edges.first.relationships.first.label).to eq("friend")
+        expect(@user2.edges.first.edge_relationships.first.active).to be(false)
+      end
+
+      it "When two users try add each other as a friend" do
+        @user.add_friend(@user2)
+        expect(@user.edges.count).to eq(1)
+        expect(@user.edges.first.relationships.count).to eq(1)
+        expect(@user2.edges.count).to eq(1)
+        expect(@user2.edges.first.relationships.count).to eq(1)
+
+        @user2.add_friend(@user)
+        expect(@user.edges.count).to eq(1)
+        expect(@user.edges.first.relationships.count).to eq(1)
+        expect(@user2.edges.count).to eq(1)
+        expect(@user2.edges.first.relationships.count).to eq(1)
+      end
+
+      it "When the relationship should be active" do
+        @user.add_friend(@user2, true)
+        
+        expect(@user.edges.first.relationships.first.label).to eq("friend")
+        expect(@user.edges.first.edge_relationships.first.active).to be(true)
+        
+        expect(@user2.edges.first.relationships.first.label).to eq("friend")
+        expect(@user2.edges.first.edge_relationships.first.active).to be(true)
       end
     end
   end
