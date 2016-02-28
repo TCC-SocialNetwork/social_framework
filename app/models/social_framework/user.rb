@@ -41,13 +41,19 @@ module SocialFramework
     # Follow someone user
     # ====== Params:
     # +user+:: +User+ to follow
+    # +active+:: +Boolean+ define relationship like active or inactive
     # Returns Relationship types between the users
-    def follow(user)
+    def follow(user, active=true)
       return if user.nil? or user == self
       
       edge = Edge.find_or_create_by(origin: self, destiny: user)
       relationship = Relationship.find_or_create_by(label: "following")
-      edge.relationships << relationship unless edge.relationships.include? relationship
+      unless edge.relationships.include? relationship
+        edge_relationship = EdgeRelationship.find_or_create_by(edge: edge, relationship: relationship)
+        edge_relationship.active = active
+        edge_relationship.save
+      end
+      # edge.relationships << relationship unless edge.relationships.include? relationship
     end
 
     # Unfollow someone user

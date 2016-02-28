@@ -63,9 +63,9 @@ module SocialFramework
       end
 
       it "When an user follow a valid user" do
-        result = @user.follow(@user2)
-        expect(result.count).to eq(1)
-        expect(result.first.label).to eq("following")
+        @user.follow(@user2)
+        expect(@user.edges.first.relationships.count).to eq(1)
+        expect(@user.edges.first.relationships.first.label).to eq("following")
       end
 
       it "When an user try follow multiple times" do
@@ -74,6 +74,13 @@ module SocialFramework
         result = @user.follow(@user2)
         expect(@user.edges.first.relationships.count).to eq(1)
         expect(result).to be_nil
+      end
+
+      it "When the relationship should be inactive" do
+        @user.follow(@user2, false)
+        expect(@user.edges.first.relationships.count).to eq(1)
+        expect(@user.edges.first.relationships.first.label).to eq("following")
+        expect(@user.edges.first.edge_relationships.first.active).to be(false)
       end
     end
 
