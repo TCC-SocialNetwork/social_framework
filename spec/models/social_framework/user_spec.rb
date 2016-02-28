@@ -72,32 +72,14 @@ module SocialFramework
         @user = create(:user)
         @user2 = create(:user2)
       end
-      it "When the relationship exist" do
+      it "When the an user unfollow other user" do
         @user.follow(@user2)
         
         @user.unfollow(@user2)
         expect(@user.edges).to be_empty
       end
 
-      it "When the parameter is invalid" do
-        @user.follow(@user2)
-        
-        result = @user.unfollow(nil)
-        expect(result).to be_nil
-        expect(@user.edges.count).to eq(1)
-      end
-
-      it "When the relationship not exist" do
-        result = @user.unfollow(@user2)
-        expect(result).to be_nil
-      end
-
-      it "When an user unfollow himself" do
-        result = @user.unfollow(@user)
-        expect(result).to be_nil
-      end
-
-      it "When multiple relationships" do
+      it "When an user unfollow other user with multiple relationships" do
         @user.follow(@user2)
         relationship = create(:relationship)
         @user.edges.first.relationships << relationship

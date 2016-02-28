@@ -52,15 +52,9 @@ module SocialFramework
     # Unfollow someone user
     # ====== Params:
     # +user+:: +User+ to unfollow
-    # Returns Relationship types between the users
+    # Returns Edge of relationship between the users
     def unfollow(user)
-      return if user.nil? or user == self
-
-      edge = Edge.find_by destiny: user
-      unless edge.nil?
-        edge.relationships.each { |r| edge.relationships.destroy(r) if r.label == "following" }
-        self.edges.destroy(edge) if edge.relationships.empty?
-      end
+      UserHelper.delete_relationship(self, user, "following")
     end
 
     # Add someone user as a friend
