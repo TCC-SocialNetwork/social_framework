@@ -66,5 +66,30 @@ module SocialFramework
       UserHelper.create_relationship(self, user, "friend", active)
       UserHelper.create_relationship(user, self, "friend", active)
     end
+
+    # Confirm frindshipe
+    # ====== Params:
+    # +user+:: +User+ to add as a friend
+    # Returns Relationship types between the users
+    def confirm_friendship(user)
+      return if user.nil? or user == self
+
+      relationship = Relationship.find_by label: "friend"
+      edge_origin = self.edges.select { |edge| edge.destiny == user }.first
+      edge_destiny = user.edges.select { |edge| edge.destiny == self }.first
+
+      unless edge_origin.nil? or edge_destiny.nil? or relationship.nil?
+        edge_relationship_origin = edge_origin.edge_relationships.select { |edge_relationship|
+            edge_relationship.relationship == relationship }.first
+        edge_relationship_destiny = edge_destiny.edge_relationships.select { |edge_relationship|
+            edge_relationship.relationship == relationship }.first
+
+        edge_relationship_origin.active = true
+        edge_relationship_origin.save
+        
+        edge_relationship_destiny.active = true
+        edge_relationship_destiny.save
+      end
+    end    
   end
 end

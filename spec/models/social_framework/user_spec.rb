@@ -132,5 +132,35 @@ module SocialFramework
         expect(@user2.edges.first.edge_relationships.first.active).to be(true)
       end
     end
+
+    describe "Confirm friendship" do
+      before(:each) do
+        @user = create(:user)
+        @user2 = create(:user2)
+      end
+
+      it "When friendship is invalid" do
+        result = @user.confirm_friendship(@user2)
+        expect(result).to be_nil
+
+        result = @user.confirm_friendship(nil)
+        expect(result).to be_nil
+
+        result = @user.confirm_friendship(@user)
+        expect(result).to be_nil
+      end
+
+      it "When friendship is valid" do
+        @user.add_friend(@user2)
+        @user2.confirm_friendship(@user)
+
+        expect(@user.edges.count).to eq(1)
+        expect(@user.edges.first.relationships.count).to eq(1)
+        expect(@user.edges.first.edge_relationships.first.active).to be(true)
+        expect(@user2.edges.count).to eq(1)
+        expect(@user2.edges.first.relationships.count).to eq(1)
+        expect(@user2.edges.first.edge_relationships.first.active).to be(true)
+      end
+    end
   end
 end
