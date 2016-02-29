@@ -36,4 +36,4 @@ Gemfile.lock
 
 *.log
 log
-*.sqlite3
+spec/dummy/db
