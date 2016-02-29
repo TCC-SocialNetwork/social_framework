@@ -29,15 +29,17 @@ module SocialFramework
         expect(@user.edges.count).to eq(1)
         expect(@user.edges.first.relationships.count).to eq(1)
         expect(@user.edges.first.relationships.first.label).to eq("new_relationship")
-        expect(@user.edges.first.edge_relationships.first.active).to be(true)
+        expect(@user.edges.first.edge_relationships.first.active).to be(false)
+        expect(@user.edges.first.bidirectional).to be(true)
       end
 
-      it "When create a valid relationship with attribute active false" do
-        UserHelper.create_relationship(@user, @user2, "new_relationship", false)
+      it "When create a valid relationship with attribute active true and bidirectional false" do
+        UserHelper.create_relationship(@user, @user2, "new_relationship", true, false)
         expect(@user.edges.count).to eq(1)
         expect(@user.edges.first.relationships.count).to eq(1)
         expect(@user.edges.first.relationships.first.label).to eq("new_relationship")
-        expect(@user.edges.first.edge_relationships.first.active).to be(false)
+        expect(@user.edges.first.edge_relationships.first.active).to be(true)
+        expect(@user.edges.first.bidirectional).to be(false)
       end
 
       it "When an user try follow multiple times" do

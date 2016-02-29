@@ -44,9 +44,10 @@ module SocialFramework
     # ====== Params:
     # +user+:: +User+ to follow
     # +active+:: +Boolean+ define relationship like active or inactive
+    # +bidirectional+:: +Boolean+ define relationship is bidirectional or not
     # Returns Relationship type or a new edge relationship
-    def follow(user, active=true)
-      UserHelper.create_relationship(self, user, "following", active)
+    def follow(user, active=true, bidirectional=false)
+      UserHelper.create_relationship(self, user, "following", active, bidirectional)
     end
 
     # Unfollow someone user
@@ -61,10 +62,11 @@ module SocialFramework
     # ====== Params:
     # +user+:: +User+ to add as a friend
     # +active+:: +Boolean+ define relationship like active or inactive
+    # +bidirectional+:: +Boolean+ define relationship is bidirectional or not
     # Returns Relationship types between the users
-    def add_friend(user, active=false)
-      UserHelper.create_relationship(self, user, "friend", active)
-      UserHelper.create_relationship(user, self, "friend", active)
+    def add_friend(user, active=false, bidirectional=true)
+      UserHelper.create_relationship(self, user, "friend", active, bidirectional)
+      UserHelper.create_relationship(user, self, "friend", active, bidirectional)
     end
 
     # Confirm frindshipe

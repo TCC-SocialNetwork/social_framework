@@ -58,6 +58,7 @@ module SocialFramework
         expect(@user.edges.first.relationships.count).to eq(1)
         expect(@user.edges.first.relationships.first.label).to eq("following")
         expect(@user.edges.first.edge_relationships.first.active).to be(true)
+        expect(@user.edges.first.bidirectional).to be(false)
       end
 
       it "When the relationship should be inactive" do
@@ -101,11 +102,13 @@ module SocialFramework
         expect(@user.edges.first.relationships.count).to eq(1)
         expect(@user.edges.first.relationships.first.label).to eq("friend")
         expect(@user.edges.first.edge_relationships.first.active).to be(false)
+        expect(@user.edges.first.bidirectional).to be(true)
 
         expect(@user2.edges.count).to eq(1)
         expect(@user2.edges.first.relationships.count).to eq(1)
         expect(@user2.edges.first.relationships.first.label).to eq("friend")
         expect(@user2.edges.first.edge_relationships.first.active).to be(false)
+        expect(@user2.edges.first.bidirectional).to be(true)
       end
 
       it "When two users try add each other as a friend" do
@@ -157,9 +160,11 @@ module SocialFramework
         expect(@user.edges.count).to eq(1)
         expect(@user.edges.first.relationships.count).to eq(1)
         expect(@user.edges.first.edge_relationships.first.active).to be(true)
+        expect(@user.edges.first.bidirectional).to be(true)
         expect(@user2.edges.count).to eq(1)
         expect(@user2.edges.first.relationships.count).to eq(1)
         expect(@user2.edges.first.edge_relationships.first.active).to be(true)
+        expect(@user2.edges.first.bidirectional).to be(true)
       end
     end
   end
