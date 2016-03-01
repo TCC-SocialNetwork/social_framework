@@ -4,8 +4,6 @@ module SocialFramework
   class User < ActiveRecord::Base
     include UserHelper
 
-    has_many :edges, class_name: "SocialFramework::Edge", foreign_key: "origin_id"
-
     # Username or email to search
     attr_accessor :login
 
@@ -13,6 +11,12 @@ module SocialFramework
     # :confirmable, :lockable, :timeoutable and :omniauthable
     devise :database_authenticatable, :registerable,
            :recoverable, :rememberable, :trackable, :validatable
+
+    # Get all related edges with origin or destiny equal self
+    # Returns Related edges with self
+    def edges
+      Edge.where(["origin_id = :id OR destiny_id = :id", { id: id }])
+    end
 
     # Get login if not blank, username or email
     # Used to autenticate in system
@@ -66,7 +70,6 @@ module SocialFramework
     # Returns Relationship types between the users
     def add_friend(user, active=false, bidirectional=true)
       UserHelper.create_relationship(self, user, "friend", active, bidirectional)
-      UserHelper.create_relationship(user, self, "friend", active, bidirectional)
     end
 
     # Confirm frindshipe
@@ -77,20 +80,14 @@ module SocialFramework
       return if user.nil? or user == self
 
       relationship = Relationship.find_by label: "friend"
-      edge_origin = self.edges.select { |edge| edge.destiny == user }.first
-      edge_destiny = user.edges.select { |edge| edge.destiny == self }.first
+      edge = self.edges.select { |edge| edge.origin == user }.first
 
-      unless edge_origin.nil? or edge_destiny.nil? or relationship.nil?
-        edge_relationship_origin = edge_origin.edge_relationships.select { |edge_relationship|
-            edge_relationship.relationship == relationship }.first
-        edge_relationship_destiny = edge_destiny.edge_relationships.select { |edge_relationship|
+      unless edge.nil? or relationship.nil?
+        edge_relationship = edge.edge_relationships.select { |edge_relationship|
             edge_relationship.relationship == relationship }.first
 
-        edge_relationship_origin.active = true
-        edge_relationship_origin.save
-        
-        edge_relationship_destiny.active = true
-        edge_relationship_destiny.save
+        edge_relationship.active = true
+        edge_relationship.save
       end
     end    
   end

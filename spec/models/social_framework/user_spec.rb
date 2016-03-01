@@ -166,6 +166,14 @@ module SocialFramework
         expect(@user2.edges.first.edge_relationships.first.active).to be(true)
         expect(@user2.edges.first.bidirectional).to be(true)
       end
+
+      it "When user suggested friendship try confirm" do
+        @user.add_friend(@user2)
+        @user.confirm_friendship(@user2)
+
+        expect(@user.edges.first.edge_relationships.first.active).to be(false)
+        expect(@user2.edges.first.edge_relationships.first.active).to be(false)
+      end
     end
   end
 end

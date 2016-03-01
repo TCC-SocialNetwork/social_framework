@@ -1,4 +1,5 @@
 module SocialFramework
+  # Helper methods to user
   module UserHelper
     # Create relationship beteween users
     # ====== Params:
@@ -11,7 +12,12 @@ module SocialFramework
     def self.create_relationship(user_origin, user_destiny, label, active=false, bidirectional=true)
       return if user_origin.nil? or user_destiny.nil? or user_destiny == user_origin
       
-      edge = Edge.find_or_create_by(origin: user_origin, destiny: user_destiny, bidirectional: bidirectional)
+      edge = Edge.where(["origin_id = :origin_id AND destiny_id = :destiny_id OR 
+        destiny_id = :origin_id AND origin_id = :destiny_id",
+        { origin_id: user_origin.id, destiny_id: user_destiny.id }]).first
+
+      edge = Edge.create origin: user_origin, destiny: user_destiny, bidirectional: bidirectional if edge.nil?
+
       relationship = Relationship.find_or_create_by(label: label)
       unless edge.relationships.include? relationship
         EdgeRelationship.create(edge: edge, relationship: relationship, active: active)
@@ -29,8 +35,8 @@ module SocialFramework
 
       edge = Edge.where(origin: user_origin, destiny: user_destiny).first
       unless edge.nil?
-        edge.relationships.each { |r| edge.relationships.destroy(r) if r.label == label }
-        user_origin.edges.destroy(edge) if edge.relationships.empty?
+        edge.relationships.each { |r| edge.relationships.destroy(r.id) if r.label == label }
+        user_origin.edges.destroy(edge.id) if edge.relationships.empty?
       end
     end
   end
