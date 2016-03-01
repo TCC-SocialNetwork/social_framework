@@ -1,7 +1,12 @@
 # Social Framework ![License MIT](https://go-shields.herokuapp.com/license-MIT-blue.png)
 
 ----
-[![Build Status](https://travis-ci.org/TCC-SocialNetwork/social_framework.svg)](https://travis-ci.org/TCC-SocialNetwork/social_framework)	[![Code Climate](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/badges/gpa.svg)](https://codeclimate.com/github/TCC-SocialNetwork/social_framework)	[![Test Coverage](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/badges/coverage.svg)](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/coverage)	[![Inline docs](http://inch-ci.org/github/TCC-SocialNetwork/social_framework.svg)](http://inch-ci.org/github/TCC-SocialNetwork/social_framework)	[![Stories in Ready](https://badge.waffle.io/TCC-SocialNetwork/social_framework.png?label=ready&title=Ready)](http://waffle.io/TCC-SocialNetwork/social_framework)	[![Stories in Progress](https://badge.waffle.io/TCC-SocialNetwork/social_framework.png?label=in%20progress&title=In%20Progress)](http://waffle.io/TCC-SocialNetwork/social_framework)
+[![Build Status](https://travis-ci.org/TCC-SocialNetwork/social_framework.svg)](https://travis-ci.org/TCC-SocialNetwork/social_framework)
+[![Code Climate](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/badges/gpa.svg)](https://codeclimate.com/github/TCC-SocialNetwork/social_framework)
+[![Test Coverage](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/badges/coverage.svg)](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/coverage)
+[![Inline docs](http://inch-ci.org/github/TCC-SocialNetwork/social_framework.svg)](http://inch-ci.org/github/TCC-SocialNetwork/social_framework)
+[![Stories in Ready](https://badge.waffle.io/TCC-SocialNetwork/social_framework.png?label=ready&title=Ready)](http://waffle.io/TCC-SocialNetwork/social_framework)
+[![Stories in Progress](https://badge.waffle.io/TCC-SocialNetwork/social_framework.png?label=in%20progress&title=In%20Progress)](http://waffle.io/TCC-SocialNetwork/social_framework)
 
 ----
 # What is SocialFramework?
@@ -14,6 +19,32 @@ In Routes the Framework provides resources to define routes to users in differen
 And in Schedulers, provides resources to define schedules to users and attempts to relate this schedules.
 
 > Therefore, the SocialFramework can help build Social Networks general or specifics in a way faster and practical and without not worry with recurring problems in this type of system.
+
+----
+# Install
+
+> Currently the SocialFramework is not present in RubyGems. To use it you need to clone this repository, below the steps required for installation are presented.
+
+> Clone this repository:
+
+```console
+git clone https://github.com/TCC-SocialNetwork/social_framework.git
+```
+
+> Adding the following line in your Gemfile:
+
+```ruby
+gem 'social_framework', path: 'path/to/social_framework'
+```
+
+> The path is the locale of clone done.
+After adding gem in your Gemfile intall it:
+
+```console
+bundle install
+```
+
+> This will be add the SocialFramework to your app.
 
 ----
 # Author
