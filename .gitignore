@@ -36,4 +36,6 @@ Gemfile.lock
 
 *.log
 log
+
 spec/dummy/db
+db/tmp
