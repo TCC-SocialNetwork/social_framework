@@ -3,25 +3,27 @@ require 'devise'
 module SocialFramework
   class Engine < ::Rails::Engine
     isolate_namespace SocialFramework
+    
+    unless /[\w]+$/.match(Dir.pwd).to_s == "social_framework"
+      initializer :append_migrations do |app|
+        path = config.paths["db"].expanded.first
 
-    initializer :append_migrations do |app|
-      path = config.paths["db"].expanded.first
+        FileUtils.rm_rf("#{path}/tmp")
+        FileUtils.mkdir_p("#{path}/tmp/migrate")
 
-      FileUtils.rm_rf("#{path}/tmp")
-      FileUtils.mkdir_p("#{path}/tmp/migrate")
+        migrations_app = Dir.glob(app.config.paths["db/migrate"].first + "/*")
+        migrations_framework = Dir.glob(config.paths["db/migrate"].first + "/*")
 
-      migrates_app = Dir.glob(app.config.paths["db/migrate"].first + "/*")
-      migrates_framework = Dir.glob(config.paths["db/migrate"].first + "/*")
-
-      migrates_framework.each do |m|
-        migrate = m.to_s.scan(/([a-zA-Z_]+[^rb])/).last.first
-        unless migrates_app.any? { |m_app| m_app.include?(migrate) }
-          result = m.split("/").last
-          FileUtils.cp(m, "#{path}/tmp/migrate/#{result}")
+        migrations_framework.each do |m|
+          migrate = m.to_s.scan(/([a-zA-Z_]+[^rb])/).last.first
+          unless migrations_app.any? { |m_app| m_app.include?(migrate) }
+            result = m.split("/").last
+            FileUtils.cp(m, "#{path}/tmp/migrate/#{result}")
+          end
         end
+        
+        app.config.paths["db/migrate"] << "#{path}/tmp/migrate"
       end
-      
-      app.config.paths["db/migrate"] << "#{path}/tmp/migrate"
     end
 
     config.generators do |g|

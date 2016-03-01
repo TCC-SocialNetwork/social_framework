@@ -1,6 +1,6 @@
 module SocialFramework
   module Generators
-    # Generator to add de principal devise files and configurations
+    # Generator to add the principal devise files and configurations
     class InstallDeviseGenerator < Rails::Generators::Base
 
       source_root File.expand_path('../../templates/', __FILE__)
