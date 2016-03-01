@@ -2,8 +2,6 @@ module SocialFramework
 
   # User class based in devise, represents the user entity to authenticate in system
   class User < ActiveRecord::Base
-    include UserHelper
-
     # Username or email to search
     attr_accessor :login
 
@@ -66,22 +64,33 @@ module SocialFramework
       end
     end
 
-    # Unfollow someone user
+    # Remove relationship beteween users
     # ====== Params:
-    # +user+:: +User+ to unfollow
+    # +destiny+:: +User+ relationship destiny
+    # +label+:: +String+ relationship type
     # Returns Edge of relationship between the users
-    def unfollow(user)
-      UserHelper.delete_relationship(self, user, "following")
+    def remove_relationship(destiny, label)
+      return if destiny.nil? or destiny == self
+
+      edge = Edge.where(["origin_id = :origin_id AND destiny_id = :destiny_id OR 
+        destiny_id = :origin_id AND origin_id = :destiny_id",
+        { origin_id: self.id, destiny_id: destiny.id }]).first
+
+      unless edge.nil?
+        edge.relationships.each { |r| edge.relationships.destroy(r.id) if r.label == label }
+        self.edges.destroy(edge.id) if edge.relationships.empty?
+      end
     end
 
-    # Confirm frindshipe
+    # Confirm relationship
     # ====== Params:
-    # +user+:: +User+ to add as a friend
+    # +user+:: +User+ to confirm
+    # +label+:: +Label+ to confirm
     # Returns Relationship types between the users
-    def confirm_friendship(user)
+    def confirm_relationship(user, label)
       return if user.nil? or user == self
 
-      relationship = Relationship.find_by label: "friend"
+      relationship = Relationship.find_by label: label
       edge = self.edges.select { |edge| edge.origin == user }.first
 
       unless edge.nil? or relationship.nil?

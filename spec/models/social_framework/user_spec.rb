@@ -116,48 +116,66 @@ module SocialFramework
       end
     end
 
-    describe "Unfollow" do
+    describe "Remove relationships" do
       before(:each) do
         @user = create(:user)
         @user2 = create(:user2)
       end
-      it "When the an user unfollow other user" do
-        @user.create_relationship(@user2, "following", true, false)
-        
-        @user.unfollow(@user2)
+      it "When the user is nil" do
+        result = @user.remove_relationship(nil, "new_relationship")
+        expect(result).to be_nil
+      end
+
+      it "When the relationship not exist" do
+        result = @user.remove_relationship(@user2, "new_relationship")
+        expect(result).to be_nil
+      end
+
+      it "When delete a relationship with same user" do
+        result = @user.remove_relationship(@user, "new_relationship")
+        expect(result).to be_nil
+      end
+
+      it "When the an user remove a relationship" do
+        @user.create_relationship(@user2, "new_relationship")
+        expect(@user.edges.count).to eq(1)
+        expect(@user.edges.first.relationships.count).to eq(1)
+
+        @user.remove_relationship(@user2, "new_relationship")
         expect(@user.edges).to be_empty
       end
 
-      it "When an user unfollow other user with multiple relationships" do
-        @user.create_relationship(@user2, "following", true, false)
-        relationship = create(:relationship)
-        @user.edges.first.relationships << relationship
+      it "When exist multiple relationships" do
+        @user.create_relationship(@user2, "new_relationship")
+        @user.create_relationship(@user2, "other_relationship")
         expect(@user.edges.first.relationships.count).to eq(2)
-        @user.unfollow(@user2)
+
+        @user.remove_relationship(@user2, "new_relationship")
         expect(@user.edges.first.relationships.count).to eq(1)
+        expect(@user.edges.first.relationships.first.label).to eq("other_relationship")
       end
     end
 
-    describe "Confirm friendship" do
+    describe "Confirm relationship" do
       before(:each) do
         @user = create(:user)
         @user2 = create(:user2)
       end
 
-      it "When friendship is invalid" do
-        result = @user.confirm_friendship(@user2)
+      it "When relationship is invalid" do
+        result = @user.confirm_relationship(@user2, "new_relationship")
         expect(result).to be_nil
 
-        result = @user.confirm_friendship(nil)
+        result = @user.confirm_relationship(nil, "new_relationship")
         expect(result).to be_nil
 
-        result = @user.confirm_friendship(@user)
+        result = @user.confirm_relationship(@user, "new_relationship")
         expect(result).to be_nil
       end
 
-      it "When friendship is valid" do
-        @user.create_relationship(@user2, "friend")
-        @user2.confirm_friendship(@user)
+      it "When relationship is valid" do
+        @user.create_relationship(@user2, "new_relationship")
+        @user2.confirm_relationship(@user, "new_relationship")
 
         expect(@user.edges.count).to eq(1)
         expect(@user.edges.first.relationships.count).to eq(1)
@@ -169,9 +187,9 @@ module SocialFramework
         expect(@user2.edges.first.bidirectional).to be(true)
       end
 
-      it "When user suggested friendship try confirm" do
-        @user.create_relationship(@user2, "friend")
-        @user.confirm_friendship(@user2)
+      it "When user suggested relationship try confirm" do
+        @user.create_relationship(@user2, "new_relationship")
+        @user.confirm_relationship(@user2, "new_relationship")
 
         expect(@user.edges.first.edge_relationships.first.active).to be(false)
         expect(@user2.edges.first.edge_relationships.first.active).to be(false)
