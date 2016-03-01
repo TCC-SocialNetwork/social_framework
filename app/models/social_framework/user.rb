@@ -44,14 +44,26 @@ module SocialFramework
       end
     end
 
-    # Follow someone user
+    # Create relationship beteween users
     # ====== Params:
-    # +user+:: +User+ to follow
+    # +destiny+:: +User+ relationship destiny
+    # +label+:: +String+ relationship type
     # +active+:: +Boolean+ define relationship like active or inactive
     # +bidirectional+:: +Boolean+ define relationship is bidirectional or not
     # Returns Relationship type or a new edge relationship
-    def follow(user, active=true, bidirectional=false)
-      UserHelper.create_relationship(self, user, "following", active, bidirectional)
+    def create_relationship(destiny, label, active=false, bidirectional=true)
+      return if destiny.nil? or destiny == self
+      
+      edge = Edge.where(["origin_id = :origin_id AND destiny_id = :destiny_id OR 
+        destiny_id = :origin_id AND origin_id = :destiny_id",
+        { origin_id: self.id, destiny_id: destiny.id }]).first
+
+      edge = Edge.create origin: self, destiny: destiny, bidirectional: bidirectional if edge.nil?
+
+      relationship = Relationship.find_or_create_by(label: label)
+      unless edge.relationships.include? relationship
+        EdgeRelationship.create(edge: edge, relationship: relationship, active: active)
+      end
     end
 
     # Unfollow someone user
@@ -60,16 +72,6 @@ module SocialFramework
     # Returns Edge of relationship between the users
     def unfollow(user)
       UserHelper.delete_relationship(self, user, "following")
-    end
-
-    # Add someone user as a friend
-    # ====== Params:
-    # +user+:: +User+ to add as a friend
-    # +active+:: +Boolean+ define relationship like active or inactive
-    # +bidirectional+:: +Boolean+ define relationship is bidirectional or not
-    # Returns Relationship types between the users
-    def add_friend(user, active=false, bidirectional=true)
-      UserHelper.create_relationship(self, user, "friend", active, bidirectional)
     end
 
     # Confirm frindshipe
