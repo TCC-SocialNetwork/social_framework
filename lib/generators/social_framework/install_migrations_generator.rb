@@ -18,11 +18,13 @@ module SocialFramework
 
         if options[:migrations]
           options[:migrations].each do |migrate|
-            migrate = "social_framework_#{migrate.pluralize}.rb"
-            migrate = migrations.select { |m| m.include?(migrate) }.first
-            unless migrate.nil? and migrate.empty?
-              file = migrate.split("/").last
-              copy_file migrate, "db/migrate/#{file}"
+            file = "social_framework_#{migrate.pluralize}.rb"
+            file = migrations.select { |m| m.include?(file) }.first
+            unless file.nil? or file.empty?
+              file_name = file.split("/").last
+              copy_file file, "db/migrate/#{file_name}"
+            else
+              puts "Could not find migration: '#{migrate}'"
             end
           end
         else
