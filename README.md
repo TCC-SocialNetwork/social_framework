@@ -53,11 +53,11 @@ bundle install
 The User class already is implemented in SocialFramework and some changes have been applied, like adding username attribute and the behaviors to relatinships betweens users.
 The controllers and views of the devise also has been changed to add new updates.
 
-> Initially, some files should be add to app. These files represent the settings to devise with a initializer, the routes and the views registrations and sessions to create and authenticate users.
+> Initially, some files should be add to app. These files represent the settings to SocialFramework and devise with a initializer, the routes and the views registrations and sessions to create and authenticate users.
 To this you should execute:
 
 ```console
-rails generate social_framework:install_devise
+rails generate social_framework:install
 ```
 
 > This command will create file "config/initializers/devise.rb" containing devise configurations, add routes "devise_for" to map devise controllers and the views in "app/views".

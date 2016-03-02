@@ -100,6 +100,6 @@ module SocialFramework
         edge_relationship.active = true
         edge_relationship.save
       end
-    end    
+    end
   end
 end

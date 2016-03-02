@@ -1,9 +1,9 @@
 require "generator_spec"
-require File.expand_path('../../../../lib/generators/social_framework/install_devise_generator', __FILE__)
+require File.expand_path('../../../../lib/generators/social_framework/install_generator', __FILE__)
 
 module SocialFramework
   module Generators
-    RSpec.describe InstallDeviseGenerator, type: :generator do
+    RSpec.describe InstallGenerator, type: :generator do
       destination File.expand_path("../../tmp", __FILE__)
 
       before(:all) do
@@ -20,6 +20,12 @@ module SocialFramework
 
       after(:all) do
         FileUtils.rm_rf("spec/generators/tmp")
+      end
+
+      describe "SocialFramework install" do
+        it "Verify social_framework.rb file" do
+          expect(File).to exist("#{destination_root}/config/initializers/social_framework.rb")
+        end
       end
 
       describe "Devise install" do
