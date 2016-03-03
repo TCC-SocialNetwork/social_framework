@@ -17,6 +17,11 @@ module SocialFramework
         copy_file "initializers/devise.rb", "config/initializers/devise.rb"
       end
 
+      # Copy translate file to app, this file is used to define devise configurations
+      def copy_translate_file
+        copy_file "../../../config/locales/devise.en.yml", "config/locales/devise.en.yml"
+      end
+
       # Add devise routes to app maped to framework controllers
       def add_devise_routes
       	devise_route = "devise_for :users, class_name: 'SocialFramework::User',\n" <<

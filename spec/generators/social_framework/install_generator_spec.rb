@@ -33,6 +33,10 @@ module SocialFramework
           expect(File).to exist("#{destination_root}/config/initializers/devise.rb")
         end
 
+        it "Verify translate file" do
+          expect(File).to exist("#{destination_root}/config/locales/devise.en.yml")
+        end
+
         it "Verify routes" do
           routes = File.read("#{destination_root}/config/routes.rb")
           expect(routes).to include("devise_for :users, class_name: 'SocialFramework::User'")

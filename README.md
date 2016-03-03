@@ -49,18 +49,18 @@ bundle install
 ----
 # Getting started
 
-> The SocialFramework uses devise to provides the users's authentication, for a complete documentation to devise see: https://github.com/plataformatec/devise.
+> The SocialFramework is based on Devise to provides the users's authentication, for a full documentation to Devise see: https://github.com/plataformatec/devise.
 The User class already is implemented in SocialFramework and some changes have been applied, like adding username attribute and the behaviors to relatinships betweens users.
-The controllers and views of the devise also has been changed to add new updates.
+The controllers and views of the Devise also has been changed to add new updates.
 
-> Initially, some files should be add to app. These files represent the settings to SocialFramework and devise with a initializer, the routes and the views registrations and sessions to create and authenticate users.
+> Initially, some files should be add to app. These files represent the settings to SocialFramework and Devise with a initializer, the routes and the views registrations and sessions to create and authenticate users.
 To this you should execute:
 
 ```console
 rails generate social_framework:install
 ```
 
-> This command will create file "config/initializers/devise.rb" containing devise configurations, add routes "devise_for" to map devise controllers and the views in "app/views".
+> This command will create file "config/initializers/devise.rb" containing Devise configurations, add routes "devise_for" to map Devise controllers and the views in "app/views".
 With this your app is prepared to use users module with configurations and behaviors defaults.
 
 > To test your app remember execute migrations:
@@ -74,6 +74,37 @@ rake db:migrate
 
 > To authentication page access "/users/sign_in" route, this page is prepared to authenticate users with email or username.
 To create user page access "/users/sign_up" route, creating a new user you will be automatically connected.
+
+----
+# Controllers filters and helpers
+
+> Devise provides some elements to use in your controllers and views. To set up a controller with user authentication, just add this before_action (This works because the SocialFramework already contains User class):
+
+```ruby
+before_action :authenticate_user!
+```
+
+> Other elements are:
+
+```ruby
+user_signed_in?
+```
+
+> To verify if user is signed in.
+
+```ruby
+current_user
+```
+
+> To get current signed-in user.
+
+```ruby
+user_session
+```
+
+> To access the session for this scope.
+
+> After signing in a user, confirming the account or updating the password, Devise will look for a scoped root path to redirect to. You can change this overriding the methods `after_sign_in_path_for` and `after_sign_out_path_for`.
 
 ----
 # Authors
