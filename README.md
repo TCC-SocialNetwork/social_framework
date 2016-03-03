@@ -107,6 +107,103 @@ user_session
 > After signing in a user, confirming the account or updating the password, Devise will look for a scoped root path to redirect to. You can change this overriding the methods `after_sign_in_path_for` and `after_sign_out_path_for`.
 
 ----
+# Configuring Models
+
+> The User class in SocialFramework implements default modules from Devise. See Devise documentation to know all Devise modules and your features.
+
+> Beyond Devise, the User class has methods that implements the behaviors to users relatinships.
+You can override any behavior extending the class in other model, like:
+
+```ruby
+class OtherUserClass < SocialFramework::User
+  # Your code goes here
+end
+```
+
+----
+## Configuring Migrations
+
+> The User class provides the default attributes username, email and password.
+To add or remove attributes to this or any other class you can add the Migrate in yor app.
+The SocialFramework provides a generator to do this, in this case you just need execute:
+
+```console
+rails generate social_framework:install_migrations -m user
+```
+
+> The User migrate will be added in your app and you can change it according your needs.
+The '-m' parameter is used generate specific migrations, expect the migrations names. If not exist all migrations will be generated.
+
+> Case you add or remove attributes to User you must notify Devise, using a simple before filter in your ApplicationController:
+
+```ruby
+class ApplicationController < ActionController::Base
+  before_action :configure_permitted_parameters, if: :devise_controller?
+
+  protected
+
+  def configure_permitted_parameters
+    devise_parameter_sanitizer.for(:sign_up) << :new_attribute
+    devise_parameter_sanitizer.for(:account_update) << :new_attribute
+  end
+end
+```
+
+> This make that sign_up and account_update receives the new attribute. You can use remove method to remove attributes existing.
+It's equals to others actions, like sign_in.
+
+----
+# Configuring Controllers
+
+> All Devise controllers can be extended and have your overridden methods:
+
+```ruby
+class OtherRegistrationControllerClass < Users::RegistrationsController
+  # Your code goes here
+end
+```
+
+> Other controllers are: confirmations, omniauth_callbacks, passwords, sessions and unlocks.
+To use omniauth_callbacks, unlocks and confirmations it's necessary add Devise modules matching.
+All Devise controllers in SocialFramework have prefix Users.
+
+----
+## Configuring Routes
+
+> When you override some Devise controller you must be define that new controller in your routes.
+This can be done changing path to controller in deviser_for, like this:
+
+```ruby
+devise_for :users, class_name: 'SocialFramework::User',
+  controllers: {sessions: 'users/sessions',
+                registrations: 'new_registration_controller_path',
+                passwords: 'users/passwords'}
+```
+
+> To registrations controller was replaced with a new controller and that controller was added in routes.
+
+----
+# Configuring Views
+
+> To add Devise's views in your app the SocialFramework provides a generator thats should be run like this:
+
+```console
+rails generate social_framework:views
+```
+
+> This command will add all views to your app.
+
+> To add specific views you can use '-v' parameter and pass the views names, like this:
+
+```console
+rails generate social_framework:views -v registrations sessions passwords
+```
+
+> This command will add views registrations, sessions and passwords to your app.
+The other views are: confirmations, mailer and unlocks.
+Initially the SocialFramework add views registrations and sessions to your app providing authentication and register to users.
+
+----
 # Authors
 
 * Jefferson Nunes de Sousa Xavier
