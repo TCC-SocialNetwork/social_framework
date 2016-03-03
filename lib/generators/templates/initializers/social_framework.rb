@@ -8,7 +8,7 @@ SocialFramework.setup do |config|
   # config.amount_of_bidirectional_relationships = 5
 
   # Define the quantity of levels on mount graph to search
-  # config.levels_to_mount_graph = 3
+  # config.depth_to_mount_graph = 3
 
   # Type relationships to suggest new bidirectional relationships
   # config.relationship_type_to_bidirectional_suggest = "friend"

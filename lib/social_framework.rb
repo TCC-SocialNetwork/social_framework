@@ -13,8 +13,8 @@ module SocialFramework
   @@amount_of_bidirectional_relationships = 5
 
   # Define the quantity of levels on mount graph to search
-  mattr_accessor :levels_to_mount_graph
-  @@levels_to_mount_graph = 3
+  mattr_accessor :depth_to_mount_graph
+  @@depth_to_mount_graph = 3
   
   # Type relationships to suggest new bidirectional relationships
   mattr_accessor :relationship_type_to_bidirectional_suggest
