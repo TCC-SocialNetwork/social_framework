@@ -24,6 +24,8 @@ module SocialFramework
   mattr_accessor :relationship_type_to_unidirectional_suggest
   @@relationship_type_to_unidirectional_suggest = "follow"
 
+  # Used to change variables in configuration
+  # Retuns a block to self
   def self.setup
     yield self
   end

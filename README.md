@@ -13,17 +13,17 @@
 
 > The SocialFramework is a Rails Engine that helps developers build Social Networks providing common and specific resources to this.
 
-> SocialFramework is divided in three modules, which are: Users, Routes and Schedulers.
-In Users module the principal resources to users are providing, like authentication, register, relationships and searchs.
+> SocialFramework is divided into three modules, which are: Users, Routes and Schedulers.
+In Users module the principal resources to users are provided, like authentication, register, relationships and searchs.
 In Routes the Framework provides resources to define routes to users in different situations and provides ways to work this.
 And in Schedulers, provides resources to define schedules to users and attempts to relate this schedules.
 
-> Therefore, the SocialFramework can help build Social Networks general or specifics in a way faster and practical and without not worry with recurring problems in this type of system.
+> Therefore, the SocialFramework can help build general or specifics social networks in a way faster and practical and without not worry with recurring problems in this type of system.
 
 ----
 # Install
 
-> Currently the SocialFramework is not present in RubyGems. To use it you need to clone this repository, below the steps required for installation are presented.
+> Currently the SocialFramework is not present in RubyGems. To use it you need to clone this repository, the steps to install it are presented below.
 
 > Clone this repository:
 
@@ -37,30 +37,30 @@ git clone https://github.com/TCC-SocialNetwork/social_framework.git
 gem 'social_framework', path: 'path/to/social_framework'
 ```
 
-> The path is the locale of clone done.
-After adding gem in your Gemfile intall it:
+> The path described above should be changed to the path you did the clone.
+After adding gem in your Gemfile, intall it with the command:
 
 ```console
 bundle install
 ```
 
-> This will be add the SocialFramework to your app.
+> This will add the SocialFramework to your app.
 
 ----
 # Getting started
 
-> The SocialFramework is based on Devise to provides the users's authentication, for a full documentation to Devise see: https://github.com/plataformatec/devise.
-The User class already is implemented in SocialFramework and some changes have been applied, like adding username attribute and the behaviors to relatinships betweens users.
-The controllers and views of the Devise also has been changed to add new updates.
+> The SocialFramework is based on Devise, which is a ... that provides the users' authentication, for a full documentation to Devise see: https://github.com/plataformatec/devise.
+The User class already is implemented in SocialFramework and some changes have been applied, like adding username attribute and the behaviors to relationships betweens users.
+The controllers and views of the Devise also has been changed to add new features.
 
-> Initially, some files should be add to app. These files represent the settings to SocialFramework and Devise with a initializer, the routes and the views registrations and sessions to create and authenticate users.
+> Initially, some files should be added to app. These files represent the settings to SocialFramework and Devise with initializers, the i18n file to Devise, the routes and the views registrations and sessions to create and authenticate users.
 To this you should execute:
 
 ```console
 rails generate social_framework:install
 ```
 
-> This command will create file "config/initializers/devise.rb" containing Devise configurations, add routes "devise_for" to map Devise controllers and the views in "app/views".
+> This command will create file "config/initializers/devise.rb" containing Devise configurations, the file "config/initializers/social_framework.rb" with SocialFramework configurations, the i18n file to Devise, add routes "devise_for" to map Devise controllers and the views in "app/views".
 With this your app is prepared to use users module with configurations and behaviors defaults.
 
 > To test your app remember execute migrations:
@@ -111,7 +111,7 @@ user_session
 
 > The User class in SocialFramework implements default modules from Devise. See Devise documentation to know all Devise modules and your features.
 
-> Beyond Devise, the User class has methods that implements the behaviors to users relatinships.
+> Beyond Devise, the User class has methods that implements the behaviors to users relationships.
 You can override any behavior extending the class in other model, like:
 
 ```ruby
