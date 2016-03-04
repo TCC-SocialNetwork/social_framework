@@ -191,24 +191,30 @@ module SocialFramework
         @user4.create_relationship @user5, "r1"
 
         @graph = NetworkHelper::Graph.new
-        @graph.send(:add_vertex, @user)
+        @root_vertex = @graph.send(:add_vertex, @user)
         @relationships = @graph.send(:get_relationships, "all")
       end
 
       it "When use default depth" do
-        @graph.send(:populate_network, @user, @relationships, false, 1)
+        @graph.send(:populate_network, @root_vertex, @user, @relationships, false, 1)
         expect(@graph.network.count).to be(5)
+
+        expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(2)
+        expect(@graph.network.select { |v| v.id == 2 }.first.edges.count).to be(1)
+        expect(@graph.network.select { |v| v.id == 3 }.first.edges).to be_empty
+        expect(@graph.network.select { |v| v.id == 4 }.first.edges.count).to be(2)
+        expect(@graph.network.select { |v| v.id == 5 }.first.edges).to be_empty
       end
 
       it "When use depth equal 1" do
         @graph.depth = 1
-        @graph.send(:populate_network, @user, @relationships, false, 1)
+        @graph.send(:populate_network, @root_vertex, @user, @relationships, false, 1)
         expect(@graph.network.count).to be(3)
       end
 
       it "When use depth equal 2" do
         @graph.depth = 2
-        @graph.send(:populate_network, @user, @relationships, false, 1)
+        @graph.send(:populate_network, @root_vertex, @user, @relationships, false, 1)
         expect(@graph.network.count).to be(4)
       end
     end

@@ -26,8 +26,8 @@ module SocialFramework
       def mount_graph(root, type_relationships = "all", all_relationships = false)
         relationships = get_relationships(type_relationships)
 
-        add_vertex root
-        populate_network root, relationships, all_relationships, 1
+        root_vertex = add_vertex root
+        populate_network root_vertex, root, relationships, all_relationships, 1
       end
 
       private
@@ -75,16 +75,18 @@ module SocialFramework
         
         vertex = Vertex.new user.id
         @network << vertex
+        return vertex
       end
 
       # Populate network with the users related 
       # ====== Params:
       # +root+:: current +User+ to add
+      # +current_vertex+:: +Vertex+ to root user
       # +relationships+:: +Array+ relationships required to select edges
       # +all_relationships+:: +Boolean+ represents type selection, if is false select the edges thats have any relationship required, if true select just edges thats have all relationships required
       # +current_depth+:: +Integer+ represents depth walked
       # Returns Array network
-      def populate_network root, relationships, all_relationships, current_depth
+      def populate_network current_vertex, root, relationships, all_relationships, current_depth
         return if current_depth > @depth
         edges = get_edges(root.edges, relationships, all_relationships)
 
@@ -92,15 +94,16 @@ module SocialFramework
           user = e.origin unless e.origin == root
           user = e.destiny unless e.destiny == root
 
-          add_vertex user
-          populate_network user, relationships, all_relationships, current_depth + 1
+          new_vertex = add_vertex user
+          current_vertex.add_edge new_vertex
+          populate_network new_vertex, user, relationships, all_relationships, current_depth + 1
         end
       end
     end
 
     # Represent graph's vertex
     class Vertex
-      attr_accessor :id
+      attr_accessor :id, :edges
 
       # Constructor to vertex 
       # ====== Params:
@@ -108,16 +111,30 @@ module SocialFramework
       # Returns Vertex's Instance
       def initialize id = 0
         @id = id
+        @edges = Array.new
       end
       
+      # Overriding equal method to compare vertex by id
+      # Returns true if id is equal or false if not
       def ==(other)
         self.id == other.id
       end
       
       alias :eql? :==
       
+      # Overriding hash method to always equals
+      # Returns 1
       def hash
         1
+      end
+
+      # Add edges to vertex
+      # ====== Params:
+      # +destiny+:: +Vertex+  destiny to edge
+      # Returns Edges with the new addition
+      def add_edge destiny
+        edge = Edge.new self, destiny
+        @edges << edge
       end
     end
     
