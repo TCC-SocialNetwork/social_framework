@@ -1,3 +1,5 @@
+require 'set'
+
 module SocialFramework
   # Module to construct Social Network
   module NetworkHelper
@@ -11,7 +13,7 @@ module SocialFramework
       # +depth+:: +Integer+ depth graph to mounted, default is value defined to 'depth_to_mount_graph' in initializer social_framework.rb
       # Returns Graph's Instance
       def initialize depth = SocialFramework.depth_to_mount_graph
-        @network = Array.new
+        @network = Set.new
         @depth = depth
       end
 
@@ -58,8 +60,9 @@ module SocialFramework
       # Returns Edges selected
       def get_edges edges, relationships, all_relationships
         edges.select do |e|
-          (not (e.relationships & relationships).empty? and not all_relationships) or
-            ((e.relationships & relationships).count == relationships.count and all_relationships)
+          not (@network.include? Vertex.new(e.origin.id) and @network.include? Vertex.new(e.destiny.id)) and
+          ((not (e.relationships & relationships).empty? and not all_relationships) or
+            ((e.relationships & relationships).count == relationships.count and all_relationships))
         end
       end
 
@@ -68,9 +71,10 @@ module SocialFramework
       # +user+:: +User+ to get id
       # Returns Array network
       def add_vertex user
-        return if user.nil? or user.id.nil? or @network.any? {|v| v.id == user.id}
+        return if user.nil? or user.id.nil?
+        
         vertex = Vertex.new user.id
-        @network << vertex 
+        @network << vertex
       end
 
       # Populate network with the users related 
@@ -87,6 +91,7 @@ module SocialFramework
         edges.each do |e|
           user = e.origin unless e.origin == root
           user = e.destiny unless e.destiny == root
+
           add_vertex user
           populate_network user, relationships, all_relationships, current_depth + 1
         end
@@ -100,9 +105,34 @@ module SocialFramework
       # Constructor to vertex 
       # ====== Params:
       # +id+:: +Integer+ user id
-      # Returns Vertex's Instace
-      def initialize id
+      # Returns Vertex's Instance
+      def initialize id = 0
         @id = id
+      end
+      
+      def ==(other)
+        self.id == other.id
+      end
+      
+      alias :eql? :==
+      
+      def hash
+        1
+      end
+    end
+    
+    # Represent the conneciont edges between vertices
+    class Edge
+      attr_accessor :origin, :destiny
+      
+      # Constructor to Edge 
+      # ====== Params:
+      # +origin+:: +Vertex+ relationship origin
+      # +destiny+:: +Vertex+ relationship destiny
+      # Returns Vertex's Instance
+      def initialize origin, destiny
+        @origin = origin
+        @destiny = destiny
       end
     end
   end

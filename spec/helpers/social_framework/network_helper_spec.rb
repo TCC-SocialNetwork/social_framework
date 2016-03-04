@@ -122,6 +122,20 @@ module SocialFramework
         result = @graph.send(:get_edges, @user.edges, relationships, true)
         expect(result.count).to be(1)
       end
+      
+      it "When edge it has been visited" do
+        relationships = @graph.send(:get_relationships, "all")
+        
+        @graph.send(:add_vertex, @user)
+        @graph.send(:get_edges, @user.edges, relationships, false)
+
+        result = @graph.send(:get_edges, @user.edges, relationships, false)
+        expect(result.count).to be(@user.edges.count)
+        
+        @graph.send(:add_vertex, @user2)
+        result = @graph.send(:get_edges, @user2.edges, relationships, false)
+        expect(result.count).to be(0)
+      end
     end
 
     describe "Add vertex" do
@@ -155,9 +169,8 @@ module SocialFramework
         @graph.send(:add_vertex, @user)
         expect(@graph.network.count).to be(1)
 
-        result = @graph.send(:add_vertex, @user)
+        @graph.send(:add_vertex, @user)
         expect(@graph.network.count).to be(1)
-        expect(result).to be_nil
       end
     end
 
