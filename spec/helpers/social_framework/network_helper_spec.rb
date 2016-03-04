@@ -123,5 +123,81 @@ module SocialFramework
         expect(result.count).to be(1)
       end
     end
+
+    describe "Add vertex" do
+      before(:each) do
+        @user = create(:user)
+        @user2 = create(:user2)
+
+        @graph = NetworkHelper::Graph.new
+      end
+
+      it "When user is invalid" do
+        result = @graph.send(:add_vertex, nil)
+        expect(result).to be_nil
+        expect(@graph.network).to be_empty
+
+        user3 = build(:user3, id: nil)
+        @graph.send(:add_vertex, user3)
+        expect(result).to be_nil
+        expect(@graph.network).to be_empty
+      end
+
+      it "When user is valid" do
+        @graph.send(:add_vertex, @user)
+        expect(@graph.network.count).to be(1)
+
+        @graph.send(:add_vertex, @user2)
+        expect(@graph.network.count).to be(2)
+      end
+
+      it "When user is duplicated" do
+        @graph.send(:add_vertex, @user)
+        expect(@graph.network.count).to be(1)
+
+        result = @graph.send(:add_vertex, @user)
+        expect(@graph.network.count).to be(1)
+        expect(result).to be_nil
+      end
+    end
+
+    describe "Populate network" do
+      before(:each) do
+        @user = create(:user)
+        @user2 = create(:user,username: "user2", email: "user2@mail.com")
+        @user3 = create(:user,username: "user3", email: "user3@mail.com")
+        @user4 = create(:user,username: "user4", email: "user4@mail.com")
+        @user5 = create(:user,username: "user5", email: "user5@mail.com")
+
+        @user.create_relationship @user2, "r1"
+        @user.create_relationship @user3, "r1"
+
+        @user2.create_relationship @user4, "r1"
+
+        @user3.create_relationship @user4, "r1"
+        @user4.create_relationship @user5, "r1"
+
+        @graph = NetworkHelper::Graph.new
+        @graph.send(:add_vertex, @user)
+        @relationships = @graph.send(:get_relationships, "all")
+      end
+
+      it "When use default depth" do
+        @graph.send(:populate_network, @user, @relationships, false, 1)
+        expect(@graph.network.count).to be(5)
+      end
+
+      it "When use depth equal 1" do
+        @graph.depth = 1
+        @graph.send(:populate_network, @user, @relationships, false, 1)
+        expect(@graph.network.count).to be(3)
+      end
+
+      it "When use depth equal 2" do
+        @graph.depth = 2
+        @graph.send(:populate_network, @user, @relationships, false, 1)
+        expect(@graph.network.count).to be(4)
+      end
+    end
   end
 end

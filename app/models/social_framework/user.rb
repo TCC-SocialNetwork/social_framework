@@ -13,7 +13,9 @@ module SocialFramework
     # Get all related edges with origin or destiny equal self
     # Returns Related edges with self
     def edges
-      Edge.where(["origin_id = :id OR destiny_id = :id", { id: id }])
+      Edge.where(["(origin_id = :id AND bidirectional = :not_bidirectional) OR
+        (bidirectional = :bidirectional AND (origin_id = :id OR destiny_id = :id))",
+        { id: id, bidirectional: true, not_bidirectional: false }])
     end
 
     # Get login if not blank, username or email
