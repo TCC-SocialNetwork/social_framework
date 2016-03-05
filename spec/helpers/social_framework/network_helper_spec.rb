@@ -56,70 +56,70 @@ module SocialFramework
         @graph = NetworkHelper::Graph.new
       end
 
-      it "When edges is empty" do
+      it "When user is nil" do
         relationships = @graph.send(:get_relationships, "all")
-        result = @graph.send(:get_edges, [], relationships, false)
+        result = @graph.send(:get_edges, nil, relationships, false)
 
         expect(result).to be_empty
       end
 
       it "When relationships is empty" do
-        result = @graph.send(:get_edges, @user.edges, [], false)
+        result = @graph.send(:get_edges, @user, [], false)
         expect(result).to be_empty
       end
 
       it "When can be any relationship" do
         relationships = @graph.send(:get_relationships, "all")
-        result = @graph.send(:get_edges, @user.edges, relationships, false)
+        result = @graph.send(:get_edges, @user, relationships, false)
         
         expect(result.count).to be(@user.edges.count)
       end
 
       it "When can be any relationship in specfic array" do
         relationships = @graph.send(:get_relationships, ["r1", "r2"])
-        result = @graph.send(:get_edges, @user.edges, relationships, false)
+        result = @graph.send(:get_edges, @user, relationships, false)
         expect(result.count).to be(@user.edges.count)
 
         relationships = @graph.send(:get_relationships, ["r1", "r3"])
-        result = @graph.send(:get_edges, @user.edges, relationships, false)
+        result = @graph.send(:get_edges, @user, relationships, false)
         expect(result.count).to be(@user.edges.count)
 
         relationships = @graph.send(:get_relationships, "r2")
-        result = @graph.send(:get_edges, @user.edges, relationships, false)
+        result = @graph.send(:get_edges, @user, relationships, false)
         expect(result.count).to be(@user.edges.count)
 
         relationships = @graph.send(:get_relationships, "r1")
-        result = @graph.send(:get_edges, @user.edges, relationships, false)
+        result = @graph.send(:get_edges, @user, relationships, false)
         expect(result.count).to be(1)
 
         relationships = @graph.send(:get_relationships, "r3")
-        result = @graph.send(:get_edges, @user.edges, relationships, false)
+        result = @graph.send(:get_edges, @user, relationships, false)
         expect(result.count).to be(1)
       end
 
       it "When edge must be all relationships" do
         relationships = @graph.send(:get_relationships, "all")
-        result = @graph.send(:get_edges, @user.edges, relationships, true)
+        result = @graph.send(:get_edges, @user, relationships, true)
         expect(result).to be_empty
 
         relationships = @graph.send(:get_relationships, ["r1", "r2"])
-        result = @graph.send(:get_edges, @user.edges, relationships, true)
+        result = @graph.send(:get_edges, @user, relationships, true)
         expect(result.count).to be(1)
 
         relationships = @graph.send(:get_relationships, ["r1", "r3"])
-        result = @graph.send(:get_edges, @user.edges, relationships, true)
+        result = @graph.send(:get_edges, @user, relationships, true)
         expect(result).to be_empty
 
         relationships = @graph.send(:get_relationships, "r2")
-        result = @graph.send(:get_edges, @user.edges, relationships, true)
+        result = @graph.send(:get_edges, @user, relationships, true)
         expect(result.count).to be(@user.edges.count)
 
         relationships = @graph.send(:get_relationships, "r1")
-        result = @graph.send(:get_edges, @user.edges, relationships, true)
+        result = @graph.send(:get_edges, @user, relationships, true)
         expect(result.count).to be(1)
 
         relationships = @graph.send(:get_relationships, "r3")
-        result = @graph.send(:get_edges, @user.edges, relationships, true)
+        result = @graph.send(:get_edges, @user, relationships, true)
         expect(result.count).to be(1)
       end
       
@@ -127,13 +127,13 @@ module SocialFramework
         relationships = @graph.send(:get_relationships, "all")
         
         @graph.send(:add_vertex, @user)
-        @graph.send(:get_edges, @user.edges, relationships, false)
+        @graph.send(:get_edges, @user, relationships, false)
 
-        result = @graph.send(:get_edges, @user.edges, relationships, false)
+        result = @graph.send(:get_edges, @user, relationships, false)
         expect(result.count).to be(@user.edges.count)
         
         @graph.send(:add_vertex, @user2)
-        result = @graph.send(:get_edges, @user2.edges, relationships, false)
+        result = @graph.send(:get_edges, @user2, relationships, false)
         expect(result.count).to be(0)
       end
     end

@@ -54,15 +54,21 @@ module SocialFramework
 
       # Select all user's edges with the relationships required
       # ====== Params:
-      # +edges+:: +Array+ all user's edges
+      # +user+:: +User+ to get edges
       # +relationships+:: +Array+ relationships required to select edges
       # +all_relationships+:: +Boolean+ represents type selection, if is false select the edges thats have any relationship required, if true select just edges thats have all relationships required
       # Returns Edges selected
-      def get_edges edges, relationships, all_relationships
-        edges.select do |e|
-          not (@network.include? Vertex.new(e.origin.id) and @network.include? Vertex.new(e.destiny.id)) and
-          ((not (e.relationships & relationships).empty? and not all_relationships) or
-            ((e.relationships & relationships).count == relationships.count and all_relationships))
+      def get_edges user, relationships, all_relationships
+        return [] if user.nil?
+
+        user.edges.select do |e|
+          id = (e.origin.id == user.id) ? e.destiny.id : e.origin.id
+
+          network_include_vertex = @network.include? Vertex.new(id)
+          get_any_relationship = (not (e.relationships & relationships).empty? and not all_relationships)
+          get_all_relationship = ((e.relationships & relationships).count == relationships.count and all_relationships)
+
+          not network_include_vertex and (get_any_relationship or get_all_relationship)
         end
       end
 
@@ -88,11 +94,10 @@ module SocialFramework
       # Returns Array network
       def populate_network current_vertex, root, relationships, all_relationships, current_depth
         return if current_depth > @depth
-        edges = get_edges(root.edges, relationships, all_relationships)
+        edges = get_edges(root, relationships, all_relationships)
 
         edges.each do |e|
-          user = e.origin unless e.origin == root
-          user = e.destiny unless e.destiny == root
+          user = (e.origin == root) ? e.destiny : e.origin
 
           new_vertex = add_vertex user
           current_vertex.add_edge new_vertex
@@ -125,7 +130,7 @@ module SocialFramework
       # Overriding hash method to always equals
       # Returns 1
       def hash
-        1
+        self.id.hash
       end
 
       # Add edges to vertex
