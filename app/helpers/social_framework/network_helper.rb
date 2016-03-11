@@ -13,7 +13,7 @@ module SocialFramework
       # +depth+:: +Integer+ depth graph to mounted, default is value defined to 'depth_to_mount_graph' in initializer social_framework.rb
       # Returns Graph's Instance
       def initialize depth = SocialFramework.depth_to_mount_graph
-        @network = Set.new
+        @network = Array.new
         @depth = depth
       end
 
@@ -26,11 +26,11 @@ module SocialFramework
       def mount_graph(root, type_relationships = "all", all_relationships = false)
         relationships = get_relationships(type_relationships)
 
-        root_vertex = add_vertex root
-        populate_network root_vertex, root, relationships, all_relationships, 1
+        @root = root
+        populate_network relationships, all_relationships
       end
 
-      private
+      protected
       
       # Get relationships in database from labels passed
       # ====== Params:
@@ -54,12 +54,16 @@ module SocialFramework
 
       # Select all user's edges with the relationships required
       # ====== Params:
-      # +user+:: +User+ to get edges
+      # +user_id+:: +User+ to find to get edges
       # +relationships+:: +Array+ relationships required to select edges
       # +all_relationships+:: +Boolean+ represents type selection, if is false select the edges thats have any relationship required, if true select just edges thats have all relationships required
       # Returns Edges selected
-      def get_edges user, relationships, all_relationships
-        return [] if user.nil?
+      def get_edges user_id, relationships, all_relationships
+        begin
+          user = SocialFramework::User.find user_id
+        rescue
+          return []
+        end
 
         user.edges.select do |e|
           id = (e.origin.id == user.id) ? e.destiny.id : e.origin.id
@@ -86,22 +90,37 @@ module SocialFramework
 
       # Populate network with the users related 
       # ====== Params:
-      # +root+:: current +User+ to add
-      # +current_vertex+:: +Vertex+ to root user
       # +relationships+:: +Array+ relationships required to select edges
       # +all_relationships+:: +Boolean+ represents type selection, if is false select the edges thats have any relationship required, if true select just edges thats have all relationships required
-      # +current_depth+:: +Integer+ represents depth walked
       # Returns Array network
-      def populate_network current_vertex, root, relationships, all_relationships, current_depth
-        return if current_depth > @depth
-        edges = get_edges(root, relationships, all_relationships)
+      def populate_network relationships, all_relationships
+        @queue = Array.new
+        @queue << {vertex: Vertex.new(@root.id), depth: 1}
 
-        edges.each do |e|
-          user = (e.origin == root) ? e.destiny : e.origin
+        while not @queue.nil? and not @queue.empty?
+          pair = @queue.shift
+          current_vertex = pair[:vertex]
+          @network << current_vertex
 
-          new_vertex = add_vertex user
-          current_vertex.add_edge new_vertex
-          populate_network new_vertex, user, relationships, all_relationships, current_depth + 1
+          next if pair[:depth] == @depth
+          new_depth = pair[:depth] + 1
+
+          edges = get_edges(current_vertex.id, relationships, all_relationships)
+
+          edges.each do |e|
+            user = (e.origin.id == current_vertex.id) ? e.destiny : e.origin
+
+            pair = @queue.select { |p| p[:vertex].id == user.id }.first
+            new_vertex = pair.nil? ? Vertex.new(user.id) : pair[:vertex]
+            
+            current_vertex.add_edge new_vertex
+            new_vertex.add_edge current_vertex
+
+            if pair.nil? and not @network.include? new_vertex
+              new_pair = {vertex: new_vertex, depth: new_depth}
+              @queue << new_pair
+            end
+          end
         end
       end
     end
@@ -128,7 +147,7 @@ module SocialFramework
       alias :eql? :==
       
       # Overriding hash method to always equals
-      # Returns 1
+      # Returns id hash
       def hash
         self.id.hash
       end
@@ -140,6 +159,10 @@ module SocialFramework
       def add_edge destiny
         edge = Edge.new self, destiny
         @edges << edge
+      end
+
+      def to_s
+        "vertex #{id}"
       end
     end
     
@@ -155,6 +178,10 @@ module SocialFramework
       def initialize origin, destiny
         @origin = origin
         @destiny = destiny
+      end
+
+      def to_s
+        "#{@origin.id} -> #{@destiny.id}"
       end
     end
   end
