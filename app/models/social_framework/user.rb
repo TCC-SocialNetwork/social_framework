@@ -49,21 +49,19 @@ module SocialFramework
     # ====== Params:
     # +destiny+:: +User+ relationship destiny
     # +label+:: +String+ relationship type
-    # +active+:: +Boolean+ define relationship like active or inactive
     # +bidirectional+:: +Boolean+ define relationship is bidirectional or not
+    # +active+:: +Boolean+ define relationship like active or inactive
     # Returns Relationship type or a new edge relationship
-    def create_relationship(destiny, label, active=false, bidirectional=true)
+    def create_relationship(destiny, label, bidirectional=true, active=false)
       return if destiny.nil? or destiny == self
       
-      edge = Edge.where(["origin_id = :origin_id AND destiny_id = :destiny_id OR 
-        destiny_id = :origin_id AND origin_id = :destiny_id",
-        { origin_id: self.id, destiny_id: destiny.id }]).first
+      edge = Edge.where(["(origin_id = :origin_id AND destiny_id = :destiny_id OR 
+        destiny_id = :origin_id AND origin_id = :destiny_id) AND label = :label",
+        { origin_id: self.id, destiny_id: destiny.id, label: label }]).first
 
-      edge = Edge.create origin: self, destiny: destiny, bidirectional: bidirectional if edge.nil?
-
-      relationship = Relationship.find_or_create_by(label: label)
-      unless edge.relationships.include? relationship
-        EdgeRelationship.create(edge: edge, relationship: relationship, active: active)
+      if edge.nil?
+        edge = Edge.create origin: self, destiny: destiny, active: active,
+          bidirectional: bidirectional, label: label
       end
     end
 
@@ -71,37 +69,30 @@ module SocialFramework
     # ====== Params:
     # +destiny+:: +User+ relationship destiny
     # +label+:: +String+ relationship type
-    # Returns Edge of relationship between the users
+    # Returns Edge destroyed between the users
     def remove_relationship(destiny, label)
       return if destiny.nil? or destiny == self
 
-      edge = Edge.where(["origin_id = :origin_id AND destiny_id = :destiny_id OR 
-        destiny_id = :origin_id AND origin_id = :destiny_id",
-        { origin_id: self.id, destiny_id: destiny.id }]).first
+      edge = Edge.where(["(origin_id = :origin_id AND destiny_id = :destiny_id OR 
+        destiny_id = :origin_id AND origin_id = :destiny_id) AND label = :label",
+        { origin_id: self.id, destiny_id: destiny.id, label: label }]).first
 
-      unless edge.nil?
-        edge.relationships.each { |r| edge.relationships.destroy(r.id) if r.label == label }
-        self.edges.destroy(edge.id) if edge.relationships.empty?
-      end
+      self.edges.destroy(edge.id) unless edge.nil?
     end
 
     # Confirm relationship
     # ====== Params:
     # +user+:: +User+ to confirm
     # +label+:: +Label+ to confirm
-    # Returns Relationship types between the users
+    # Returns Edge between the users
     def confirm_relationship(user, label)
       return if user.nil? or user == self
 
-      relationship = Relationship.find_by label: label
-      edge = self.edges.select { |edge| edge.origin == user }.first
+      edge = self.edges.select { |edge| edge.origin == user and edge.label == label }.first
 
-      unless edge.nil? or relationship.nil?
-        edge_relationship = edge.edge_relationships.select { |edge_relationship|
-            edge_relationship.relationship == relationship }.first
-
-        edge_relationship.active = true
-        edge_relationship.save
+      unless edge.nil? 
+        edge.active = true
+        edge.save
       end
     end
   end

@@ -65,23 +65,22 @@ module SocialFramework
       it "When create a valid relationship" do
         @user.create_relationship(@user2, "new_relationship")
         expect(@user.edges.count).to eq(1)
-        expect(@user.edges.first.relationships.count).to eq(1)
-        expect(@user.edges.first.relationships.first.label).to eq("new_relationship")
-        expect(@user.edges.first.edge_relationships.first.active).to be(false)
+        expect(@user.edges.first.label).to eq("new_relationship")
+        expect(@user.edges.first.active).to be(false)
         expect(@user.edges.first.bidirectional).to be(true)
       end
 
       it "When is active" do
-        @user.create_relationship(@user2, "new_relationship", true)
-        expect(@user.edges.first.relationships.first.label).to eq("new_relationship")
-        expect(@user.edges.first.edge_relationships.first.active).to be(true)
+        @user.create_relationship(@user2, "new_relationship", true, true)
+        expect(@user.edges.first.label).to eq("new_relationship")
+        expect(@user.edges.first.active).to be(true)
         expect(@user.edges.first.bidirectional).to be(true)
       end
 
       it "When is unidirectional" do
-        @user.create_relationship(@user2, "new_relationship", true, false)
-        expect(@user.edges.first.relationships.first.label).to eq("new_relationship")
-        expect(@user.edges.first.edge_relationships.first.active).to be(true)
+        @user.create_relationship(@user2, "new_relationship", false, true)
+        expect(@user.edges.first.label).to eq("new_relationship")
+        expect(@user.edges.first.active).to be(true)
         expect(@user.edges.first.bidirectional).to be(false)
       end
 
@@ -90,9 +89,9 @@ module SocialFramework
         @user2.create_relationship(@user, "new_relationship")
 
         expect(@user.edges.count).to eq(1)
-        expect(@user.edges.first.relationships.first.label).to eq("new_relationship")
+        expect(@user.edges.first.label).to eq("new_relationship")
         expect(@user2.edges.count).to eq(1)
-        expect(@user2.edges.first.relationships.first.label).to eq("new_relationship")
+        expect(@user2.edges.first.label).to eq("new_relationship")
 
         expect(@user.edges.first.origin).to eq(@user)
         expect(@user.edges.first.destiny).to eq(@user2)
@@ -104,15 +103,13 @@ module SocialFramework
         @user.create_relationship(@user2, "new_relationship")
         @user.create_relationship(@user2, "other_relationship")
 
-        expect(@user.edges.count).to eq(1)
-        expect(@user.edges.first.relationships.count).to eq(2)
-        expect(@user.edges.first.relationships.first.label).to eq("new_relationship")
-        expect(@user.edges.first.relationships.last.label).to eq("other_relationship")
+        expect(@user.edges.count).to eq(2)
+        expect(@user.edges.first.label).to eq("new_relationship")
+        expect(@user.edges.last.label).to eq("other_relationship")
 
-        expect(@user2.edges.count).to eq(1)
-        expect(@user2.edges.first.relationships.count).to eq(2)
-        expect(@user2.edges.first.relationships.first.label).to eq("new_relationship")
-        expect(@user2.edges.first.relationships.last.label).to eq("other_relationship")
+        expect(@user2.edges.count).to eq(2)
+        expect(@user2.edges.first.label).to eq("new_relationship")
+        expect(@user2.edges.last.label).to eq("other_relationship")
       end
     end
 
@@ -139,7 +136,6 @@ module SocialFramework
       it "When the an user remove a relationship" do
         @user.create_relationship(@user2, "new_relationship")
         expect(@user.edges.count).to eq(1)
-        expect(@user.edges.first.relationships.count).to eq(1)
 
         @user.remove_relationship(@user2, "new_relationship")
         expect(@user.edges).to be_empty
@@ -148,11 +144,11 @@ module SocialFramework
       it "When exist multiple relationships" do
         @user.create_relationship(@user2, "new_relationship")
         @user.create_relationship(@user2, "other_relationship")
-        expect(@user.edges.first.relationships.count).to eq(2)
+        expect(@user.edges.count).to eq(2)
 
         @user.remove_relationship(@user2, "new_relationship")
-        expect(@user.edges.first.relationships.count).to eq(1)
-        expect(@user.edges.first.relationships.first.label).to eq("other_relationship")
+        expect(@user.edges.count).to eq(1)
+        expect(@user.edges.first.label).to eq("other_relationship")
       end
     end
 
@@ -178,12 +174,10 @@ module SocialFramework
         @user2.confirm_relationship(@user, "new_relationship")
 
         expect(@user.edges.count).to eq(1)
-        expect(@user.edges.first.relationships.count).to eq(1)
-        expect(@user.edges.first.edge_relationships.first.active).to be(true)
+        expect(@user.edges.first.active).to be(true)
         expect(@user.edges.first.bidirectional).to be(true)
         expect(@user2.edges.count).to eq(1)
-        expect(@user2.edges.first.relationships.count).to eq(1)
-        expect(@user2.edges.first.edge_relationships.first.active).to be(true)
+        expect(@user2.edges.first.active).to be(true)
         expect(@user2.edges.first.bidirectional).to be(true)
       end
 
@@ -191,8 +185,8 @@ module SocialFramework
         @user.create_relationship(@user2, "new_relationship")
         @user.confirm_relationship(@user2, "new_relationship")
 
-        expect(@user.edges.first.edge_relationships.first.active).to be(false)
-        expect(@user2.edges.first.edge_relationships.first.active).to be(false)
+        expect(@user.edges.first.active).to be(false)
+        expect(@user2.edges.first.active).to be(false)
       end
     end
   end

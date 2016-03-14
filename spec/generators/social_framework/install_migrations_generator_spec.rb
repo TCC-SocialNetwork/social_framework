@@ -23,20 +23,16 @@ module SocialFramework
           
           expect(migrates.any? { |m| m.include?("social_framework_users.rb") }).to be(true)
           expect(migrates.any? { |m| m.include?("social_framework_edges.rb") }).to be(true)
-          expect(migrates.any? { |m| m.include?("social_framework_relationships.rb") }).to be(true)
-          expect(migrates.any? { |m| m.include?("social_framework_edge_relationships.rb") }).to be(true)
         end
 
         it "Add specific migrations" do
-          run_generator %w(-m user edges)
+          run_generator %w(-m user)
           expect(File).to exist("#{destination_root}/db/migrate")
 
           migrates = Dir.glob("#{destination_root}/db/migrate/*")
           
           expect(migrates.any? { |m| m.include?("social_framework_users.rb") }).to be(true)
-          expect(migrates.any? { |m| m.include?("social_framework_edges.rb") }).to be(true)
-          expect(migrates.any? { |m| m.include?("social_framework_relationships.rb") }).to be(false)
-          expect(migrates.any? { |m| m.include?("social_framework_edge_relationships.rb") }).to be(false)
+          expect(migrates.any? { |m| m.include?("social_framework_edges.rb") }).to be(false)
         end
 
         it "Parameter invalid" do

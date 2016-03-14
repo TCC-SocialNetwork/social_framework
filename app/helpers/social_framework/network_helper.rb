@@ -18,14 +18,11 @@ module SocialFramework
       # Mount a graph from an user
       # ====== Params:
       # +root+:: +User+ Root user to mount graph
-      # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String, default is "all" thats represents all relationships existing
-      # +all_relationships+:: +Boolean+ represents type selection to get edges, if is false select the edges thats have any relationship required, if true select just edges thats have all relationships required, default is false
+      # +relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String, default is "all" thats represents all relationships existing
       # Returns The graph mounted
-      def mount_graph(root, type_relationships = "all", all_relationships = false)
-        relationships = get_relationships(type_relationships)
-
+      def mount_graph(root, relationships = "all")
         @root = root
-        populate_network relationships, all_relationships
+        populate_network relationships
       end
 
       # Suggest relationships to root
@@ -53,34 +50,13 @@ module SocialFramework
 
 
       protected
-      
-      # Get relationships in database from labels passed
-      # ====== Params:
-      # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
-      # Returns Relationships found
-      def get_relationships type_relationships
-        return SocialFramework::Relationship.all if type_relationships == "all"
-
-        if type_relationships.class == String
-          return SocialFramework::Relationship.where label: type_relationships
-        elsif type_relationships.class == Array
-          result = []
-          type_relationships.each do |relationship|
-            relationship = SocialFramework::Relationship.find_by_label relationship.to_s
-            result.push(relationship) unless relationship.nil?
-          end
-
-          return result
-        end
-      end
 
       # Select all user's edges with the relationships required
       # ====== Params:
       # +user_id+:: +User+ to find to get edges
       # +relationships+:: +Array+ relationships required to select edges
-      # +all_relationships+:: +Boolean+ represents type selection, if is false select the edges thats have any relationship required, if true select just edges thats have all relationships required
       # Returns Edges selected
-      def get_edges user_id, relationships, all_relationships
+      def get_edges user_id, relationships
         begin
           user = SocialFramework::User.find user_id
         rescue
@@ -90,11 +66,10 @@ module SocialFramework
         user.edges.select do |e|
           id = (e.origin.id == user.id) ? e.destiny.id : e.origin.id
 
-          network_include_vertex = @network.include? Vertex.new(id)
-          get_any_relationship = (not (e.relationships & relationships).empty? and not all_relationships)
-          get_all_relationship = ((e.relationships & relationships).count == relationships.count and all_relationships)
+          condiction_to_string = (relationships.class == String and (relationships == "all" or e.label == relationships))
+          condiction_to_array = (relationships.class == Array and relationships.include? e.label)
 
-          not network_include_vertex and (get_any_relationship or get_all_relationship)
+          not @network.include? Vertex.new(id) and (condiction_to_string or condiction_to_array)
         end
       end
 
@@ -113,9 +88,8 @@ module SocialFramework
       # Populate network with the users related 
       # ====== Params:
       # +relationships+:: +Array+ relationships required to select edges
-      # +all_relationships+:: +Boolean+ represents type selection, if is false select the edges thats have any relationship required, if true select just edges thats have all relationships required
       # Returns Array network
-      def populate_network relationships, all_relationships
+      def populate_network relationships
         @queue = Array.new
         @queue << {vertex: Vertex.new(@root.id), depth: 1}
 
@@ -127,7 +101,7 @@ module SocialFramework
           next if pair[:depth] == @depth
           new_depth = pair[:depth] + 1
 
-          edges = get_edges(current_vertex.id, relationships, all_relationships)
+          edges = get_edges(current_vertex.id, relationships)
 
           edges.each do |e|
             user = (e.origin.id == current_vertex.id) ? e.destiny : e.origin
@@ -135,11 +109,8 @@ module SocialFramework
             pair = @queue.select { |p| p[:vertex].id == user.id }.first
             new_vertex = pair.nil? ? Vertex.new(user.id) : pair[:vertex]
 
-            labels = Array.new
-            e.relationships.each{ |r| labels << r.label}
-            
-            current_vertex.add_edge new_vertex, labels
-            new_vertex.add_edge current_vertex, labels if e.bidirectional
+            current_vertex.add_edge new_vertex, e.label
+            new_vertex.add_edge current_vertex, e.label if e.bidirectional
 
             if pair.nil? and not @network.include? new_vertex
               @queue << {vertex: new_vertex, depth: new_depth}
@@ -199,12 +170,17 @@ module SocialFramework
       # Add edges to vertex
       # ====== Params:
       # +destiny+:: +Vertex+  destiny to edge
-      # +labels+:: +Array+  relationships labels
-      # Returns Edges with the new addition
-      def add_edge destiny, labels
-        edge = Edge.new self, destiny
-        edge.labels = labels
-        @edges << edge
+      # +label+:: +String+  label to edge
+      # Returns edge created
+      def add_edge destiny, label
+        edge = @edges.select { |e| e.destiny == destiny }.first
+
+        if edge.nil?
+          edge = Edge.new self, destiny
+          @edges << edge
+        end
+
+        edge.labels << label
       end
 
       def to_s

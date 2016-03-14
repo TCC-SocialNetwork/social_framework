@@ -2,45 +2,6 @@ require 'rails_helper'
 
 module SocialFramework
   RSpec.describe NetworkHelper, type: :helper do
-    
-    describe "Get relationships to mount graph" do
-      before(:all) do
-        @r1 = create(:relationship, label: "r1")
-        @r2 = create(:relationship, label: "r2")
-        @r3 = create(:relationship, label: "r3")
-        @graph = NetworkHelper::Graph.new
-      end
-      
-      it "When get all relationships" do
-        result = @graph.send(:get_relationships, "all")
-        expect(result.count).to be(3)
-      end
-
-      it "When get just one relationship" do
-        result = @graph.send(:get_relationships, "r1")
-        expect(result.count).to be(1)
-        expect(result.first.label).to eq("r1")
-      end
-
-      it "When multiple relationships" do
-        result = @graph.send(:get_relationships, ["r1", "r3"])
-        expect(result.count).to be(2)
-        expect(result.first.label).to eq("r1")
-        expect(result.last.label).to eq("r3")
-      end
-
-      it "When pass an invalid relationship" do
-        result = @graph.send(:get_relationships, "invalid")
-        expect(result).to be_empty
-      end
-
-      it "When pass invalid and valid relationships" do
-        result = @graph.send(:get_relationships, ["r1", "invalid"])
-        expect(result.count).to be(1)
-        expect(result.first.label).to eq("r1")
-      end
-    end
-
     describe "Get edges from an user" do
       before(:each) do
         @user = create(:user)
@@ -57,84 +18,62 @@ module SocialFramework
       end
 
       it "When id is 0" do
-        relationships = @graph.send(:get_relationships, "all")
-        result = @graph.send(:get_edges, 0, relationships, false)
+        result = @graph.send(:get_edges, 0, "all")
 
         expect(result).to be_empty
       end
 
       it "When relationships is empty" do
-        result = @graph.send(:get_edges, @user.id, [], false)
+        result = @graph.send(:get_edges, @user.id, [])
         expect(result).to be_empty
       end
 
       it "When can be any relationship" do
-        relationships = @graph.send(:get_relationships, "all")
-        result = @graph.send(:get_edges, @user.id, relationships, false)
+        result = @graph.send(:get_edges, @user.id, "all")
         
         expect(result.count).to be(@user.edges.count)
       end
 
       it "When can be any relationship in specfic array" do
-        relationships = @graph.send(:get_relationships, ["r1", "r2"])
-        result = @graph.send(:get_edges, @user.id, relationships, false)
-        expect(result.count).to be(@user.edges.count)
+        result = @graph.send(:get_edges, @user.id, ["r1", "r2"])
+        expect(result.count).to be(3)
 
-        relationships = @graph.send(:get_relationships, ["r1", "r3"])
-        result = @graph.send(:get_edges, @user.id, relationships, false)
-        expect(result.count).to be(@user.edges.count)
+        result = @graph.send(:get_edges, @user.id, ["r1", "r3"])
+        expect(result.count).to be(2)
 
-        relationships = @graph.send(:get_relationships, "r2")
-        result = @graph.send(:get_edges, @user.id, relationships, false)
-        expect(result.count).to be(@user.edges.count)
+        result = @graph.send(:get_edges, @user.id, "r2")
+        expect(result.count).to be(2)
 
-        relationships = @graph.send(:get_relationships, "r1")
-        result = @graph.send(:get_edges, @user.id, relationships, false)
+        result = @graph.send(:get_edges, @user.id, "r1")
         expect(result.count).to be(1)
 
-        relationships = @graph.send(:get_relationships, "r3")
-        result = @graph.send(:get_edges, @user.id, relationships, false)
-        expect(result.count).to be(1)
-      end
-
-      it "When edge must be all relationships" do
-        relationships = @graph.send(:get_relationships, "all")
-        result = @graph.send(:get_edges, @user.id, relationships, true)
-        expect(result).to be_empty
-
-        relationships = @graph.send(:get_relationships, ["r1", "r2"])
-        result = @graph.send(:get_edges, @user.id, relationships, true)
-        expect(result.count).to be(1)
-
-        relationships = @graph.send(:get_relationships, ["r1", "r3"])
-        result = @graph.send(:get_edges, @user.id, relationships, true)
-        expect(result).to be_empty
-
-        relationships = @graph.send(:get_relationships, "r2")
-        result = @graph.send(:get_edges, @user.id, relationships, true)
-        expect(result.count).to be(@user.edges.count)
-
-        relationships = @graph.send(:get_relationships, "r1")
-        result = @graph.send(:get_edges, @user.id, relationships, true)
-        expect(result.count).to be(1)
-
-        relationships = @graph.send(:get_relationships, "r3")
-        result = @graph.send(:get_edges, @user.id, relationships, true)
+        result = @graph.send(:get_edges, @user.id, "r3")
         expect(result.count).to be(1)
       end
       
       it "When edge it has been visited" do
-        relationships = @graph.send(:get_relationships, "all")
-        
         @graph.send(:add_vertex, @user)
-        @graph.send(:get_edges, @user.id, relationships, false)
 
-        result = @graph.send(:get_edges, @user.id, relationships, false)
-        expect(result.count).to be(@user.edges.count)
+        result = @graph.send(:get_edges, @user.id, "all")
+        expect(result.count).to be(4)
         
         @graph.send(:add_vertex, @user2)
-        result = @graph.send(:get_edges, @user2.id, relationships, false)
+        result = @graph.send(:get_edges, @user2.id, "all")
         expect(result.count).to be(0)
+      end
+
+      it "When pass relationships invalid" do
+        @graph.send(:add_vertex, @user)
+
+        result = @graph.send(:get_edges, @user.id, "invalid")
+        expect(result.count).to be(0)
+      end
+
+      it "When pass relationships invalid and valid" do
+        @graph.send(:add_vertex, @user)
+
+        result = @graph.send(:get_edges, @user.id, ["invalid", "r2"])
+        expect(result.count).to be(2)
       end
     end
 
@@ -185,11 +124,10 @@ module SocialFramework
 
         @graph = NetworkHelper::Graph.new
         @graph.instance_variable_set :@root, @user
-        @relationships = @graph.send(:get_relationships, "all")
       end
 
       it "When use default depth" do
-        @graph.send(:populate_network, @relationships, false)
+        @graph.send(:populate_network, "all")
         expect(@graph.network.count).to be(4)
 
         expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(2)
@@ -204,7 +142,7 @@ module SocialFramework
 
       it "When use depth equal 1" do
         @graph.depth = 1
-        @graph.send(:populate_network, @relationships, false)
+        @graph.send(:populate_network, "all")
         expect(@graph.network.count).to be(1)
 
         expect(@graph.network.select { |v| v.id == 1 }.first.edges).to be_empty
@@ -212,7 +150,7 @@ module SocialFramework
 
       it "When use depth equal 2" do
         @graph.depth = 2
-        @graph.send(:populate_network, @relationships, false)
+        @graph.send(:populate_network, "all")
         expect(@graph.network.count).to be(3)
 
         expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(2)
@@ -222,7 +160,7 @@ module SocialFramework
 
       it "When use depth equal 4" do
         @graph.depth = 4
-        @graph.send(:populate_network, @relationships, false)
+        @graph.send(:populate_network, "all")
         expect(@graph.network.count).to be(5)
 
         expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(2)
@@ -268,7 +206,6 @@ module SocialFramework
 
         @graph = NetworkHelper::Graph.new
         @graph.instance_variable_set :@root, @user1
-        @relationships = @graph.send(:get_relationships, "all")
         @graph.mount_graph @user1
       end
 

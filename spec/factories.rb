@@ -21,8 +21,4 @@ FactoryGirl.define do
     origin nil
     destiny nil
   end
-
-  factory :relationship, class: SocialFramework::Relationship do
-    label "relationship_test"
-  end
 end
