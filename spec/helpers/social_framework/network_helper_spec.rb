@@ -175,6 +175,7 @@ module SocialFramework
         @user5 = create(:user,username: "user5", email: "user5@mail.com")
 
         @user.create_relationship @user2, "r1"
+        @user.create_relationship @user2, "r2"
         @user.create_relationship @user3, "r1"
 
         @user2.create_relationship @user4, "r1", false, false # unidirectional
@@ -195,6 +196,10 @@ module SocialFramework
         expect(@graph.network.select { |v| v.id == 2 }.first.edges.count).to be(2)
         expect(@graph.network.select { |v| v.id == 3 }.first.edges.count).to be(2)
         expect(@graph.network.select { |v| v.id == 4 }.first.edges.count).to be(1)
+
+        labels = ["r1", "r2"]
+        intersection = @graph.network.first.edges.first.labels & labels
+        expect(intersection.count).to be(labels.count)
       end
 
       it "When use depth equal 1" do
@@ -225,6 +230,92 @@ module SocialFramework
         expect(@graph.network.select { |v| v.id == 3 }.first.edges.count).to be(2)
         expect(@graph.network.select { |v| v.id == 4 }.first.edges.count).to be(2)
         expect(@graph.network.select { |v| v.id == 5 }.first.edges.count).to be(1)
+      end
+    end
+
+    describe "Suggest relationships" do
+      before(:each) do
+        @user1 = create(:user,username: "user1", email: "user1@mail.com")
+        @user2 = create(:user,username: "user2", email: "user2@mail.com")
+        @user3 = create(:user,username: "user3", email: "user3@mail.com")
+        @user4 = create(:user,username: "user4", email: "user4@mail.com")
+        @user5 = create(:user,username: "user5", email: "user5@mail.com")
+        @user6 = create(:user,username: "user6", email: "user6@mail.com")
+        @user7 = create(:user,username: "user7", email: "user7@mail.com")
+        @user8 = create(:user,username: "user8", email: "user8@mail.com")
+        @user9 = create(:user,username: "user9", email: "user9@mail.com")
+
+        @user1.create_relationship @user2, "r1"
+        @user1.create_relationship @user3, "r1"
+        @user1.create_relationship @user4, "r1"
+        @user1.create_relationship @user7, "r1"
+        @user1.create_relationship @user8, "r1"
+
+        @user2.create_relationship @user4, "r1"
+        @user2.create_relationship @user5, "r1"
+
+        @user3.create_relationship @user4, "r1"
+
+        @user4.create_relationship @user5, "r2"
+        @user4.create_relationship @user6, "r1"
+
+        @user5.create_relationship @user6, "r1"
+        @user5.create_relationship @user7, "r2"
+
+        @user6.create_relationship @user7, "r1"
+        @user6.create_relationship @user8, "r1"
+        @user6.create_relationship @user9, "r1"
+
+        @graph = NetworkHelper::Graph.new
+        @graph.instance_variable_set :@root, @user1
+        @relationships = @graph.send(:get_relationships, "all")
+        @graph.mount_graph @user1
+      end
+
+      it "With default params" do
+        result = @graph.suggest_relationships
+
+        expect(result).to be_empty
+      end
+
+      it "With correct relationship" do
+        result = @graph.suggest_relationships "r1"
+
+        expect(result).to be_empty
+      end
+
+      it "When call multiple times" do
+        result = @graph.suggest_relationships "r1", 3
+        result = @graph.suggest_relationships "r1", 3
+
+        expect(result.count).to be(1)
+        expect(result.first.id).to be(6)
+      end
+
+      it "With correct erelationship and three common relationships" do
+        result = @graph.suggest_relationships "r1", 3
+
+        expect(result.count).to be(1)
+        expect(result.first.id).to be(6)
+      end
+
+      it "With pass multiple relationships" do
+        result = @graph.suggest_relationships ["r1", "r2"], 3
+
+        expect(result.count).to be(2)
+        expect(result.first.id).to be(5)
+        expect(result.last.id).to be(6)
+      end
+
+      it "With user6 as root" do
+        @graph = NetworkHelper::Graph.new
+        @graph.instance_variable_set :@root, @user6
+        @graph.mount_graph @user6
+
+        result = @graph.suggest_relationships "r1", 3
+
+        expect(result.count).to be(1)
+        expect(result.first.id).to be(1)
       end
     end
   end

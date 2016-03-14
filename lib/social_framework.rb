@@ -4,25 +4,17 @@ require "devise"
 # SocialFramework module, connect all elements and use it in correct sequence
 module SocialFramework
 
-  # Define the quantity of relationships to suggest new uniderictional relationships
-  mattr_accessor :amount_of_relationships
-  @@amount_of_relationships = 5
-  
-  # Define the quantity of relationships to suggest new bidirectional relationships
-  mattr_accessor :amount_of_bidirectional_relationships
-  @@amount_of_bidirectional_relationships = 5
-
   # Define the quantity of levels on mount graph to search
   mattr_accessor :depth_to_mount_graph
   @@depth_to_mount_graph = 3
   
-  # Type relationships to suggest new bidirectional relationships
-  mattr_accessor :relationship_type_to_bidirectional_suggest
-  @@relationship_type_to_bidirectional_suggest = "friend"
+  # Type relationships to suggest a new relationships
+  mattr_accessor :relationship_type_to_suggest
+  @@relationship_type_to_suggest = "friend"
   
-  # Type relationships to suggest new unidirectional relationships
-  mattr_accessor :relationship_type_to_unidirectional_suggest
-  @@relationship_type_to_unidirectional_suggest = "follow"
+  # Quantity of relationships to suggest a new relationship
+  mattr_accessor :amount_relationship_to_suggest
+  @@amount_relationship_to_suggest = 5
 
   # Used to change variables in configuration
   # Retuns a block to self

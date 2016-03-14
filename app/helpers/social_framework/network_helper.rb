@@ -28,6 +28,30 @@ module SocialFramework
         populate_network relationships, all_relationships
       end
 
+      # Suggest relationships to root
+      # ====== Params:
+      # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
+      # +amount_relationships+:: +Integer+ quantity of relationships to suggest a new relationship
+      # Returns +Array+ with the vertecies to suggestions
+      def suggest_relationships(type_relationships = SocialFramework.relationship_type_to_suggest,
+        amount_relationships = SocialFramework.amount_relationship_to_suggest)
+
+        travel_in_third_depth(type_relationships, amount_relationships) do |destiny_edge|
+          destiny_edge.destiny.visits = 0
+        end
+
+        suggestions = Array.new
+
+        travel_in_third_depth(type_relationships, amount_relationships) do |destiny_edge|
+          destiny_edge.destiny.visits = destiny_edge.destiny.visits + 1
+          if destiny_edge.destiny.visits == amount_relationships and destiny_edge.destiny != @root and not @root.edges.include? destiny_edge.destiny
+            suggestions << destiny_edge.destiny 
+          end
+        end
+        return suggestions
+      end
+
+
       protected
       
       # Get relationships in database from labels passed
@@ -110,9 +134,12 @@ module SocialFramework
 
             pair = @queue.select { |p| p[:vertex].id == user.id }.first
             new_vertex = pair.nil? ? Vertex.new(user.id) : pair[:vertex]
+
+            labels = Array.new
+            e.relationships.each{ |r| labels << r.label}
             
-            current_vertex.add_edge new_vertex
-            new_vertex.add_edge current_vertex if e.bidirectional
+            current_vertex.add_edge new_vertex, labels
+            new_vertex.add_edge current_vertex, labels if e.bidirectional
 
             if pair.nil? and not @network.include? new_vertex
               @queue << {vertex: new_vertex, depth: new_depth}
@@ -120,11 +147,30 @@ module SocialFramework
           end
         end
       end
+
+      # Travel neighbor neighbor
+      # ====== Params:
+      # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
+      # +amount_relationships+:: +Integer+ quantity of relationships to suggest a new relationship
+      # +yield+:: +Block+ to execute when it is on the third level
+      def travel_in_third_depth(type_relationships, amount_relationships)
+        type_relationships = [type_relationships] if type_relationships.class == String
+
+        edges = @network.first.edges.select {|e| not (e.labels & type_relationships).empty?}
+
+        edges.each do |edge|
+          destiny_edges = edge.destiny.edges.select {|e| not (e.labels & type_relationships).empty?}
+
+          destiny_edges.each do |destiny_edge|
+            yield destiny_edge
+          end
+        end
+      end
     end
 
     # Represent graph's vertex
     class Vertex
-      attr_accessor :id, :edges
+      attr_accessor :id, :edges, :visits
 
       # Constructor to vertex 
       # ====== Params:
@@ -133,6 +179,7 @@ module SocialFramework
       def initialize id = 0
         @id = id
         @edges = Array.new
+        @visits = 0
       end
       
       # Overriding equal method to compare vertex by id
@@ -152,9 +199,11 @@ module SocialFramework
       # Add edges to vertex
       # ====== Params:
       # +destiny+:: +Vertex+  destiny to edge
+      # +labels+:: +Array+  relationships labels
       # Returns Edges with the new addition
-      def add_edge destiny
+      def add_edge destiny, labels
         edge = Edge.new self, destiny
+        edge.labels = labels
         @edges << edge
       end
 
@@ -165,7 +214,7 @@ module SocialFramework
     
     # Represent the conneciont edges between vertices
     class Edge
-      attr_accessor :origin, :destiny
+      attr_accessor :origin, :destiny, :labels
       
       # Constructor to Edge 
       # ====== Params:
@@ -175,6 +224,7 @@ module SocialFramework
       def initialize origin, destiny
         @origin = origin
         @destiny = destiny
+        @labels = Array.new
       end
 
       def to_s
