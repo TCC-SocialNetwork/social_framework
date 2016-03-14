@@ -1,5 +1,3 @@
-require 'set'
-
 module SocialFramework
   # Module to construct Social Network
   module NetworkHelper
@@ -97,7 +95,7 @@ module SocialFramework
         @queue = Array.new
         @queue << {vertex: Vertex.new(@root.id), depth: 1}
 
-        while not @queue.nil? and not @queue.empty?
+        until @queue.empty?
           pair = @queue.shift
           current_vertex = pair[:vertex]
           @network << current_vertex
@@ -114,11 +112,10 @@ module SocialFramework
             new_vertex = pair.nil? ? Vertex.new(user.id) : pair[:vertex]
             
             current_vertex.add_edge new_vertex
-            new_vertex.add_edge current_vertex
+            new_vertex.add_edge current_vertex if e.bidirectional
 
             if pair.nil? and not @network.include? new_vertex
-              new_pair = {vertex: new_vertex, depth: new_depth}
-              @queue << new_pair
+              @queue << {vertex: new_vertex, depth: new_depth}
             end
           end
         end

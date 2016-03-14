@@ -20,6 +20,7 @@ module SocialFramework
 
     # Get login if not blank, username or email
     # Used to autenticate in system
+    # Returns login, username or email
     def login
       if not @login.nil? and not @login.blank?
         @login

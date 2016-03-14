@@ -177,7 +177,7 @@ module SocialFramework
         @user.create_relationship @user2, "r1"
         @user.create_relationship @user3, "r1"
 
-        @user2.create_relationship @user4, "r1"
+        @user2.create_relationship @user4, "r1", false, false # unidirectional
 
         @user3.create_relationship @user4, "r1"
         @user4.create_relationship @user5, "r1"
@@ -194,7 +194,7 @@ module SocialFramework
         expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(2)
         expect(@graph.network.select { |v| v.id == 2 }.first.edges.count).to be(2)
         expect(@graph.network.select { |v| v.id == 3 }.first.edges.count).to be(2)
-        expect(@graph.network.select { |v| v.id == 4 }.first.edges.count).to be(2)
+        expect(@graph.network.select { |v| v.id == 4 }.first.edges.count).to be(1)
       end
 
       it "When use depth equal 1" do
@@ -223,7 +223,7 @@ module SocialFramework
         expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(2)
         expect(@graph.network.select { |v| v.id == 2 }.first.edges.count).to be(2)
         expect(@graph.network.select { |v| v.id == 3 }.first.edges.count).to be(2)
-        expect(@graph.network.select { |v| v.id == 4 }.first.edges.count).to be(3)
+        expect(@graph.network.select { |v| v.id == 4 }.first.edges.count).to be(2)
         expect(@graph.network.select { |v| v.id == 5 }.first.edges.count).to be(1)
       end
     end
