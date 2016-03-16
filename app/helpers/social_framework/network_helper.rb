@@ -1,3 +1,5 @@
+require 'set'
+
 module SocialFramework
   # Module to construct Social Network
   module NetworkHelper
@@ -22,14 +24,64 @@ module SocialFramework
       # Returns The graph mounted
       def mount_graph(root, relationships = "all")
         @root = root
-        populate_network relationships
+
+        vertices = Array.new
+        vertices << {vertex: Vertex.new(@root.id), depth: 1}
+
+        until vertices.empty?
+          pair = vertices.shift
+          current_vertex = pair[:vertex]
+          @network << current_vertex
+
+          next if pair[:depth] == @depth
+          new_depth = pair[:depth] + 1
+
+          edges = get_edges(current_vertex.id, relationships)
+
+          edges.each do |e|
+            user = (e.origin.id == current_vertex.id) ? e.destiny : e.origin
+
+            pair = vertices.select { |p| p[:vertex].id == user.id }.first
+
+            new_vertex = pair.nil? ? Vertex.new(user.id) : pair[:vertex]
+            current_vertex.add_edge new_vertex, e.label
+            new_vertex.add_edge current_vertex, e.label if e.bidirectional
+
+            if pair.nil? and not @network.include? new_vertex
+              vertices << {vertex: new_vertex, depth: new_depth}
+            end
+          end
+        end
+      end
+
+      # Search users with values specified in a map
+      # ====== Params:
+      # +map+:: +Hash+ with keys and values to compare
+      # +users_number+:: +Integer+ to limit max search result
+      # Returns Set with users found
+      def search map, users_number = SocialFramework.users_number_to_search
+        clean_vertices
+
+        users_found = Set.new
+        @queue ||= Queue.new
+
+        @network.each do |vertex|
+          if vertex.color == :white
+            vertex.color = :gray
+            @queue << vertex
+
+            search_visit map, users_number, users_found
+          end
+        end
+
+        return users_found
       end
 
       # Suggest relationships to root
       # ====== Params:
       # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
       # +amount_relationships+:: +Integer+ quantity of relationships to suggest a new relationship
-      # Returns +Array+ with the vertecies to suggestions
+      # Returns +Array+ with the vertices to suggestions
       def suggest_relationships(type_relationships = SocialFramework.relationship_type_to_suggest,
         amount_relationships = SocialFramework.amount_relationship_to_suggest)
 
@@ -73,52 +125,6 @@ module SocialFramework
         end
       end
 
-      # Create a new vertex with user id and add in @network
-      # ====== Params:
-      # +user+:: +User+ to get id
-      # Returns Array network
-      def add_vertex user
-        return if user.nil? or user.id.nil?
-        
-        vertex = Vertex.new user.id
-        @network << vertex
-        return vertex
-      end
-
-      # Populate network with the users related 
-      # ====== Params:
-      # +relationships+:: +Array+ relationships required to select edges
-      # Returns Array network
-      def populate_network relationships
-        @queue = Array.new
-        @queue << {vertex: Vertex.new(@root.id), depth: 1}
-
-        until @queue.empty?
-          pair = @queue.shift
-          current_vertex = pair[:vertex]
-          @network << current_vertex
-
-          next if pair[:depth] == @depth
-          new_depth = pair[:depth] + 1
-
-          edges = get_edges(current_vertex.id, relationships)
-
-          edges.each do |e|
-            user = (e.origin.id == current_vertex.id) ? e.destiny : e.origin
-
-            pair = @queue.select { |p| p[:vertex].id == user.id }.first
-            new_vertex = pair.nil? ? Vertex.new(user.id) : pair[:vertex]
-
-            current_vertex.add_edge new_vertex, e.label
-            new_vertex.add_edge current_vertex, e.label if e.bidirectional
-
-            if pair.nil? and not @network.include? new_vertex
-              @queue << {vertex: new_vertex, depth: new_depth}
-            end
-          end
-        end
-      end
-
       # Travel neighbor neighbor
       # ====== Params:
       # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
@@ -137,11 +143,54 @@ module SocialFramework
           end
         end
       end
+
+      # Visit vertices in Graph fiding specifcs vertices
+      # ====== Params:
+      # +map+:: +Hash+ with keys and values to compare
+      # +users_number+:: +Integer+ to limit max search result
+      # +users_found+:: +Set+ with all vertices found
+      def search_visit map, users_number, users_found
+        while not @queue.empty? and users_found.size < users_number do
+          root = @queue.pop
+
+          users_found << root if compare_vertex(root, map)
+
+          root.edges.each do |edge|
+            vertex = edge.destiny
+            if vertex.color == :white
+              vertex.color = :gray 
+              @queue << vertex
+            end
+          end
+          root.color = :black
+        end
+      end
+
+      # Verify if vertex contains some attribute with values passed in map
+      # ====== Params:
+      # +vertex+:: +Vertex+ to compare
+      # +map+:: +Hash+ with keys and values to compare
+      # Returns true if vertex contains some falue or false if not
+      def compare_vertex vertex, map
+        map.each do |key, value|
+          return true if (vertex.method(key).call == value)
+        end
+
+        return false
+      end
+
+      # Set color white to all vertices in graph
+      # Returns @network with white vertices
+      def clean_vertices
+        @network.each do |vertex|
+          vertex.color = :white
+        end
+      end
     end
 
     # Represent graph's vertex
     class Vertex
-      attr_accessor :id, :edges, :visits
+      attr_accessor :id, :edges, :visits, :color
 
       # Constructor to vertex 
       # ====== Params:
@@ -151,6 +200,7 @@ module SocialFramework
         @id = id
         @edges = Array.new
         @visits = 0
+        @color = :white
       end
       
       # Overriding equal method to compare vertex by id
@@ -184,7 +234,7 @@ module SocialFramework
       end
 
       def to_s
-        "vertex #{id}"
+        "vertex #{id} - #{name} - #{email}"
       end
     end
     

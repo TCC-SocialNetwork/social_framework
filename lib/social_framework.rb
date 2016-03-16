@@ -7,6 +7,10 @@ module SocialFramework
   # Define the quantity of levels on mount graph to search
   mattr_accessor :depth_to_mount_graph
   @@depth_to_mount_graph = 3
+
+  # Define the quantity of users to search returns
+  mattr_accessor :users_number_to_search
+  @@users_number_to_search = 5
   
   # Type relationships to suggest a new relationships
   mattr_accessor :relationship_type_to_suggest

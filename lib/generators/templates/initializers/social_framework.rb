@@ -4,6 +4,9 @@ SocialFramework.setup do |config|
   # Define the quantity of levels on mount graph to search
   # config.depth_to_mount_graph = 3
 
+  # Define the quantity of users to search returns
+  # config.users_number_to_search = 5
+
   # Type relationships to suggest a new relationships
   # config.relationship_type_to_suggest = "friend"
   

@@ -1,4 +1,4 @@
-# Social Framework ![License MIT](https://go-shields.herokuapp.com/license-MIT-blue.png)
+# SocialFramework ![License MIT](https://go-shields.herokuapp.com/license-MIT-blue.png)
 
 ----
 [![Build Status](https://travis-ci.org/TCC-SocialNetwork/social_framework.svg)](https://travis-ci.org/TCC-SocialNetwork/social_framework)
@@ -202,6 +202,14 @@ rails generate social_framework:views -v registrations sessions passwords
 > This command will add views registrations, sessions and passwords to your app.
 The other views are: confirmations, mailer and unlocks.
 Initially the SocialFramework add views registrations and sessions to your app providing authentication and register to users.
+
+----
+# SocialFramework's Modules
+
+> Currently the SocialFramework has one module to Users and Relationships, this module provides authentication, resgistrations, relationships between users and searchs in network mounted.
+
+----
+## Users' Module
 
 ----
 # Authors
