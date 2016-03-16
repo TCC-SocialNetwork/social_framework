@@ -173,7 +173,11 @@ module SocialFramework
       # Returns true if vertex contains some falue or false if not
       def compare_vertex vertex, map
         map.each do |key, value|
-          return true if (vertex.method(key).call == value)
+          begin
+            return true if (vertex.method(key).call == value)
+          rescue
+            next
+          end
         end
 
         return false

@@ -204,5 +204,60 @@ module SocialFramework
         expect(result.first.id).to be(1)
       end
     end
+
+    describe "Search vertices" do
+      before(:each) do
+        @graph.mount_graph @user1
+      end
+
+      it "Clean all vertices" do
+        @graph.network.first.color = :black
+
+        @graph.send(:clean_vertices)
+
+        expect(@graph.network.first.color).to be(:white)
+      end
+
+      it "Compare vertices" do
+        vertex = SocialFramework::NetworkHelper::Vertex.new 1
+        result = @graph.send(:compare_vertex, vertex, {id: 1})
+
+        expect(result).to be(true)
+
+        result = @graph.send(:compare_vertex, vertex, {id: 0})
+
+        expect(result).to be(false)
+      end
+
+      it "When users_number should be 0" do
+        map = {id: 1}
+        result = @graph.search map, 0
+        expect(result).to be_empty
+      end
+
+      it "When pass invalid attribute" do
+        map = {invalid: 1}
+        result = @graph.search map
+        expect(result).to be_empty
+      end
+
+      it "When pass valid and invalid attribute" do
+        map = {id: 1, invalid: 1}
+        result = @graph.search map
+        expect(result.count).to be(1)
+      end
+
+      it "When vertex exist" do
+        map = {id: 1}
+        result = @graph.search map
+        expect(result.count).to be(1)
+      end
+
+      it "When vertex not exist" do
+        map = {id: 0}
+        result = @graph.search map
+        expect(result).to be_empty
+      end
+    end
   end
 end
