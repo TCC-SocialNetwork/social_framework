@@ -258,6 +258,12 @@ module SocialFramework
         result = @graph.search map
         expect(result).to be_empty
       end
+
+      it "When vertex not exist in Graph" do
+        map = {id: 9}
+        result = @graph.search map
+        expect(result.count).to be(1)
+      end
     end
   end
 end

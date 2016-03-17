@@ -74,6 +74,14 @@ module SocialFramework
           end
         end
 
+        if users_found.size < users_number
+          begin
+            user = SocialFramework::User.find map[:id]
+            users_found << Vertex.new(user.id)
+          rescue
+          end
+        end
+
         return users_found
       end
 
