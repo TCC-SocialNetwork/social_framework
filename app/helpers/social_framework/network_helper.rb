@@ -20,13 +20,15 @@ module SocialFramework
       # Mount a graph from an user
       # ====== Params:
       # +root+:: +User+ Root user to mount graph
+      # +attributes+:: +Array+ Attributes will be added in vertex
       # +relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String, default is "all" thats represents all relationships existing
       # Returns The graph mounted
-      def mount_graph(root, relationships = "all")
+      def mount_graph(root, attributes = [], relationships = "all")
         @root = root
 
         vertices = Array.new
-        vertices << {vertex: Vertex.new(@root.id), depth: 1}
+        attributes_hash = mount_attributes(attributes, root)
+        vertices << {vertex: Vertex.new(@root.id, attributes_hash), depth: 1}
 
         until vertices.empty?
           pair = vertices.shift
@@ -43,7 +45,12 @@ module SocialFramework
 
             pair = vertices.select { |p| p[:vertex].id == user.id }.first
 
-            new_vertex = pair.nil? ? Vertex.new(user.id) : pair[:vertex]
+            if pair.nil?
+              attributes_hash = mount_attributes(attributes, user)
+              new_vertex = Vertex.new(user.id, attributes_hash)
+            else
+              new_vertex = pair[:vertex]
+            end
             current_vertex.add_edge new_vertex, e.label
             new_vertex.add_edge current_vertex, e.label if e.bidirectional
 
@@ -182,9 +189,11 @@ module SocialFramework
       def compare_vertex vertex, map
         map.each do |key, value|
           begin
-            return true if (vertex.method(key).call == value)
-          rescue
-            next
+            if vertex.respond_to? key
+              return true if (vertex.method(key).call == value)
+            else
+              Rails.logger.warn "The user haven't the attribute #{key}"
+            end
           end
         end
 
@@ -198,21 +207,40 @@ module SocialFramework
           vertex.color = :white
         end
       end
+
+      # Mount Hash with required attributes
+      # ====== Params:
+      # +attributes+:: +Array+ required attributes
+      # +user+:: +User+ to get the value of attributes
+      # Returns a Hash of attributes and values
+      def mount_attributes attributes, user
+        hash = Hash.new
+
+        attributes.each do |a|
+          if (user.respond_to? a)
+            hash[a] = user.method(a).call
+          else
+            Rails.logger.warn "The user haven't the attribute #{a}"
+          end
+        end
+        return hash
+      end
     end
 
     # Represent graph's vertex
     class Vertex
-      attr_accessor :id, :edges, :visits, :color
+      attr_accessor :id, :edges, :visits, :color, :attributes
 
       # Constructor to vertex 
       # ====== Params:
       # +id+:: +Integer+ user id
       # Returns Vertex's Instance
-      def initialize id = 0
+      def initialize id = 0, attributes = {}
         @id = id
         @edges = Array.new
         @visits = 0
         @color = :white
+        @attributes = attributes
       end
       
       # Overriding equal method to compare vertex by id
@@ -246,7 +274,7 @@ module SocialFramework
       end
 
       def to_s
-        "vertex #{id} - #{name} - #{email}"
+        "vertex #{id} - #{attributes}"
       end
     end
     

@@ -151,6 +151,41 @@ module SocialFramework
         expect(@graph.network.select { |v| v.id == 8 }.first.edges.count).to be(2)
         expect(@graph.network.select { |v| v.id == 9 }.first.edges.count).to be(1)
       end
+
+      it "When use default attributes" do
+        @graph.mount_graph @user1
+
+        @graph.network.each do |vertex|
+          expect(vertex.attributes).to be_empty
+        end
+      end
+
+      it "When pass valid attributes" do
+        @graph.mount_graph @user1, [:username, :email]
+
+        @graph.network.each do |vertex|
+          expect(vertex.attributes.key?(:username)).to be(true)
+          expect(vertex.attributes.key?(:email)).to be(true)
+        end
+      end
+
+      it "When pass invalid and valid attributes" do
+        @graph.mount_graph @user1, [:username, :email, :invalid_attribute]
+
+        @graph.network.each do |vertex|
+          expect(vertex.attributes.key?(:username)).to be(true)
+          expect(vertex.attributes.key?(:email)).to be(true)
+          expect(vertex.attributes.key?(:invalid_attribute)).to be(false)
+        end
+      end
+
+      it "When pass invalid attributes" do
+        @graph.mount_graph @user1, [:invalid_attribute]
+
+        @graph.network.each do |vertex|
+          expect(vertex.attributes).to be_empty
+        end
+      end
     end
 
     describe "Suggest relationships" do
