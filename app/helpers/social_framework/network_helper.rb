@@ -64,22 +64,28 @@ module SocialFramework
       # Search users with values specified in a map
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
+      # +search_in_progress+:: +Boolean+ to continue if true or start a new search
       # +users_number+:: +Integer+ to limit max search result
       # Returns Set with users found
       def search map, search_in_progress = false, users_number = SocialFramework.users_number_to_search
+        return @users_found if @finished_search and search_in_progress == true
+
         unless search_in_progress
           clean_vertices
           @network.first.color = :gray
           @queue << @network.first
         end
 
-        search_visit map, users_number
+        search_visit map, users_number unless @finished_search_in_graph
 
-        if @users_found.size < users_number
+        if @users_found.size < users_number and @finished_search_in_graph
           begin
             user = SocialFramework::User.find map[:id]
             @users_found << Vertex.new(user.id)
+
+            @finished_search = true
           rescue
+            Rails.logger.warn "User not found with id #{map[:id]}"
           end
         end
 
@@ -172,6 +178,8 @@ module SocialFramework
           end
           root.color = :black
         end
+
+        @finished_search_in_graph = @queue.empty?
       end
 
       # Verify if vertex contains some attribute with values passed in map
@@ -192,6 +200,8 @@ module SocialFramework
       # Set color white to all vertices in graph
       # Returns @network with white vertices
       def clean_vertices
+        @finished_search_in_graph = false
+        @finished_search = false
         @users_found = Set.new
         @queue = Queue.new
 

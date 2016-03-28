@@ -309,6 +309,19 @@ module SocialFramework
         result = @graph.search map, true, 2
         expect(result.count).to be(2)
       end
+
+      it "When search finished" do
+        map = {id: 1, username: "user2"}
+        
+        result = @graph.search map, false, 1
+        expect(result.count).to be(1)
+
+        result = @graph.search map, true, 2
+        expect(result.count).to be(2)
+
+        result = @graph.search map, true, 3
+        expect(result.count).to be(2)
+      end
     end
   end
 end
