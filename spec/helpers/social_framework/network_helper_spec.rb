@@ -254,12 +254,34 @@ module SocialFramework
       end
 
       it "Compare vertices" do
-        vertex = SocialFramework::NetworkHelper::Vertex.new 1
+        vertex = @graph.network[0]
         result = @graph.send(:compare_vertex, vertex, {id: 1})
 
         expect(result).to be(true)
 
         result = @graph.send(:compare_vertex, vertex, {id: 0})
+
+        expect(result).to be(false)
+      end
+
+      it "When compare vertices with attribute string" do
+        vertex = @graph.network[0]
+        result = @graph.send(:compare_vertex, vertex, {username: "user1"})
+
+        expect(result).to be(true)
+
+        result = @graph.send(:compare_vertex, vertex, {username: "user0"})
+
+        expect(result).to be(false)
+      end
+
+      it "When pass part of string" do
+        vertex = @graph.network[0]
+        result = @graph.send(:compare_vertex, vertex, {username: "1"})
+
+        expect(result).to be(true)
+
+        result = @graph.send(:compare_vertex, vertex, {username: "0"})
 
         expect(result).to be(false)
       end
@@ -321,6 +343,53 @@ module SocialFramework
 
         result = @graph.search map, true, 3
         expect(result.count).to be(2)
+      end
+
+      it "When pass part of string" do
+        map = {id: 1, username: "u"}
+        
+        result = @graph.search map, false, 5
+        expect(result.count).to be(5)
+
+        result = @graph.search map, true, 9
+        expect(result.count).to be(9)
+
+        result = @graph.search map, true, 10
+        expect(result.count).to be(9)
+      end
+    end
+
+    describe "Search in database" do
+      before(:each) do
+        @graph.mount_graph @user1, [:username, :email]
+        @graph.send(:clean_vertices)
+      end
+
+      it "When search with part of string" do
+        map = {id: 1, username: "u"}
+        
+        @graph.send(:search_in_database, map, 5)
+        expect(@graph.instance_variable_get(:@users_found).count).to be(5)
+
+        @graph.send(:search_in_database, map, 9)
+        expect(@graph.instance_variable_get(:@users_found).count).to be(9)
+
+        @graph.send(:search_in_database, map, 10)
+        expect(@graph.instance_variable_get(:@users_found).count).to be(9)
+      end
+
+      it "When search with string" do
+        map = {username: "user1"}
+        
+        @graph.send(:search_in_database, map, 5)
+        expect(@graph.instance_variable_get(:@users_found).count).to be(1)
+      end
+
+      it "When search with integer" do
+        map = {id: 3}
+        
+        @graph.send(:search_in_database, map, 5)
+        expect(@graph.instance_variable_get(:@users_found).count).to be(1)
       end
     end
   end

@@ -78,16 +78,7 @@ module SocialFramework
 
         search_visit map, users_number unless @finished_search_in_graph
 
-        if @users_found.size < users_number and @finished_search_in_graph
-          begin
-            user = SocialFramework::User.find map[:id]
-            @users_found << Vertex.new(user.id)
-
-            @finished_search = true
-          rescue
-            Rails.logger.warn "User not found with id #{map[:id]}"
-          end
-        end
+        search_in_database(map, users_number) if @users_found.size < users_number and @finished_search_in_graph
 
         return @users_found
       end
@@ -167,7 +158,7 @@ module SocialFramework
         while not @queue.empty? and @users_found.size < users_number do
           root = @queue.pop
 
-          @users_found << root if compare_vertex(root, map)
+          @users_found << SocialFramework::User.find(root.id) if compare_vertex(root, map)
 
           root.edges.each do |edge|
             vertex = edge.destiny
@@ -189,9 +180,16 @@ module SocialFramework
       # Returns true if vertex contains some falue or false if not
       def compare_vertex vertex, map
         map.each do |key, value|
-          if (vertex.respond_to? key and vertex.method(key).call == value) or vertex.attributes[key] == value
-            return true
+          vertex_value = vertex.respond_to?(key) ? vertex.method(key).call : nil
+
+          if value.class == String
+            condictions = ((not vertex_value.nil? and vertex_value.include? value) or
+              (not vertex.attributes[key].nil? and vertex.attributes[key].include? value))
+          else
+            condictions = ((vertex_value == value) or vertex.attributes[key] == value)
           end
+
+          return true if condictions
         end
 
         return false
@@ -204,6 +202,7 @@ module SocialFramework
         @finished_search = false
         @users_found = Set.new
         @queue = Queue.new
+        @users_in_database = nil
 
         @network.each do |vertex|
           vertex.color = :white
@@ -226,6 +225,33 @@ module SocialFramework
           end
         end
         return hash
+      end
+
+      # Continue search in database
+      # ====== Params:
+      # +map+:: +Hash+ with keys and values to compare
+      # +users_number+:: +Integer+ to limit max search result
+      def search_in_database map, users_number
+        condictions = ""
+        
+        map.each do |key, value|
+          comparator = value.class == String ? "LIKE" : "="
+          condictions += " OR " unless condictions.empty?
+          condictions += "#{key} #{comparator} :#{key}"
+          map[key] = "%#{value}%" if value.class == String
+        end
+
+        begin
+          @users_in_database ||= SocialFramework::User.where([condictions, map]).to_a
+
+          @finished_search = true if @users_found.size + @users_in_database.size <= users_number 
+
+          while @users_found.size < users_number and not @users_in_database.empty?
+            @users_found << @users_in_database.shift
+          end
+        rescue
+          Rails.logger.warn "Parameter invalid!"
+        end
       end
     end
 
