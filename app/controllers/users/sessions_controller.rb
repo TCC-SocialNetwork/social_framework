@@ -1,5 +1,6 @@
 # Controller responsible to sign_in an sign_out users
 class Users::SessionsController < Devise::SessionsController
+  include SocialFramework
   before_filter :configure_sign_in_params, only: [:create]
 
   # GET /resource/sign_in
@@ -8,9 +9,10 @@ class Users::SessionsController < Devise::SessionsController
   # end
 
   # POST /resource/sign_in
-  # def create
-  #   super
-  # end
+  def create
+    super
+    graph.mount_graph(current_user)
+  end
 
   # DELETE /resource/sign_out
   # def destroy

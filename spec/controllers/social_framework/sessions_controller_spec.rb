@@ -14,6 +14,7 @@ module SocialFramework
           login: "user", password: "password"
         }
 
+        expect(session[:graph]).not_to be_nil
         expect(response).to have_http_status(302)
       end
 
@@ -25,6 +26,7 @@ module SocialFramework
           login: "user@email.com", password: "password"
         }
 
+        expect(session[:graph]).not_to be_nil
         expect(response).to have_http_status(302)
       end
     end
