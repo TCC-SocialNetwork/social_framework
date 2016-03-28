@@ -242,7 +242,7 @@ module SocialFramework
 
     describe "Search vertices" do
       before(:each) do
-        @graph.mount_graph @user1
+        @graph.mount_graph @user1, [:username, :email]
       end
 
       it "Clean all vertices" do
@@ -266,7 +266,7 @@ module SocialFramework
 
       it "When users_number should be 0" do
         map = {id: 1}
-        result = @graph.search map, 0
+        result = @graph.search map, false, 0
         expect(result).to be_empty
       end
 
@@ -298,6 +298,16 @@ module SocialFramework
         map = {id: 9}
         result = @graph.search map
         expect(result.count).to be(1)
+      end
+
+      it "When continue search" do
+        map = {id: 1, username: "user2"}
+        
+        result = @graph.search map, false, 1
+        expect(result.count).to be(1)
+
+        result = @graph.search map, true, 2
+        expect(result.count).to be(2)
       end
     end
   end

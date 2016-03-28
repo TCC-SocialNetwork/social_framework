@@ -66,30 +66,24 @@ module SocialFramework
       # +map+:: +Hash+ with keys and values to compare
       # +users_number+:: +Integer+ to limit max search result
       # Returns Set with users found
-      def search map, users_number = SocialFramework.users_number_to_search
-        clean_vertices
-
-        users_found = Set.new
-        @queue ||= Queue.new
-
-        @network.each do |vertex|
-          if vertex.color == :white
-            vertex.color = :gray
-            @queue << vertex
-
-            search_visit map, users_number, users_found
-          end
+      def search map, search_in_progress = false, users_number = SocialFramework.users_number_to_search
+        unless search_in_progress
+          clean_vertices
+          @network.first.color = :gray
+          @queue << @network.first
         end
 
-        if users_found.size < users_number
+        search_visit map, users_number
+
+        if @users_found.size < users_number
           begin
             user = SocialFramework::User.find map[:id]
-            users_found << Vertex.new(user.id)
+            @users_found << Vertex.new(user.id)
           rescue
           end
         end
 
-        return users_found
+        return @users_found
       end
 
       # Suggest relationships to root
@@ -163,12 +157,11 @@ module SocialFramework
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
       # +users_number+:: +Integer+ to limit max search result
-      # +users_found+:: +Set+ with all vertices found
-      def search_visit map, users_number, users_found
-        while not @queue.empty? and users_found.size < users_number do
+      def search_visit map, users_number
+        while not @queue.empty? and @users_found.size < users_number do
           root = @queue.pop
 
-          users_found << root if compare_vertex(root, map)
+          @users_found << root if compare_vertex(root, map)
 
           root.edges.each do |edge|
             vertex = edge.destiny
@@ -188,12 +181,8 @@ module SocialFramework
       # Returns true if vertex contains some falue or false if not
       def compare_vertex vertex, map
         map.each do |key, value|
-          begin
-            if vertex.respond_to? key
-              return true if (vertex.method(key).call == value)
-            else
-              Rails.logger.warn "The user haven't the attribute #{key}"
-            end
+          if (vertex.respond_to? key and vertex.method(key).call == value) or vertex.attributes[key] == value
+            return true
           end
         end
 
@@ -203,6 +192,9 @@ module SocialFramework
       # Set color white to all vertices in graph
       # Returns @network with white vertices
       def clean_vertices
+        @users_found = Set.new
+        @queue = Queue.new
+
         @network.each do |vertex|
           vertex.color = :white
         end
