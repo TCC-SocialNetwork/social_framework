@@ -49,7 +49,7 @@ bundle install
 ----
 # Getting started
 
-> The SocialFramework is based on Devise, which is a ... that provides the users' authentication, for a full documentation to Devise see: https://github.com/plataformatec/devise.
+> The SocialFramework is based on Devise, which is a ... that provides the users authentication, for a full documentation to Devise see: https://github.com/plataformatec/devise.
 The User class already is implemented in SocialFramework and some changes have been applied, like adding username attribute and the behaviors to relationships betweens users.
 The controllers and views of the Devise also has been changed to add new features.
 
@@ -209,7 +209,72 @@ Initially the SocialFramework add views registrations and sessions to your app p
 > Currently the SocialFramework has one module to Users and Relationships, this module provides authentication, resgistrations, relationships between users and searchs in network mounted.
 
 ----
-## Users' Module
+## Users Module
+
+> This module provides the principal logic to social networks, like create, confirm and remove relationships between users, beyond searchs, registers, updates and athentications.
+
+> The relationships structure was built with a many to many association between Users through Edges. The Edges has user origin, user destiny, status can be active or inactive, if is bidirectional or not to specify relationships like two-way or one-way and label with the relationship name.
+May be exists multiple relationships between the same users. Each relationship is represent with an Edge.
+
+> To create a new relationship between two users it's used the method 'create_relationship' defined in User Class. The following is the method signature.
+
+```ruby
+create_relationship(destiny, label, bidirectional=true, active=false)
+```
+
+> The user asking for relationship should invoke this method passing the destiny user and label to relationship. For default is created a bidirectional  and inactive relationship between this users. It's possible change this passing the other params.
+
+> To active this relationship created it's necessary confirm. To do this the destiny user should invoke the method 'confirm_relationship'. The following is the method signature.
+
+```ruby
+confirm_relationship(user, label)
+```
+
+> It's necessary pass the origin user and label with type to relationship. The origin user can't confirm this relationship.
+
+> To remove some relationship the users should invoke the method 'remove_relationship', passing the other user in relationship and label. The following is the method signature.
+
+```ruby
+remove_relationship(destiny, label)
+```
+
+> The Users Module uses a Graph to provide some functionalities, like searchs in network and relationships suggestion. All this functionalities are presents in 'NetworkHelper' thats implements the classes Graph, Vertex and Edge.
+The Graph is initialized in module 'SocialFramework' and it can be accessed from the method 'graph'.
+In sign_in action the Graph is built with the User logged like root. The Graph is built until the depth specified in initializer 'social_framework.rb' in variable 'depth_to_mount_graph', the value default is three. The following is the method signature to build graph.
+
+```ruby
+mount_graph(root, attributes = [], relationships = "all")
+```
+
+> The attributes are user attributes thats will be mapped to vertices, the attribute 'id' already is passed mandatorily. Relationships are the type of relationships to build the Graph, should be a string or an array, "all" is to build Graph with any relationships. In sign_in action the Graph is built with attributes 'username' and 'email', beyond 'id'.
+
+> With the Graph built it's possible suggest relationships. To this it's analyzed the third level in graph finding common relationships with type specified in initializer 'social_framework.rb' in variable 'relationship_type_to_suggest', the value default is 'friend', the variable 'amount_relationship_to_suggest' specifies the value to use to suggest relationships, the default value is five. The following is the method signature.
+
+```ruby
+suggest_relationships(type_relationships = SocialFramework.relationship_type_to_suggest,
+  amount_relationships = SocialFramework.amount_relationship_to_suggest)
+```
+
+> Considering the default values, if an user 'A' and an user 'C' has five relationships with type 'friend' with other five users the system  suggest to the user 'A' start the same relationship with the user 'C'.
+
+> The search in Graph is executed using the [BFS](https://en.wikipedia.org/wiki/Breadth-first_search) algorithm. The following is the method signature to search.
+
+```ruby
+search(map, search_in_progress = false, users_number = SocialFramework.users_number_to_search)
+```
+
+> It's passed a map to be used in search, this map represent keys and values to compare vertices, for example, the map '{username: 'user', email: 'user'}' will cause an search with any vertice thats contains the string 'user' in username or email.
+The param 'search_in_progress' is used to continue a search finding more results, to do this pass true. And, the param 'users_number' define the quantity of users to return, this value is specified in initializer 'social_framework.rb' in variable 'users_number_to_search', the value default is five.
+
+> An example to continue searchs is shown below. In this case the first call returns the first five users found in graph, the second call returns the next five users in an array with size ten.
+
+```ruby
+map = {username: 'user', email: 'user'}
+graph.search(map)
+graph.search(map, true, 10)
+```
+
+> When the search reaches the end of the Graph and not yet found all required users an search in database is done to complete the array.
 
 ----
 # Authors

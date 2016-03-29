@@ -11,7 +11,7 @@ class Users::SessionsController < Devise::SessionsController
   # POST /resource/sign_in
   def create
     super
-    graph.mount_graph(current_user)
+    graph.mount_graph(current_user, [:username, :email])
   end
 
   # DELETE /resource/sign_out

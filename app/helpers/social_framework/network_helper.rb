@@ -12,7 +12,7 @@ module SocialFramework
       # ====== Params:
       # +depth+:: +Integer+ depth graph to mounted, default is value defined to 'depth_to_mount_graph' in initializer social_framework.rb
       # Returns Graph's Instance
-      def initialize depth = SocialFramework.depth_to_mount_graph
+      def initialize(depth = SocialFramework.depth_to_mount_graph)
         @network = Array.new
         @depth = depth
       end
@@ -67,7 +67,7 @@ module SocialFramework
       # +search_in_progress+:: +Boolean+ to continue if true or start a new search
       # +users_number+:: +Integer+ to limit max search result
       # Returns Set with users found
-      def search map, search_in_progress = false, users_number = SocialFramework.users_number_to_search
+      def search(map, search_in_progress = false, users_number = SocialFramework.users_number_to_search)
         return @users_found if @finished_search and search_in_progress == true
 
         unless search_in_progress
@@ -106,7 +106,6 @@ module SocialFramework
         return suggestions
       end
 
-
       protected
 
       # Select all user's edges with the relationships required
@@ -114,7 +113,7 @@ module SocialFramework
       # +user_id+:: +User+ to find to get edges
       # +relationships+:: +Array+ relationships required to select edges
       # Returns Edges selected
-      def get_edges user_id, relationships
+      def get_edges(user_id, relationships)
         begin
           user = SocialFramework::User.find user_id
         rescue
@@ -127,7 +126,7 @@ module SocialFramework
           condiction_to_string = (relationships.class == String and (relationships == "all" or e.label == relationships))
           condiction_to_array = (relationships.class == Array and relationships.include? e.label)
 
-          not @network.include? Vertex.new(id) and (condiction_to_string or condiction_to_array)
+          e.active and not @network.include? Vertex.new(id) and (condiction_to_string or condiction_to_array)
         end
       end
 
@@ -154,7 +153,7 @@ module SocialFramework
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
       # +users_number+:: +Integer+ to limit max search result
-      def search_visit map, users_number
+      def search_visit(map, users_number)
         while not @queue.empty? and @users_found.size < users_number do
           root = @queue.pop
 
@@ -178,7 +177,7 @@ module SocialFramework
       # +vertex+:: +Vertex+ to compare
       # +map+:: +Hash+ with keys and values to compare
       # Returns true if vertex contains some falue or false if not
-      def compare_vertex vertex, map
+      def compare_vertex(vertex, map)
         map.each do |key, value|
           vertex_value = vertex.respond_to?(key) ? vertex.method(key).call : nil
 
@@ -214,7 +213,7 @@ module SocialFramework
       # +attributes+:: +Array+ required attributes
       # +user+:: +User+ to get the value of attributes
       # Returns a Hash of attributes and values
-      def mount_attributes attributes, user
+      def mount_attributes(attributes, user)
         hash = Hash.new
 
         attributes.each do |a|
@@ -231,7 +230,7 @@ module SocialFramework
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
       # +users_number+:: +Integer+ to limit max search result
-      def search_in_database map, users_number
+      def search_in_database(map, users_number)
         condictions = ""
         
         map.each do |key, value|
@@ -300,10 +299,6 @@ module SocialFramework
 
         edge.labels << label
       end
-
-      def to_s
-        "vertex #{id} - #{attributes}"
-      end
     end
     
     # Represent the conneciont edges between vertices
@@ -319,10 +314,6 @@ module SocialFramework
         @origin = origin
         @destiny = destiny
         @labels = Array.new
-      end
-
-      def to_s
-        "#{@origin.id} -> #{@destiny.id}"
       end
     end
   end

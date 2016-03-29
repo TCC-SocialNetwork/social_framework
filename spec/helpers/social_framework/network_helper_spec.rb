@@ -13,27 +13,27 @@ module SocialFramework
       @user8 = create(:user,username: "user8", email: "user8@mail.com")
       @user9 = create(:user,username: "user9", email: "user9@mail.com")
 
-      @user1.create_relationship @user2, "r1"
-      @user1.create_relationship @user2, "r2"
-      @user1.create_relationship @user3, "r1"
-      @user1.create_relationship @user4, "r1"
-      @user1.create_relationship @user7, "r1"
-      @user1.create_relationship @user8, "r1"
+      @user1.create_relationship @user2, "r1", true, true
+      @user1.create_relationship @user2, "r2", true, true
+      @user1.create_relationship @user3, "r1", true, true
+      @user1.create_relationship @user4, "r1", true, true
+      @user1.create_relationship @user7, "r1", true, true
+      @user1.create_relationship @user8, "r1", true, true
 
-      @user2.create_relationship @user4, "r1"
-      @user2.create_relationship @user5, "r1"
+      @user2.create_relationship @user4, "r1", true, true
+      @user2.create_relationship @user5, "r1", true, true
 
-      @user3.create_relationship @user4, "r1"
+      @user3.create_relationship @user4, "r1", true, true
 
-      @user4.create_relationship @user5, "r2"
-      @user4.create_relationship @user6, "r1"
+      @user4.create_relationship @user5, "r2", true, true
+      @user4.create_relationship @user6, "r1", true, true
 
-      @user5.create_relationship @user6, "r1"
-      @user5.create_relationship @user7, "r2"
+      @user5.create_relationship @user6, "r1", true, true
+      @user5.create_relationship @user7, "r2", true, true
 
-      @user6.create_relationship @user7, "r1"
-      @user6.create_relationship @user8, "r1"
-      @user6.create_relationship @user9, "r1"
+      @user6.create_relationship @user7, "r1", true, true
+      @user6.create_relationship @user8, "r1", true, true
+      @user6.create_relationship @user9, "r1", true, true
 
       @graph = NetworkHelper::Graph.new
       @graph.instance_variable_set :@root, @user1
@@ -52,6 +52,13 @@ module SocialFramework
       end
 
       it "When can be any relationship" do
+        result = @graph.send(:get_edges, @user1.id, "all")
+        
+        expect(result.count).to be(6)
+      end
+
+      it "When create inactive relationships" do
+        @user1.create_relationship @user5, "r1"
         result = @graph.send(:get_edges, @user1.id, "all")
         
         expect(result.count).to be(6)
