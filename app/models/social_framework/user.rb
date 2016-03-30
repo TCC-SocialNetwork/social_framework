@@ -51,9 +51,9 @@ module SocialFramework
     # +label+:: +String+ relationship type
     # +bidirectional+:: +Boolean+ define relationship is bidirectional or not
     # +active+:: +Boolean+ define relationship like active or inactive
-    # Returns Relationship type or a new edge relationship
+    # Returns true if relationship created or false if no
     def create_relationship(destiny, label, bidirectional=true, active=false)
-      return if destiny.nil? or destiny == self
+      return false if destiny.nil? or destiny == self
       
       edge = Edge.where(["(origin_id = :origin_id AND destiny_id = :destiny_id OR 
         destiny_id = :origin_id AND origin_id = :destiny_id) AND label = :label",
@@ -62,7 +62,11 @@ module SocialFramework
       if edge.nil?
         edge = Edge.create origin: self, destiny: destiny, active: active,
           bidirectional: bidirectional, label: label
+
+        return (not edge.nil?)
       end
+
+      return false
     end
 
     # Remove relationship beteween users
@@ -83,17 +87,52 @@ module SocialFramework
     # Confirm relationship
     # ====== Params:
     # +user+:: +User+ to confirm
-    # +label+:: +Label+ to confirm
-    # Returns Edge between the users
+    # +label+:: +String+ to confirm
+    # Returns true if relationship confirmed or false if no
     def confirm_relationship(user, label)
-      return if user.nil? or user == self
+      return false if user.nil? or user == self
 
       edge = self.edges.select { |edge| edge.origin == user and edge.label == label }.first
 
       unless edge.nil? 
         edge.active = true
-        edge.save
+        return edge.save
       end
+
+      return false
+    end
+
+    # Get all users with specific relationship
+    # ====== Params:
+    # +label+:: +String+ to search
+    # +status:: +Boolean+ to get active or inactive edges
+    # +created_by:: +String+ represent type relationships created by self or not. Pass self, any or other 
+    # Returns Array with users found
+    def relationships(label, status = true, created_by = "any")
+      edges = self.edges.select do |edge|
+        creation_condiction = true
+
+        if created_by == "self"
+          creation_condiction = edge.origin == self
+        elsif created_by == "other"
+          creation_condiction = edge.destiny == self
+        end
+        
+        edge.label == label and edge.active == status and creation_condiction
+      end
+
+      users = Array.new
+
+      edges.each do |edge|
+        users << (edge.origin != self ? edge.origin : edge.destiny)
+      end
+
+      return users
+    end
+
+    # Get my intance graph
+    def graph
+      NetworkHelper::Graph.get_instance(id)
     end
   end
 end

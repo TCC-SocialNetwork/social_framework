@@ -2,7 +2,7 @@
 SocialFramework.setup do |config|
   
   # Define the quantity of levels on mount graph to search
-  # config.depth_to_mount_graph = 3
+  # config.depth_to_build = 3
 
   # Define the quantity of users to search returns
   # config.users_number_to_search = 5

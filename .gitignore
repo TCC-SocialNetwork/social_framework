@@ -42,3 +42,4 @@ spec/dummy/db
 db/tmp
 
 spec/dummy/script.rb
+*.txt

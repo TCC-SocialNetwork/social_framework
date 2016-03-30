@@ -11,13 +11,14 @@ class Users::SessionsController < Devise::SessionsController
   # POST /resource/sign_in
   def create
     super
-    graph.mount_graph(current_user, [:username, :email])
+    current_user.graph.build(current_user, [:username, :email]) if current_user
   end
 
   # DELETE /resource/sign_out
-  # def destroy
-  #   super
-  # end
+  def destroy
+    current_user.graph.destroy(current_user.id) if current_user
+    super
+  end
 
   # protected
 

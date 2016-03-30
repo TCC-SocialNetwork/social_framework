@@ -35,7 +35,7 @@ module SocialFramework
       @user6.create_relationship @user8, "r1", true, true
       @user6.create_relationship @user9, "r1", true, true
 
-      @graph = NetworkHelper::Graph.new
+      @graph = NetworkHelper::Graph.get_instance @user1.id
       @graph.instance_variable_set :@root, @user1
     end
 
@@ -104,7 +104,7 @@ module SocialFramework
 
     describe "Mount network" do
       it "When use default depth" do
-        @graph.mount_graph @user1
+        @graph.build @user1
 
         expect(@graph.network.count).to be(8)
 
@@ -124,7 +124,7 @@ module SocialFramework
 
       it "When use depth equal 1" do
         @graph.depth = 1
-        @graph.mount_graph @user1
+        @graph.build @user1
         expect(@graph.network.count).to be(1)
 
         expect(@graph.network.select { |v| v.id == 1 }.first.edges).to be_empty
@@ -132,7 +132,7 @@ module SocialFramework
 
       it "When use depth equal 2" do
         @graph.depth = 2
-        @graph.mount_graph @user1
+        @graph.build @user1
         expect(@graph.network.count).to be(6)
         
         expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(5)
@@ -145,7 +145,7 @@ module SocialFramework
 
       it "When use depth equal 4" do
         @graph.depth = 4
-        @graph.mount_graph @user1
+        @graph.build @user1
         expect(@graph.network.count).to be(9)
 
         expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(5)
@@ -160,7 +160,7 @@ module SocialFramework
       end
 
       it "When use default attributes" do
-        @graph.mount_graph @user1
+        @graph.build @user1
 
         @graph.network.each do |vertex|
           expect(vertex.attributes).to be_empty
@@ -168,7 +168,7 @@ module SocialFramework
       end
 
       it "When pass valid attributes" do
-        @graph.mount_graph @user1, [:username, :email]
+        @graph.build @user1, [:username, :email]
 
         @graph.network.each do |vertex|
           expect(vertex.attributes.key?(:username)).to be(true)
@@ -177,7 +177,7 @@ module SocialFramework
       end
 
       it "When pass invalid and valid attributes" do
-        @graph.mount_graph @user1, [:username, :email, :invalid_attribute]
+        @graph.build @user1, [:username, :email, :invalid_attribute]
 
         @graph.network.each do |vertex|
           expect(vertex.attributes.key?(:username)).to be(true)
@@ -187,7 +187,7 @@ module SocialFramework
       end
 
       it "When pass invalid attributes" do
-        @graph.mount_graph @user1, [:invalid_attribute]
+        @graph.build @user1, [:invalid_attribute]
 
         @graph.network.each do |vertex|
           expect(vertex.attributes).to be_empty
@@ -197,7 +197,7 @@ module SocialFramework
 
     describe "Suggest relationships" do
       before(:each) do
-        @graph.mount_graph @user1
+        @graph.build @user1
       end
 
       it "With default params" do
@@ -236,9 +236,9 @@ module SocialFramework
       end
 
       it "With user6 as root" do
-        @graph = NetworkHelper::Graph.new
+        @graph = NetworkHelper::Graph.get_instance @user6.id
         @graph.instance_variable_set :@root, @user6
-        @graph.mount_graph @user6
+        @graph.build @user6
 
         result = @graph.suggest_relationships "r1", 3
 
@@ -249,7 +249,7 @@ module SocialFramework
 
     describe "Search vertices" do
       before(:each) do
-        @graph.mount_graph @user1, [:username, :email]
+        @graph.build @user1, [:username, :email]
       end
 
       it "Clean all vertices" do
@@ -368,7 +368,7 @@ module SocialFramework
 
     describe "Search in database" do
       before(:each) do
-        @graph.mount_graph @user1, [:username, :email]
+        @graph.build @user1, [:username, :email]
         @graph.send(:clean_vertices)
       end
 

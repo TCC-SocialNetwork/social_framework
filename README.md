@@ -240,10 +240,10 @@ remove_relationship(destiny, label)
 
 > The Users Module uses a Graph to provide some functionalities, like searchs in network and relationships suggestion. All this functionalities are presents in 'NetworkHelper' thats implements the classes Graph, Vertex and Edge.
 The Graph is initialized in module 'SocialFramework' and it can be accessed from the method 'graph'.
-In sign_in action the Graph is built with the User logged like root. The Graph is built until the depth specified in initializer 'social_framework.rb' in variable 'depth_to_mount_graph', the value default is three. The following is the method signature to build graph.
+In sign_in action the Graph is built with the User logged like root. The Graph is built until the depth specified in initializer 'social_framework.rb' in variable 'depth_to_build', the value default is three. The following is the method signature to build graph.
 
 ```ruby
-mount_graph(root, attributes = [], relationships = "all")
+build(root, attributes = [], relationships = "all")
 ```
 
 > The attributes are user attributes thats will be mapped to vertices, the attribute 'id' already is passed mandatorily. Relationships are the type of relationships to build the Graph, should be a string or an array, "all" is to build Graph with any relationships. In sign_in action the Graph is built with attributes 'username' and 'email', beyond 'id'.

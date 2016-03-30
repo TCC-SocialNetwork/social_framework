@@ -160,13 +160,13 @@ module SocialFramework
 
       it "When relationship is invalid" do
         result = @user.confirm_relationship(@user2, "new_relationship")
-        expect(result).to be_nil
+        expect(result).to be(false)
 
         result = @user.confirm_relationship(nil, "new_relationship")
-        expect(result).to be_nil
+        expect(result).to be(false)
 
         result = @user.confirm_relationship(@user, "new_relationship")
-        expect(result).to be_nil
+        expect(result).to be(false)
       end
 
       it "When relationship is valid" do
@@ -187,6 +187,53 @@ module SocialFramework
 
         expect(@user.edges.first.active).to be(false)
         expect(@user2.edges.first.active).to be(false)
+      end
+    end
+
+    describe "Get users from specific relationship" do
+      before(:each) do
+        @user1 = create(:user,username: "user1", email: "user1@mail.com")
+        @user2 = create(:user,username: "user2", email: "user2@mail.com")
+        @user3 = create(:user,username: "user3", email: "user3@mail.com")
+        @user4 = create(:user,username: "user4", email: "user4@mail.com")
+        @user5 = create(:user,username: "user5", email: "user5@mail.com")
+
+        @user1.create_relationship(@user2, "r1")
+        @user1.create_relationship(@user3, "r1")
+        @user1.create_relationship(@user4, "r1")
+        @user5.create_relationship(@user1, "r1")
+      end
+
+      it "When not exist specified relationships" do
+        result = @user1.relationships("invalid")
+        expect(result).to be_empty
+      end
+
+      it "When not exist active relationships" do
+        result = @user1.relationships("r1")
+        expect(result).to be_empty
+      end
+
+      it "When get all inacive relationships" do
+        result = @user1.relationships("r1", false)
+        expect(result.count).to be(4)
+      end
+
+      it "When get all inacive relationships created by me" do
+        result = @user1.relationships("r1", false, "self")
+        expect(result.count).to be(3)
+      end
+
+      it "When get all inacive relationships created by others" do
+        result = @user1.relationships("r1", false, "other")
+        expect(result.count).to be(1)
+      end
+
+      it "When exist active relationships" do
+        @user2.confirm_relationship(@user1, "r1")
+        
+        result = @user1.relationships("r1")
+        expect(result.count).to be(1)
       end
     end
   end

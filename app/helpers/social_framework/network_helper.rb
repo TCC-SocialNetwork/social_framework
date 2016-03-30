@@ -8,13 +8,30 @@ module SocialFramework
     class Graph
       attr_accessor :network, :depth
 
-      # Init the network in Array
+      class << self
+        protected :new
+      end
+
+      # Get graph instance to user logged
       # ====== Params:
-      # +depth+:: +Integer+ depth graph to mounted, default is value defined to 'depth_to_mount_graph' in initializer social_framework.rb
-      # Returns Graph's Instance
-      def initialize(depth = SocialFramework.depth_to_mount_graph)
-        @network = Array.new
-        @depth = depth
+      # +id+:: +Integer+ Id of the user logged
+      # Returns Graph object
+      def self.get_instance(id)
+        @@instances ||= {}
+        
+        if @@instances[id].nil?
+          @@instances[id] = Graph.new
+        end
+
+        return @@instances[id]
+      end
+
+      # Destroy graph instance with id passed
+      # ====== Params:
+      # +id+:: +Integer+ Id of the user logged
+      # Returns Graph instance removed
+      def destroy(id)
+        @@instances.delete(id)
       end
 
       # Mount a graph from an user
@@ -23,10 +40,11 @@ module SocialFramework
       # +attributes+:: +Array+ Attributes will be added in vertex
       # +relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String, default is "all" thats represents all relationships existing
       # Returns The graph mounted
-      def mount_graph(root, attributes = [], relationships = "all")
+      def build(root, attributes = [], relationships = "all")
         @root = root
-
+        @network = Array.new
         vertices = Array.new
+
         attributes_hash = mount_attributes(attributes, root)
         vertices << {vertex: Vertex.new(@root.id, attributes_hash), depth: 1}
 
@@ -99,14 +117,25 @@ module SocialFramework
 
         travel_in_third_depth(type_relationships, amount_relationships) do |destiny_edge|
           destiny_edge.destiny.visits = destiny_edge.destiny.visits + 1
-          if destiny_edge.destiny.visits == amount_relationships and destiny_edge.destiny != @root and not @root.edges.include? destiny_edge.destiny
-            suggestions << destiny_edge.destiny 
+
+          if(destiny_edge.destiny.visits == amount_relationships and
+            destiny_edge.destiny.id != @root.id and
+            @network.first.edges.select { |e| e.destiny == destiny_edge.destiny }.empty?)
+            
+            suggestions << @root.class.find(destiny_edge.destiny.id)
           end
         end
         return suggestions
       end
 
       protected
+
+      # Init the network in Array
+      # Returns Graph's Instance
+      def initialize
+        @network = Array.new
+        @depth = SocialFramework.depth_to_build
+      end
 
       # Select all user's edges with the relationships required
       # ====== Params:
@@ -115,7 +144,7 @@ module SocialFramework
       # Returns Edges selected
       def get_edges(user_id, relationships)
         begin
-          user = SocialFramework::User.find user_id
+          user = @root.class.find user_id
         rescue
           return []
         end
@@ -157,7 +186,7 @@ module SocialFramework
         while not @queue.empty? and @users_found.size < users_number do
           root = @queue.pop
 
-          @users_found << SocialFramework::User.find(root.id) if compare_vertex(root, map)
+          @users_found << @root.class.find(root.id) if compare_vertex(root, map)
 
           root.edges.each do |edge|
             vertex = edge.destiny
@@ -241,7 +270,7 @@ module SocialFramework
         end
 
         begin
-          @users_in_database ||= SocialFramework::User.where([condictions, map]).to_a
+          @users_in_database ||= @root.class.where([condictions, map]).to_a
 
           @finished_search = true if @users_found.size + @users_in_database.size <= users_number 
 
