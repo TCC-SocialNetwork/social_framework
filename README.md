@@ -238,15 +238,23 @@ confirm_relationship(user, label)
 remove_relationship(destiny, label)
 ```
 
+> The User class provide also a method to get users relations with an user, to this invoke the following method:
+
+```ruby
+relationships(label, status = true, created_by = "any")
+```
+
+> The label represent the type relationships to get, 'status' is used to get active or inactive relationships, the default is true, 'created_by' is used to specify relationships to get, can be any to get any relationship, self to get relationships with origin is equals self or other to get relationships when destiny is equals self.
+
 > The Users Module uses a Graph to provide some functionalities, like searchs in network and relationships suggestion. All this functionalities are presents in 'NetworkHelper' thats implements the classes Graph, Vertex and Edge.
-The Graph is initialized in module 'SocialFramework' and it can be accessed from the method 'graph'.
+The Graph can be accessed from the method 'graph' present in User class.
 In sign_in action the Graph is built with the User logged like root. The Graph is built until the depth specified in initializer 'social_framework.rb' in variable 'depth_to_build', the value default is three. The following is the method signature to build graph.
 
 ```ruby
-build(root, attributes = [], relationships = "all")
+build(root, attributes = [:username, :email], relationships = "all")
 ```
 
-> The attributes are user attributes thats will be mapped to vertices, the attribute 'id' already is passed mandatorily. Relationships are the type of relationships to build the Graph, should be a string or an array, "all" is to build Graph with any relationships. In sign_in action the Graph is built with attributes 'username' and 'email', beyond 'id'.
+> The attributes are user attributes thats will be mapped to vertices, for default contains 'username' and 'email', the attribute 'id' already is passed mandatorily. Relationships are the type of relationships to build the Graph, should be a string or an array, "all" is to build Graph with any relationships. In sign_in action the Graph is built with attributes 'username' and 'email', beyond 'id'.
 
 > With the Graph built it's possible suggest relationships. To this it's analyzed the third level in graph finding common relationships with type specified in initializer 'social_framework.rb' in variable 'relationship_type_to_suggest', the value default is 'friend', the variable 'amount_relationship_to_suggest' specifies the value to use to suggest relationships, the default value is five. The following is the method signature.
 

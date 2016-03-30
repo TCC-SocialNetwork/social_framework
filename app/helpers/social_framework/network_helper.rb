@@ -40,9 +40,9 @@ module SocialFramework
       # +attributes+:: +Array+ Attributes will be added in vertex
       # +relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String, default is "all" thats represents all relationships existing
       # Returns The graph mounted
-      def build(root, attributes = [], relationships = "all")
+      def build(root, attributes = [:username, :email], relationships = "all")
         @root = root
-        @network = Array.new
+        @network.clear
         vertices = Array.new
 
         attributes_hash = mount_attributes(attributes, root)

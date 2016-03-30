@@ -131,8 +131,15 @@ module SocialFramework
     end
 
     # Get my intance graph
+    # Returns Graph instance
     def graph
-      NetworkHelper::Graph.get_instance(id)
+      graph = NetworkHelper::Graph.get_instance(id)
+
+      if graph.network.empty?
+        graph.build(self)
+      end
+
+      return graph
     end
   end
 end

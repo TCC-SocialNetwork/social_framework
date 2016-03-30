@@ -163,7 +163,8 @@ module SocialFramework
         @graph.build @user1
 
         @graph.network.each do |vertex|
-          expect(vertex.attributes).to be_empty
+          expect(vertex.attributes.keys.include?(:username)).to be(true)
+          expect(vertex.attributes.keys.include?(:email)).to be(true)
         end
       end
 
