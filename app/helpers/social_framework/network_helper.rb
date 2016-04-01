@@ -94,9 +94,14 @@ module SocialFramework
           @queue << @network.first
         end
 
-        search_visit map, users_number unless @finished_search_in_graph
+        if block_given? and search_in_progress
+          @users_number = yield @users_number
+        else
+          @users_number += users_number
+        end
 
-        search_in_database(map, users_number) if @users_found.size < users_number and @finished_search_in_graph
+        search_visit(map) unless @finished_search_in_graph
+        search_in_database(map) if @users_found.size < @users_number and @finished_search_in_graph
 
         return @users_found
       end
@@ -181,9 +186,8 @@ module SocialFramework
       # Visit vertices in Graph fiding specifcs vertices
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
-      # +users_number+:: +Integer+ to limit max search result
-      def search_visit(map, users_number)
-        while not @queue.empty? and @users_found.size < users_number do
+      def search_visit(map)
+        while not @queue.empty? and @users_found.size < @users_number do
           root = @queue.pop
 
           @users_found << @root.class.find(root.id) if compare_vertex(root, map)
@@ -231,6 +235,7 @@ module SocialFramework
         @users_found = Set.new
         @queue = Queue.new
         @users_in_database = nil
+        @users_number = 0
 
         @network.each do |vertex|
           vertex.color = :white
@@ -258,8 +263,7 @@ module SocialFramework
       # Continue search in database
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
-      # +users_number+:: +Integer+ to limit max search result
-      def search_in_database(map, users_number)
+      def search_in_database(map)
         condictions = ""
         
         map.each do |key, value|
@@ -272,9 +276,9 @@ module SocialFramework
         begin
           @users_in_database ||= @root.class.where([condictions, map]).to_a
 
-          @finished_search = true if @users_found.size + @users_in_database.size <= users_number 
+          @finished_search = true if @users_found.size + @users_in_database.size <= @users_number
 
-          while @users_found.size < users_number and not @users_in_database.empty?
+          while @users_found.size < @users_number and not @users_in_database.empty?
             @users_found << @users_in_database.shift
           end
         rescue

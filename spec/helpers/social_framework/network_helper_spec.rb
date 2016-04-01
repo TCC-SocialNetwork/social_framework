@@ -331,38 +331,70 @@ module SocialFramework
       end
 
       it "When continue search" do
-        map = {id: 1, username: "user2"}
+        map = {username: "user"}
         
-        result = @graph.search map, false, 1
+        result = @graph.search(map, false, 1)
         expect(result.count).to be(1)
 
-        result = @graph.search map, true, 2
-        expect(result.count).to be(2)
+        result = @graph.search(map, true, 2)
+        expect(result.count).to be(3)
       end
 
       it "When search finished" do
-        map = {id: 1, username: "user2"}
+        map = {username: "user"}
         
         result = @graph.search map, false, 1
         expect(result.count).to be(1)
 
-        result = @graph.search map, true, 2
-        expect(result.count).to be(2)
+        result = @graph.search map, true, 8
+        expect(result.count).to be(9)
 
         result = @graph.search map, true, 3
-        expect(result.count).to be(2)
+        expect(result.count).to be(9)
       end
 
       it "When pass part of string" do
-        map = {id: 1, username: "u"}
+        map = {username: "u"}
         
         result = @graph.search map, false, 5
         expect(result.count).to be(5)
 
-        result = @graph.search map, true, 9
+        result = @graph.search map, true, 5
         expect(result.count).to be(9)
+      end
 
-        result = @graph.search map, true, 10
+      it "When pass block time" do
+        map = {username: "user"}
+        
+        result = @graph.search map, false, 1
+        expect(result.count).to be(1)
+
+        result = @graph.search(map, true) { |number| number *= 2 }
+        expect(result.count).to be(2)
+
+        result = @graph.search(map, true) { |number| number *= 2 }
+        expect(result.count).to be(4)
+
+        result = @graph.search(map, true) { |number| number *= 2 }
+        expect(result.count).to be(8)
+
+        result = @graph.search(map, true) { |number| number *= 2 }
+        expect(result.count).to be(9)
+      end
+
+      it "When pass block sum" do
+        map = {username: "user"}
+        
+        result = @graph.search map, false, 1
+        expect(result.count).to be(1)
+
+        result = @graph.search(map, true) { |number| number += 3 }
+        expect(result.count).to be(4)
+
+        result = @graph.search(map, true) { |number| number += 3 }
+        expect(result.count).to be(7)
+
+        result = @graph.search(map, true) { |number| number += 3 }
         expect(result.count).to be(9)
       end
     end
@@ -376,27 +408,32 @@ module SocialFramework
       it "When search with part of string" do
         map = {id: 1, username: "u"}
         
-        @graph.send(:search_in_database, map, 5)
+        @graph.instance_variable_set :@users_number, 5
+        @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(5)
 
-        @graph.send(:search_in_database, map, 9)
+        @graph.instance_variable_set :@users_number, 9
+        @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(9)
 
-        @graph.send(:search_in_database, map, 10)
+        @graph.instance_variable_set :@users_number, 10
+        @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(9)
       end
 
       it "When search with string" do
         map = {username: "user1"}
         
-        @graph.send(:search_in_database, map, 5)
+        @graph.instance_variable_set :@users_number, 5
+        @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(1)
       end
 
       it "When search with integer" do
         map = {id: 3}
         
-        @graph.send(:search_in_database, map, 5)
+        @graph.instance_variable_set :@users_number, 5
+        @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(1)
       end
     end

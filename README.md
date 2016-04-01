@@ -274,13 +274,24 @@ search(map, search_in_progress = false, users_number = SocialFramework.users_num
 > It's passed a map to be used in search, this map represent keys and values to compare vertices, for example, the map '{username: 'user', email: 'user'}' will cause an search with any vertice thats contains the string 'user' in username or email.
 The param 'search_in_progress' is used to continue a search finding more results, to do this pass true. And, the param 'users_number' define the quantity of users to return, this value is specified in initializer 'social_framework.rb' in variable 'users_number_to_search', the value default is five.
 
-> An example to continue searchs is shown below. In this case the first call returns the first five users found in graph, the second call returns the next five users in an array with size ten.
+> An example to continue searchs is shown below. For default, when you continue a search the 'users_number' param is used to increase the maximum size to results found.
+In this case the first call returns the first five users found in graph, the second call returns more ten users and the final array has size fifteen.
 
 ```ruby
 map = {username: 'user', email: 'user'}
 graph.search(map)
 graph.search(map, true, 10)
 ```
+
+> You can change the default behavior to continue searchs passing a block to method, this block will indicate how the 'users_number' must be increased. For example:
+
+```ruby
+map = {username: 'user', email: 'user'}
+graph.search(map, false, 1)
+graph.search(map, true) { |users_number| users_number *= 2 }
+```
+
+> In that case the 'users_number' will double every call search method with this block. Therefore, the first call returns one user due to the value passed, the second two, the third four, and so on.
 
 > When the search reaches the end of the Graph and not yet found all required users an search in database is done to complete the array.
 
