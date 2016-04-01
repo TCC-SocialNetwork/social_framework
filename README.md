@@ -75,6 +75,27 @@ rake db:migrate
 > To authentication page access "/users/sign_in" route, this page is prepared to authenticate users with email or username.
 To create user page access "/users/sign_up" route, creating a new user you will be automatically connected.
 
+> When you use the Devise Mailer like the Confirmable Module it's necessary add in your environment the configs to action mailer, for example, if you are in development environment you should add the following in 'development.rb' file.
+
+```ruby
+config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
+
+config.action_mailer.delivery_method = :smtp
+
+config.action_mailer.smtp_settings = {
+  address: "smtp.gmail.com",
+  port: 587,
+  domain: ENV["GMAIL_DOMAIN"],
+  authentication: "plain",
+  enable_starttls_auto: true,
+  user_name: ENV["GMAIL_USERNAME"],
+  password: ENV["GMAIL_PASSWORD"]
+}
+```
+
+> You can change the values in 'domain', 'user_name' and 'password' or create the local environment variables, this is indicated to hide that informations and ensure greater security.
+The same configurations is valid to test and production environments, in files 'test.rb' and 'production.rb'.
+
 ----
 # Controllers filters and helpers
 
@@ -118,6 +139,15 @@ You can override any behavior extending the class in other model, like:
 class OtherUserClass < SocialFramework::User
   # Your code goes here
 end
+```
+
+> It's necessary change the class name in file 'routes.rb' to the new class created to devise can see this class. To do this:
+
+```ruby
+devise_for :users, class_name: 'OtherUserClass',
+    controllers: {sessions: 'users/sessions',
+                  registrations: 'users/registrations',
+                  passwords: 'users/passwords'}
 ```
 
 ----
