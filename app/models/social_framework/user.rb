@@ -2,6 +2,9 @@ module SocialFramework
 
   # User class based in devise, represents the user entity to authenticate in system
   class User < ActiveRecord::Base
+
+    has_one :schedule
+
     # Username or email to search
     attr_accessor :login
 
