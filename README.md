@@ -158,7 +158,7 @@ To add or remove attributes to this or any other class you can add the Migrate i
 The SocialFramework provides a generator to do this, in this case you just need execute:
 
 ```console
-rails generate social_framework:install_migrations -m user
+rails generate social_framework:install_migrations -m users
 ```
 
 > The User migrate will be added in your app and you can change it according your needs.

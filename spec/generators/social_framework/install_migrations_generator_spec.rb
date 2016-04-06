@@ -23,6 +23,9 @@ module SocialFramework
           
           expect(migrates.any? { |m| m.include?("social_framework_users.rb") }).to be(true)
           expect(migrates.any? { |m| m.include?("social_framework_edges.rb") }).to be(true)
+          expect(migrates.any? { |m| m.include?("social_framework_schedules.rb") }).to be(true)
+          expect(migrates.any? { |m| m.include?("social_framework_events.rb") }).to be(true)
+          expect(migrates.any? { |m| m.include?("social_framework_events_schedules.rb") }).to be(true)
         end
 
         it "Add specific migrations" do
@@ -33,6 +36,22 @@ module SocialFramework
           
           expect(migrates.any? { |m| m.include?("social_framework_users.rb") }).to be(true)
           expect(migrates.any? { |m| m.include?("social_framework_edges.rb") }).to be(false)
+          expect(migrates.any? { |m| m.include?("social_framework_schedules.rb") }).to be(false)
+          expect(migrates.any? { |m| m.include?("social_framework_events.rb") }).to be(false)
+          expect(migrates.any? { |m| m.include?("social_framework_events_schedules.rb") }).to be(false)
+        end
+
+        it "Add specific migrations when pass in plural" do
+          run_generator %w(-m schedules)
+          expect(File).to exist("#{destination_root}/db/migrate")
+
+          migrates = Dir.glob("#{destination_root}/db/migrate/*")
+          
+          expect(migrates.any? { |m| m.include?("social_framework_schedules.rb") }).to be(true)
+          expect(migrates.any? { |m| m.include?("social_framework_users.rb") }).to be(false)
+          expect(migrates.any? { |m| m.include?("social_framework_edges.rb") }).to be(false)
+          expect(migrates.any? { |m| m.include?("social_framework_events.rb") }).to be(false)
+          expect(migrates.any? { |m| m.include?("social_framework_events_schedules.rb") }).to be(false)
         end
 
         it "Parameter invalid" do
