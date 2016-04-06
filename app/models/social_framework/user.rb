@@ -144,5 +144,11 @@ module SocialFramework
 
       return graph
     end
+
+    # Create user schedule if not exists
+    # Return user schedule
+    def schedule
+      Schedule.find_or_create_by(user: self)
+    end
   end
 end

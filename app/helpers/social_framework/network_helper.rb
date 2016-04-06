@@ -115,13 +115,13 @@ module SocialFramework
       def suggest_relationships(type_relationships = SocialFramework.relationship_type_to_suggest,
         amount_relationships = SocialFramework.amount_relationship_to_suggest)
 
-        travel_in_third_depth(type_relationships, amount_relationships) do |destiny_edge|
+        travel_in_third_depth(type_relationships) do |destiny_edge|
           destiny_edge.destiny.visits = 0
         end
 
         suggestions = Array.new
 
-        travel_in_third_depth(type_relationships, amount_relationships) do |destiny_edge|
+        travel_in_third_depth(type_relationships) do |destiny_edge|
           destiny_edge.destiny.visits = destiny_edge.destiny.visits + 1
 
           if(destiny_edge.destiny.visits == amount_relationships and
@@ -168,9 +168,8 @@ module SocialFramework
       # Travel neighbor neighbor
       # ====== Params:
       # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
-      # +amount_relationships+:: +Integer+ quantity of relationships to suggest a new relationship
       # +yield+:: +Block+ to execute when it is on the third level
-      def travel_in_third_depth(type_relationships, amount_relationships)
+      def travel_in_third_depth(type_relationships)
         type_relationships = [type_relationships] if type_relationships.class == String
 
         edges = @network.first.edges.select {|e| not (e.labels & type_relationships).empty?}
@@ -268,7 +267,7 @@ module SocialFramework
         condictions = ""
         
         map.each do |key, value|
-          comparator = value.class == String ? "LIKE" : "="
+          comparator = (value.class == String ? "LIKE" : "=")
           condictions += " OR " unless condictions.empty?
           condictions += "#{key} #{comparator} :#{key}"
           map[key] = "%#{value}%" if value.class == String
