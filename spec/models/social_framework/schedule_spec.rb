@@ -54,6 +54,35 @@ module SocialFramework
 
         event = @user.schedule.create_event("Event Test", start, 1)
         expect(event).to be_nil
+
+        event = @user.schedule.create_event("Event Test", start, -1.hour)
+        expect(event).to be_nil
+
+        event = @user.schedule.create_event("Event Test", start, 0.hour)
+        expect(event).to be_nil
+      end
+    end
+
+    describe "Finish date" do
+      it "When duration is nil" do
+        start = DateTime.now
+        finish = @user.schedule.send(:set_finish_date, start, nil)
+
+        expect(finish).to eq(start.end_of_day)
+      end
+
+      it "When duration is valid" do
+        start = DateTime.now
+        finish = @user.schedule.send(:set_finish_date, start, 1.hour)
+
+        expect(finish).to eq(start + 1.hour)
+      end
+
+      it "When duration is invalid" do
+        start = DateTime.now
+        finish = @user.schedule.send(:set_finish_date, start, -1.hour)
+
+        expect(finish).to be_nil
       end
     end
   end
