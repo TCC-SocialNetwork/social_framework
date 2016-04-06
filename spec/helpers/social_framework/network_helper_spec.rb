@@ -85,7 +85,7 @@ module SocialFramework
         result = @graph.send(:get_edges, @user1.id, "all")
         expect(result.count).to be(6)
         
-        @graph.network << NetworkHelper::Vertex.new(@user1.id)
+        @graph.network << GraphElements::Vertex.new(@user1.id)
 
         result = @graph.send(:get_edges, @user2.id, "all")
         expect(result.count).to be(2)

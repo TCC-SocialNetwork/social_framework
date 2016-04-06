@@ -1,7 +1,9 @@
 module SocialFramework
   class Engine < ::Rails::Engine
     isolate_namespace SocialFramework
-    
+
+    config.autoload_paths += %W(#{config.root}/lib/social_framework/graphs/)
+
     unless /[\w]+$/.match(Dir.pwd).to_s == "social_framework"
       initializer :append_migrations do |app|
         path = config.paths["db"].expanded.first

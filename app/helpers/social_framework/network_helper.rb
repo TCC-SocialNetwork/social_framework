@@ -3,6 +3,7 @@ require 'set'
 module SocialFramework
   # Module to construct Social Network
   module NetworkHelper
+    autoload :GraphElements, 'graph_elements'
 
     # Represent the network on a Graph, with Vertices and Edges
     class Graph
@@ -46,7 +47,7 @@ module SocialFramework
         vertices = Array.new
 
         attributes_hash = mount_attributes(attributes, root)
-        vertices << {vertex: Vertex.new(@root.id, attributes_hash), depth: 1}
+        vertices << {vertex: GraphElements::Vertex.new(@root.id, attributes_hash), depth: 1}
 
         until vertices.empty?
           pair = vertices.shift
@@ -65,7 +66,7 @@ module SocialFramework
 
             if pair.nil?
               attributes_hash = mount_attributes(attributes, user)
-              new_vertex = Vertex.new(user.id, attributes_hash)
+              new_vertex = GraphElements::Vertex.new(user.id, attributes_hash)
             else
               new_vertex = pair[:vertex]
             end
@@ -160,7 +161,7 @@ module SocialFramework
           condiction_to_string = (relationships.class == String and (relationships == "all" or e.label == relationships))
           condiction_to_array = (relationships.class == Array and relationships.include? e.label)
 
-          e.active and not @network.include? Vertex.new(id) and (condiction_to_string or condiction_to_array)
+          e.active and not @network.include? GraphElements::Vertex.new(id) and (condiction_to_string or condiction_to_array)
         end
       end
 
@@ -284,69 +285,6 @@ module SocialFramework
         rescue
           Rails.logger.warn "Parameter invalid!"
         end
-      end
-    end
-
-    # Represent graph's vertex
-    class Vertex
-      attr_accessor :id, :edges, :visits, :color, :attributes
-
-      # Constructor to vertex 
-      # ====== Params:
-      # +id+:: +Integer+ user id
-      # Returns Vertex's Instance
-      def initialize id = 0, attributes = {}
-        @id = id
-        @edges = Array.new
-        @visits = 0
-        @color = :white
-        @attributes = attributes
-      end
-      
-      # Overriding equal method to compare vertex by id
-      # Returns true if id is equal or false if not
-      def ==(other)
-        self.id == other.id
-      end
-      
-      alias :eql? :==
-      
-      # Overriding hash method to always equals
-      # Returns id hash
-      def hash
-        self.id.hash
-      end
-
-      # Add edges to vertex
-      # ====== Params:
-      # +destiny+:: +Vertex+  destiny to edge
-      # +label+:: +String+  label to edge
-      # Returns edge created
-      def add_edge destiny, label
-        edge = @edges.select { |e| e.destiny == destiny }.first
-
-        if edge.nil?
-          edge = Edge.new self, destiny
-          @edges << edge
-        end
-
-        edge.labels << label
-      end
-    end
-    
-    # Represent the conneciont edges between vertices
-    class Edge
-      attr_accessor :origin, :destiny, :labels
-      
-      # Constructor to Edge 
-      # ====== Params:
-      # +origin+:: +Vertex+ relationship origin
-      # +destiny+:: +Vertex+ relationship destiny
-      # Returns Vertex's Instance
-      def initialize origin, destiny
-        @origin = origin
-        @destiny = destiny
-        @labels = Array.new
       end
     end
   end
