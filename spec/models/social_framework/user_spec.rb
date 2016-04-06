@@ -236,5 +236,31 @@ module SocialFramework
         expect(result.count).to be(1)
       end
     end
+
+    describe "Get schedule" do
+      before(:each) do
+        @user = create(:user)
+      end
+
+      it "When user dont't have schedule" do
+        expect(Schedule.count).to be(0)
+        expect(@user.schedule.user).to eq(@user)
+        expect(Schedule.count).to be(1)
+      end
+
+      it "When user already have schedule" do
+        Schedule.create(user: @user)
+
+        expect(Schedule.count).to be(1)
+        expect(@user.schedule.user).to eq(@user)
+        expect(Schedule.count).to be(1)
+      end
+
+      it "When user is not created" do
+        expect(Schedule.count).to be(0)
+        expect(User.new.schedule).to be(nil)
+        expect(Schedule.count).to be(0)
+      end
+    end
   end
 end

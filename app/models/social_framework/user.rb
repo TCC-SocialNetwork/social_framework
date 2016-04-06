@@ -148,6 +148,7 @@ module SocialFramework
     # Create user schedule if not exists
     # Return user schedule
     def schedule
+      return if self.id.nil?
       Schedule.find_or_create_by(user: self)
     end
   end
