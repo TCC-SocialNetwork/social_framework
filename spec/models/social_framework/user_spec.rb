@@ -190,17 +190,19 @@ module SocialFramework
       end
     end
 
-    describe "Get users from specific relationship" do
+    describe "Get users from relationships" do
       before(:each) do
         @user1 = create(:user,username: "user1", email: "user1@mail.com")
         @user2 = create(:user,username: "user2", email: "user2@mail.com")
         @user3 = create(:user,username: "user3", email: "user3@mail.com")
         @user4 = create(:user,username: "user4", email: "user4@mail.com")
         @user5 = create(:user,username: "user5", email: "user5@mail.com")
+        @user6 = create(:user,username: "user6", email: "user6@mail.com")
 
         @user1.create_relationship(@user2, "r1")
         @user1.create_relationship(@user3, "r1")
         @user1.create_relationship(@user4, "r1")
+        @user1.create_relationship(@user6, "r2")
         @user5.create_relationship(@user1, "r1")
       end
 
@@ -214,17 +216,25 @@ module SocialFramework
         expect(result).to be_empty
       end
 
-      it "When get all inacive relationships" do
+      it "When get all inactive from specific relationship" do
         result = @user1.relationships("r1", false)
         expect(result.count).to be(4)
+
+        result = @user1.relationships("r2", false)
+        expect(result.count).to be(1)
       end
 
-      it "When get all inacive relationships created by me" do
+      it "When get all inactive relationships" do
+        result = @user1.relationships("all", false)
+        expect(result.count).to be(5)
+      end
+
+      it "When get all inactive relationships created by me" do
         result = @user1.relationships("r1", false, "self")
         expect(result.count).to be(3)
       end
 
-      it "When get all inacive relationships created by others" do
+      it "When get all inactive relationships created by others" do
         result = @user1.relationships("r1", false, "other")
         expect(result.count).to be(1)
       end

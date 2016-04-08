@@ -111,7 +111,7 @@ module SocialFramework
     # +status:: +Boolean+ to get active or inactive edges
     # +created_by:: +String+ represent type relationships created by self or not. Pass self, any or other 
     # Returns Array with users found
-    def relationships(label, status = true, created_by = "any")
+    def relationships(label = "all", status = true, created_by = "any")
       edges = self.edges.select do |edge|
         creation_condiction = true
 
@@ -121,10 +121,10 @@ module SocialFramework
           creation_condiction = edge.destiny == self
         end
         
-        edge.label == label and edge.active == status and creation_condiction
+        (edge.label == label or label == "all") and edge.active == status and creation_condiction
       end
 
-      users = Array.new
+      users = Set.new
 
       edges.each do |edge|
         users << (edge.origin != self ? edge.origin : edge.destiny)
