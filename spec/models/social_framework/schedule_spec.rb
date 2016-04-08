@@ -61,6 +61,20 @@ module SocialFramework
         event = @user.schedule.create_event("Event Test", start, 0.hour)
         expect(event).to be_nil
       end
+
+      it "When there is not disponibility" do
+        start = DateTime.now
+        event = @user.schedule.create_event("Event Test", start, 1.hour)
+
+        expect(event.start.to_datetime).to eq(start)
+        expect(event.finish.to_datetime).to eq(start + 1.hour)
+        expect(@user.schedule.events.count).to be(1)
+
+        event = @user.schedule.create_event("Event Test", start, 1.hour)
+
+        expect(event).to be_nil
+        expect(@user.schedule.events.count).to be(1)
+      end
     end
 
     describe "Finish date" do
@@ -83,6 +97,61 @@ module SocialFramework
         finish = @user.schedule.send(:set_finish_date, start, -1.hour)
 
         expect(finish).to be_nil
+      end
+    end
+
+    describe "Check disponibility" do
+      it "When not exist event" do
+        start = DateTime.now
+        disponibility = @user.schedule.check_disponibility start
+        expect(disponibility).to be(true) 
+      end
+
+      it "When not exist event and pass duration" do
+        start = DateTime.now
+        disponibility = @user.schedule.check_disponibility start, 2.hours
+        expect(disponibility).to be(true) 
+      end
+
+      it "When not exist disponibility" do
+        start = DateTime.new(2016, 01, 01, 14, 0, 0)
+        @user.schedule.create_event "Event Test", start, 2.hours
+
+        start = DateTime.new(2016, 01, 01, 13, 0, 0)
+        disponibility = @user.schedule.check_disponibility start, 2.hours
+        expect(disponibility).to be(false)
+
+        start = DateTime.new(2016, 01, 01, 13, 0, 0)
+        disponibility = @user.schedule.check_disponibility start, 5.hours
+        expect(disponibility).to be(false)
+
+        start = DateTime.new(2016, 01, 01, 10, 0, 0)
+        disponibility = @user.schedule.check_disponibility start, 2.hours
+        expect(disponibility).to be(true)
+
+        start = DateTime.new(2016, 01, 01, 12, 0, 0)
+        disponibility = @user.schedule.check_disponibility start, 2.hours
+        expect(disponibility).to be(true)
+
+        start = DateTime.new(2016, 01, 01, 14, 0, 0)
+        disponibility = @user.schedule.check_disponibility start, 2.hours
+        expect(disponibility).to be(false)
+
+        start = DateTime.new(2016, 01, 01, 15, 0, 0)
+        disponibility = @user.schedule.check_disponibility start, 30.minutes
+        expect(disponibility).to be(false)
+
+        start = DateTime.new(2016, 01, 01, 15, 0, 0)
+        disponibility = @user.schedule.check_disponibility start, 2.hours
+        expect(disponibility).to be(false)
+
+        start = DateTime.new(2016, 01, 01, 16, 0, 0)
+        disponibility = @user.schedule.check_disponibility start, 2.hours
+        expect(disponibility).to be(true)
+
+        start = DateTime.new(2016, 01, 01, 17, 0, 0)
+        disponibility = @user.schedule.check_disponibility start, 2.hours
+        expect(disponibility).to be(true)
       end
     end
   end

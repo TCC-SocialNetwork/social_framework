@@ -14,7 +14,7 @@ module SocialFramework
     # Returns event created or nil in error case
     def create_event title, start, duration = nil, description = "", particular = false
       finish = set_finish_date(start, duration)
-      return if finish.nil?
+      return if finish.nil? or not check_disponibility(start, duration)
 
       event = Event.create(title: title, start: start, finish: finish,
           description: description, particular: particular)
