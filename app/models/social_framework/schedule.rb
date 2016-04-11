@@ -14,7 +14,7 @@ module SocialFramework
     # Returns event created or nil in error case
     def create_event title, start, duration = nil, description = "", particular = false
       finish = set_finish_date(start, duration)
-      return if finish.nil? or not check_disponibility(start, duration)
+      return if finish.nil? or not check_disponibility(start, finish)
 
       event = Event.create(title: title, start: start, finish: finish,
           description: description, particular: particular)
@@ -29,13 +29,29 @@ module SocialFramework
     # Check disponibility in specific time interval
     # ====== Params:
     # +start+:: +DateTime+ event start
-    # +duration+:: +ActiveSupport::Duration+ of the event, if nil is used until end of start day
+    # +finish+:: +DateTime+ event finish, if nil is start.end_of_day
     # Returns true if exist disponibility or false if no
-    def check_disponibility(start, duration = nil)
-      finish = set_finish_date(start, duration)
+    def check_disponibility(start, finish = start.end_of_day)
+      existent_events = SocialFramework::Event.joins(:participant_events).where(
+        "social_framework_participant_events.schedule_id = ? AND " +
+        "social_framework_participant_events.confirmed = ? AND " + 
+        "social_framework_events.start < ? AND " +
+        "social_framework_events.finish > ?", self.id, true, finish, start)
 
-      existent_events = SocialFramework::Event.joins(:participant_events).where("social_framework_participant_events.confirmed = ? AND social_framework_events.start < ? AND social_framework_events.finish > ?", true, finish, start)
       return existent_events.empty?
+    end
+
+    # Confirm an event to schedule
+    # ====== Params:
+    # +event+:: +Event+ to confirm
+    # Returns false if no exist a invitation or has no disponibility or true if could confirm event
+    def confirm_event(event)
+      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(event.id, self.id)
+
+      return false if participant_event.nil? or not check_disponibility(event.start, event.finish)
+
+      participant_event.confirmed = true
+      participant_event.save
     end
 
     private
