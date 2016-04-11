@@ -192,5 +192,65 @@ module SocialFramework
         expect(participant.confirmed).to be(false)
       end
     end
+
+    describe "Remove events" do
+      before(:each) do
+        @user2 = create(:user, username: "user2", email: "user2@email.com")
+
+        @start = DateTime.now
+        @event = @user1.schedule.create_event "Event Test", @start
+        @user1.create_relationship(@user2, "r1", true, true)
+        @event.invite(@user1, @user2)
+        @user2.schedule.confirm_event(@event)
+      end
+
+      it "When creator try remove" do
+        expect(@user1.schedule.events.count).to be(1)
+        expect(@user2.schedule.events.count).to be(1)
+
+        @user1.schedule.remove_event(@event)
+
+        expect(@user1.schedule.events.count).to be(0)
+        expect(@user2.schedule.events.count).to be(0)
+      end
+
+      it "When not creator try remove" do
+        expect(@user1.schedule.events.count).to be(1)
+        expect(@user2.schedule.events.count).to be(1)
+
+        @user2.schedule.remove_event(@event)
+
+        expect(@user1.schedule.events.count).to be(1)
+        expect(@user2.schedule.events.count).to be(1)
+      end
+    end
+
+    describe "Exit event" do
+      before(:each) do
+        @user2 = create(:user, username: "user2", email: "user2@email.com")
+
+        @start = DateTime.now
+        @event = @user1.schedule.create_event "Event Test", @start
+        @user1.create_relationship(@user2, "r1", true, true)
+        @event.invite(@user1, @user2)
+        @user2.schedule.confirm_event(@event)
+      end
+
+      it "When a participant try exit" do
+        expect(@event.participant_events.count).to be(2)
+
+        @user2.schedule.exit_event(@event)
+
+        expect(@event.participant_events.count).to be(1)
+      end
+
+      it "When creator try exit" do
+        expect(@event.participant_events.count).to be(2)
+
+        @user1.schedule.exit_event(@event)
+
+        expect(@event.participant_events.count).to be(2)
+      end
+    end
   end
 end

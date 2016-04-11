@@ -54,6 +54,24 @@ module SocialFramework
       participant_event.save
     end
 
+    # Exit of an event
+    # ====== Params:
+    # +event+:: +Event+ to exit
+    # Returns ParticipantEvent destroyed or nil if user is creator
+    def exit_event(event)
+      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(event.id, self.id)
+      participant_event.destroy if participant_event.role != "creator"
+    end
+
+    # Remove an event created by self.user
+    # ====== Params:
+    # +event+:: +Event+ to remove
+    # Returns Event destroyed or nil if user is not creator
+    def remove_event(event)
+      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(event.id, self.id)
+      event.destroy if participant_event.role == "creator"
+    end
+
     private
 
     # Set finish date from duration

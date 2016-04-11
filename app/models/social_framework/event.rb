@@ -25,23 +25,44 @@ module SocialFramework
     # +maker+:: +User+ responsible to make other user an administrator, should be current_user
     # +participant+:: +User+ to make administrator
     # +permission+:: +Symbol+ to verify
-    # +role+:: +String+ new role to participant
     # Returns ParticipantEvent updated or nil if maker has no permissions required
-    def change_participant_role maker, participant, permission, role
+    def change_participant_role maker, participant, permission
       maker = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, maker.schedule.id)
       participant = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, participant.schedule.id)
+      return false if maker.nil? or participant.nil?
 
-      if has_permission(permission, maker, participant)
-        if role == "creator"
+      words = permission.to_s.split('_')
+      if has_permission(permission, maker, participant, words.first)
+        if permission == :make_creator
           maker.role = "admin"
           maker.save
         end
 
-        participant.role = role
+        role = (words.first == "remove" ? "participant" : words.last)
+        participant.role = role if not words.first == "remove" or participant.role == words.last
+
         return participant.save
       end
 
       return false
+    end
+
+    # Remove participants of the event
+    # ====== Params:
+    # +remover+:: +User+ responsible to remove participant, should be current_user
+    # +participant+:: +User+ to remove
+    # Returns nil if has no permission or ParcipantEvent removed
+    def remove_participant(remover, participant)
+      remover = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, remover.schedule.id)
+      participant = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, participant.schedule.id)
+      return if remover.nil? or participant.nil?
+
+      permission = "remove_#{participant.role}".to_sym
+
+
+      if has_permission(permission, remover, participant, "remove")
+        participant.destroy
+      end
     end
 
     private
@@ -49,14 +70,15 @@ module SocialFramework
     # Verify if exist permission to some action
     # ====== Params:
     # +permission+:: +Symbol+ permission to verify
-    # +maker+:: +User+ responsible to make other user an administrator, should be current_user
+    # +requester+:: +User+ responsible to make other user an administrator, should be current_user
     # +participant+:: +User+ to make administrator
+    # +action+:: +String+ remove or make to remove or change role
     # Returns true if has permission or false if no
-    def has_permission permission, maker, participant
-      maker_permissions = SocialFramework.event_permissions[maker.role.to_sym]
+    def has_permission permission, requester, participant, action
+      requester_permissions = SocialFramework.event_permissions[requester.role.to_sym]
 
-      return (maker.confirmed and participant.confirmed and
-                  maker_permissions.include? permission and participant.role != "creator")
+      return (requester.confirmed and (participant.confirmed or action == "remove") and
+                  requester_permissions.include? permission and participant.role != "creator")
     end
   end
 end

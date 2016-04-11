@@ -21,11 +21,13 @@ SocialFramework.setup do |config|
   # config.relationship_type_to_invite = "all"
 
   # Define Roles to Events and permissions to each role
-  # config.event_permissions = { creator: [:remove_event, :invite, :uninvite, :make_admin, :make_inviter, :make_creator],
-                         #   admin: [:invite, :uninvite, :make_admin, :make_inviter],
-                         #   recruiter: [:invite, :uninvite],
-                         #   participant: []
-                         # }
+  # config.event_permissions = { creator: [:remove_event, :remove_admin, :remove_inviter, :remove_participant,
+                            #             :invite, :make_admin, :make_inviter, :make_creator],
+                            #   admin: [:remove_inviter, :remove_admin, :remove_participant,
+                            #           :invite, :make_admin, :make_inviter],
+                            #   inviter: [:remove_participant, :invite],
+                            #   participant: []
+                            # }
 
 
 end

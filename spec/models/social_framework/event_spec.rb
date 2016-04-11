@@ -61,9 +61,11 @@ module SocialFramework
 
         @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        result = @event.change_participant_role(@user1, @user2, :make_admin, "admin")
+        result = @event.change_participant_role(@user1, @user2, :make_admin)
 
         expect(result).to be(true)
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user2.schedule.id)
+        expect(participant.role).to eq("admin")
 
         result = @event.invite @user2, @user3
 
@@ -81,7 +83,7 @@ module SocialFramework
 
         @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        result = @event.change_participant_role(@user1, @user2, :make_admin, "admin")
+        result = @event.change_participant_role(@user1, @user2, :make_admin)
 
         expect(result).to be(true)
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user2.schedule.id)
@@ -94,9 +96,9 @@ module SocialFramework
 
         @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        @event.change_participant_role(@user1, @user2, :make_admin, "admin")
+        @event.change_participant_role(@user1, @user2, :make_admin)
 
-        result = @event.change_participant_role(@user2, @user1, :make_admin, "admin")
+        result = @event.change_participant_role(@user2, @user1, :make_admin)
         expect(result).to be(false)
 
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user1.schedule.id)
@@ -112,7 +114,7 @@ module SocialFramework
         @user2.schedule.confirm_event(@event)
         @user3.schedule.confirm_event(@event)
         
-        result = @event.change_participant_role(@user2, @user3, :make_admin, "admin")
+        result = @event.change_participant_role(@user2, @user3, :make_admin)
         expect(result).to be(false)
 
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user3.schedule.id)
@@ -125,7 +127,7 @@ module SocialFramework
 
         @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        result = @event.change_participant_role(@user1, @user2, :make_inviter, "inviter")
+        result = @event.change_participant_role(@user1, @user2, :make_inviter)
 
         expect(result).to be(true)
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user2.schedule.id)
@@ -138,11 +140,11 @@ module SocialFramework
 
         @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        @event.change_participant_role(@user1, @user2, :make_admin, "admin")
+        @event.change_participant_role(@user1, @user2, :make_admin)
 
         @event.invite @user2, @user3
         @user3.schedule.confirm_event(@event)
-        result = @event.change_participant_role(@user2, @user3, :make_inviter, "inviter")
+        result = @event.change_participant_role(@user2, @user3, :make_inviter)
 
         expect(result).to be(true)
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user3.schedule.id)
@@ -159,7 +161,7 @@ module SocialFramework
         @user3.schedule.confirm_event(@event)
 
 
-        result = @event.change_participant_role(@user2, @user3, :make_inviter, "inviter")
+        result = @event.change_participant_role(@user2, @user3, :make_inviter)
 
         expect(result).to be(false)
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user3.schedule.id)
@@ -175,7 +177,26 @@ module SocialFramework
         @user2.schedule.confirm_event(@event)
         @user3.schedule.confirm_event(@event)
         
-        result = @event.change_participant_role(@user2, @user3, :make_inviter, "inviter")
+        result = @event.change_participant_role(@user2, @user3, :make_inviter)
+        expect(result).to be(false)
+
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user3.schedule.id)
+        expect(participant.role).to eq("participant")
+      end
+
+      it "When a inter try make inviter" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user1.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @event.invite @user1, @user3
+        @user2.schedule.confirm_event(@event)
+        @user3.schedule.confirm_event(@event)
+        
+        @event.change_participant_role(@user1, @user2, :make_inviter)
+
+        result = @event.change_participant_role(@user2, @user3, :make_inviter)
+        
         expect(result).to be(false)
 
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user3.schedule.id)
@@ -188,7 +209,7 @@ module SocialFramework
 
         @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        result = @event.change_participant_role(@user1, @user2, :make_creator, "creator")
+        result = @event.change_participant_role(@user1, @user2, :make_creator)
 
         expect(result).to be(true)
         
@@ -205,9 +226,9 @@ module SocialFramework
 
         @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        @event.change_participant_role(@user1, @user2, :make_admin, "admin")
+        @event.change_participant_role(@user1, @user2, :make_admin)
 
-        result = @event.change_participant_role(@user2, @user1, :make_creator, "creator")        
+        result = @event.change_participant_role(@user2, @user1, :make_creator)
         expect(result).to be(false)
         
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user2.schedule.id)
@@ -215,6 +236,109 @@ module SocialFramework
 
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user1.schedule.id)
         expect(participant.role).to eq("creator")
+      end
+
+      it "When creator try remove administrator role" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user2.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @user2.schedule.confirm_event(@event)
+        @event.change_participant_role(@user1, @user2, :make_admin)
+
+        result = @event.change_participant_role(@user1, @user2, :remove_admin)
+
+        expect(result).to be(true)
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user2.schedule.id)
+        expect(participant.role).to eq("participant")
+      end
+
+      it "When try remove invalid role" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user2.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @user2.schedule.confirm_event(@event)
+        @event.change_participant_role(@user1, @user2, :make_admin)
+
+        result = @event.change_participant_role(@user2, @user1, :remove_admin)
+
+        expect(result).to be(false)
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user1.schedule.id)
+        expect(participant.role).to eq("creator")
+      end
+
+      it "When try remove creator role" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user2.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @user2.schedule.confirm_event(@event)
+        @event.change_participant_role(@user1, @user2, :make_admin)
+
+        result = @event.change_participant_role(@user2, @user1, :remove_creator)
+
+        expect(result).to be(false)
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user1.schedule.id)
+        expect(participant.role).to eq("creator")
+      end
+
+      it "When pass invalid params" do
+        @user1.create_relationship @user2, "r1", true, true
+        @event.invite @user1, @user2
+        @user2.schedule.confirm_event(@event)
+        result = @event.change_participant_role(@user1, @user3, :make_admin)
+
+        expect(result).to be(false)
+      end
+    end
+
+    describe "Remove participant" do
+      it "When try remove a simple participant" do
+        @user1.create_relationship @user2, "r1", true, true
+
+        @event.invite @user1, @user2
+
+        @event.remove_participant(@user1, @user2)
+        expect(@event.participant_events.count).to be(1)
+      end
+
+      it "When try remove an administrator and inviter" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user1.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @event.invite @user1, @user3
+        @user2.schedule.confirm_event(@event)
+        @user3.schedule.confirm_event(@event)
+        
+        @event.change_participant_role(@user1, @user2, :make_admin)
+        @event.change_participant_role(@user1, @user3, :make_inviter)
+
+        @event.remove_participant(@user1, @user2)
+        expect(@event.participant_events.count).to be(2)
+        
+        @event.remove_participant(@user1, @user3)
+        expect(@event.participant_events.count).to be(1)
+      end
+
+      it "When try remove without permission" do
+        @user1.create_relationship @user2, "r1", true, true
+
+        @event.invite @user1, @user2
+        @user2.schedule.confirm_event(@event)
+
+        @event.remove_participant(@user2, @user1)
+        expect(@event.participant_events.count).to be(2)
+      end
+
+      it "When pass invalid params" do
+        @user1.create_relationship @user2, "r1", true, true
+        @event.invite @user1, @user2
+        @user2.schedule.confirm_event(@event)
+        result = @event.remove_participant(@user1, @user3)
+
+        expect(result).to be_nil
       end
     end
   end
