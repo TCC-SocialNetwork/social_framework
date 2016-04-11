@@ -33,7 +33,7 @@ module SocialFramework
   mattr_accessor :event_permissions
   @@event_permissions = { creator: [:remove_event, :invite, :uninvite, :make_admin, :make_inviter, :make_creator],
                     admin: [:invite, :uninvite, :make_admin, :make_inviter],
-                    recruiter: [:invite, :uninvite],
+                    inviter: [:invite, :uninvite],
                     participant: []
                   }
 

@@ -61,7 +61,7 @@ module SocialFramework
 
         @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        result = @event.make_administrator(@user1, @user2)
+        result = @event.change_participant_role(@user1, @user2, :make_admin, "admin")
 
         expect(result).to be(true)
 
@@ -74,14 +74,14 @@ module SocialFramework
       end
     end
 
-    describe "Make administrator" do
+    describe "Change participants roles" do
       it "When creator try make administrator" do
         @user1.create_relationship @user2, "r1", true, true
         @user2.create_relationship @user3, "r1", true, true
 
         @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        result = @event.make_administrator(@user1, @user2)
+        result = @event.change_participant_role(@user1, @user2, :make_admin, "admin")
 
         expect(result).to be(true)
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user2.schedule.id)
@@ -94,9 +94,9 @@ module SocialFramework
 
         @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        @event.make_administrator(@user1, @user2)
+        @event.change_participant_role(@user1, @user2, :make_admin, "admin")
 
-        result = @event.make_administrator(@user2, @user1)
+        result = @event.change_participant_role(@user2, @user1, :make_admin, "admin")
         expect(result).to be(false)
 
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user1.schedule.id)
@@ -112,11 +112,109 @@ module SocialFramework
         @user2.schedule.confirm_event(@event)
         @user3.schedule.confirm_event(@event)
         
-        result = @event.make_administrator(@user2, @user3)
+        result = @event.change_participant_role(@user2, @user3, :make_admin, "admin")
         expect(result).to be(false)
 
         participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user3.schedule.id)
         expect(participant.role).to eq("participant")
+      end
+
+      it "When creator try make inviter" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user2.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @user2.schedule.confirm_event(@event)
+        result = @event.change_participant_role(@user1, @user2, :make_inviter, "inviter")
+
+        expect(result).to be(true)
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user2.schedule.id)
+        expect(participant.role).to eq("inviter")
+      end
+
+      it "When an administrator try make inviter" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user2.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @user2.schedule.confirm_event(@event)
+        @event.change_participant_role(@user1, @user2, :make_admin, "admin")
+
+        @event.invite @user2, @user3
+        @user3.schedule.confirm_event(@event)
+        result = @event.change_participant_role(@user2, @user3, :make_inviter, "inviter")
+
+        expect(result).to be(true)
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user3.schedule.id)
+        expect(participant.role).to eq("inviter")
+      end
+
+      it "When an administrator try make inviter" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user1.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @event.invite @user1, @user3
+        @user2.schedule.confirm_event(@event)
+        @user3.schedule.confirm_event(@event)
+
+
+        result = @event.change_participant_role(@user2, @user3, :make_inviter, "inviter")
+
+        expect(result).to be(false)
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user3.schedule.id)
+        expect(participant.role).to eq("participant")
+      end
+
+      it "When a simple participant try make inviter" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user1.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @event.invite @user1, @user3
+        @user2.schedule.confirm_event(@event)
+        @user3.schedule.confirm_event(@event)
+        
+        result = @event.change_participant_role(@user2, @user3, :make_inviter, "inviter")
+        expect(result).to be(false)
+
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user3.schedule.id)
+        expect(participant.role).to eq("participant")
+      end
+
+      it "When creator try make creator" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user2.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @user2.schedule.confirm_event(@event)
+        result = @event.change_participant_role(@user1, @user2, :make_creator, "creator")
+
+        expect(result).to be(true)
+        
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user2.schedule.id)
+        expect(participant.role).to eq("creator")
+
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user1.schedule.id)
+        expect(participant.role).to eq("admin")
+      end
+
+      it "When not creator participant try make creator" do
+        @user1.create_relationship @user2, "r1", true, true
+        @user2.create_relationship @user3, "r1", true, true
+
+        @event.invite @user1, @user2
+        @user2.schedule.confirm_event(@event)
+        @event.change_participant_role(@user1, @user2, :make_admin, "admin")
+
+        result = @event.change_participant_role(@user2, @user1, :make_creator, "creator")        
+        expect(result).to be(false)
+        
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user2.schedule.id)
+        expect(participant.role).to eq("admin")
+
+        participant = ParticipantEvent.find_by_event_id_and_schedule_id(@event.id, @user1.schedule.id)
+        expect(participant.role).to eq("creator")
       end
     end
   end
