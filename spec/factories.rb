@@ -21,4 +21,10 @@ FactoryGirl.define do
     origin nil
     destiny nil
   end
+
+  factory :event, class: SocialFramework::Event do
+    title "Title 1"
+    start DateTime.new(2016, 01, 01, 10, 0, 0)
+    finish DateTime.new(2016, 01, 01, 11, 0, 0)
+  end
 end

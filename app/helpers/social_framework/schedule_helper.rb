@@ -82,12 +82,16 @@ module SocialFramework
           i = 0
 
           @slots.each do |slot|
-            if slot_empty?(slot, events[i])
+            if events.empty?
               slot.add_edge(user)
-            end
+            else
+              if slot_empty?(slot, events[i])
+                slot.add_edge(user)
+              end
 
-            if (slot.id + @slots_size).to_datetime >= events[i].finish.to_datetime and events[i] != events.last
-              i += 1
+              if (slot.id + @slots_size).to_datetime >= events[i].finish.to_datetime and events[i] != events.last
+                i += 1
+              end
             end
           end
         end
