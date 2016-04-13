@@ -29,5 +29,9 @@ SocialFramework.setup do |config|
                             #   participant: []
                             # }
 
+  # Used to define slots duration to mount schuedule graph, default is 1.hour
+  # config.slots_size = 1.hour
 
+  # Max size to duration to mount schedule graph
+  # config.max_duration_to_schedule_graph = 1.month
 end

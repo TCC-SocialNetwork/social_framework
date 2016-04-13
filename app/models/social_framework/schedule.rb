@@ -14,7 +14,7 @@ module SocialFramework
     # Returns event created or nil in error case
     def create_event title, start, duration = nil, description = "", particular = false
       finish = set_finish_date(start, duration)
-      return if finish.nil? or not check_disponibility(start, finish)
+      return if finish.nil? or not events_in_period(start, finish).empty?
 
       event = Event.create(title: title, start: start, finish: finish,
           description: description, particular: particular)
@@ -31,14 +31,14 @@ module SocialFramework
     # +start+:: +DateTime+ event start
     # +finish+:: +DateTime+ event finish, if nil is start.end_of_day
     # Returns true if exist disponibility or false if no
-    def check_disponibility(start, finish = start.end_of_day)
-      existent_events = SocialFramework::Event.joins(:participant_events).where(
+    def events_in_period(start, finish = start.end_of_day)
+      events = SocialFramework::Event.joins(:participant_events).where(
         "social_framework_participant_events.schedule_id = ? AND " +
         "social_framework_participant_events.confirmed = ? AND " + 
         "social_framework_events.start < ? AND " +
-        "social_framework_events.finish > ?", self.id, true, finish, start)
+        "social_framework_events.finish > ?", self.id, true, finish, start).order(start: :asc)
 
-      return existent_events.empty?
+      return events
     end
 
     # Confirm an event to schedule
@@ -48,7 +48,7 @@ module SocialFramework
     def confirm_event(event)
       participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(event.id, self.id)
 
-      return false if participant_event.nil? or not check_disponibility(event.start, event.finish)
+      return false if participant_event.nil? or not events_in_period(event.start, event.finish).empty?
 
       participant_event.confirmed = true
       participant_event.save

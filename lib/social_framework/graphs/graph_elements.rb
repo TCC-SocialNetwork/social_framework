@@ -35,7 +35,7 @@ module GraphElements
     # +destiny+:: +Vertex+  destiny to edge
     # +label+:: +String+  label to edge
     # Returns edge created
-    def add_edge destiny, label
+    def add_edge destiny, label = ""
       edge = @edges.select { |e| e.destiny == destiny }.first
 
       if edge.nil?

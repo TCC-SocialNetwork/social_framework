@@ -39,6 +39,14 @@ module SocialFramework
                           participant: []
                         }
 
+  # Used to define slots duration to mount schuedule graph, default is 1.hour
+  mattr_accessor :slots_size
+  @@slots_size = 1.hour
+
+  # Max size to duration to mount schedule graph
+  mattr_accessor :max_duration_to_schedule_graph
+  @@max_duration_to_schedule_graph = 1.month
+
   # Used to change variables in configuration
   # Retuns a block to self
   def self.setup

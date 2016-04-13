@@ -103,14 +103,14 @@ module SocialFramework
     describe "Check disponibility" do
       it "When not exist event" do
         start = DateTime.now
-        disponibility = @user1.schedule.check_disponibility start
-        expect(disponibility).to be(true) 
+        events = @user1.schedule.events_in_period start
+        expect(events).to be_empty
       end
 
       it "When not exist event and pass duration" do
         start = DateTime.now
-        disponibility = @user1.schedule.check_disponibility start, 2.hours
-        expect(disponibility).to be(true) 
+        events = @user1.schedule.events_in_period start, 2.hours
+        expect(events).to be_empty
       end
 
       it "When not exist disponibility" do
@@ -118,40 +118,63 @@ module SocialFramework
         @user1.schedule.create_event "Event Test", start, 2.hours
 
         start = DateTime.new(2016, 01, 01, 13, 0, 0)
-        disponibility = @user1.schedule.check_disponibility start, (start + 2.hours)
-        expect(disponibility).to be(false)
+        events = @user1.schedule.events_in_period start, (start + 2.hours)
+        expect(events).not_to be_empty
 
         start = DateTime.new(2016, 01, 01, 13, 0, 0)
-        disponibility = @user1.schedule.check_disponibility start, (start + 5.hours)
-        expect(disponibility).to be(false)
+        events = @user1.schedule.events_in_period start, (start + 5.hours)
+        expect(events).not_to be_empty
 
         start = DateTime.new(2016, 01, 01, 10, 0, 0)
-        disponibility = @user1.schedule.check_disponibility start, (start + 2.hours)
-        expect(disponibility).to be(true)
+        events = @user1.schedule.events_in_period start, (start + 2.hours)
+        expect(events).to be_empty
 
         start = DateTime.new(2016, 01, 01, 12, 0, 0)
-        disponibility = @user1.schedule.check_disponibility start, (start + 2.hours)
-        expect(disponibility).to be(true)
+        events = @user1.schedule.events_in_period start, (start + 2.hours)
+        expect(events).to be_empty
 
         start = DateTime.new(2016, 01, 01, 14, 0, 0)
-        disponibility = @user1.schedule.check_disponibility start, (start + 2.hours)
-        expect(disponibility).to be(false)
+        events = @user1.schedule.events_in_period start, (start + 2.hours)
+        expect(events).not_to be_empty
 
         start = DateTime.new(2016, 01, 01, 15, 0, 0)
-        disponibility = @user1.schedule.check_disponibility start, (start + 30.minutes)
-        expect(disponibility).to be(false)
+        events = @user1.schedule.events_in_period start, (start + 30.minutes)
+        expect(events).not_to be_empty
 
         start = DateTime.new(2016, 01, 01, 15, 0, 0)
-        disponibility = @user1.schedule.check_disponibility start, (start + 2.hours)
-        expect(disponibility).to be(false)
+        events = @user1.schedule.events_in_period start, (start + 2.hours)
+        expect(events).not_to be_empty
 
         start = DateTime.new(2016, 01, 01, 16, 0, 0)
-        disponibility = @user1.schedule.check_disponibility start, (start + 2.hours)
-        expect(disponibility).to be(true)
+        events = @user1.schedule.events_in_period start, (start + 2.hours)
+        expect(events).to be_empty
 
         start = DateTime.new(2016, 01, 01, 17, 0, 0)
-        disponibility = @user1.schedule.check_disponibility start, (start + 2.hours)
-        expect(disponibility).to be(true)
+        events = @user1.schedule.events_in_period start, (start + 2.hours)
+        expect(events).to be_empty
+      end
+
+      it "When exist multiple events" do
+        start = DateTime.new(2016, 01, 01, 14, 0, 0)
+        @user1.schedule.create_event "Event Test", start, 2.hours
+
+        start = DateTime.new(2016, 01, 01, 16, 0, 0)
+        @user1.schedule.create_event "Event Test", start, 2.hours
+
+        start = DateTime.new(2016, 01, 01, 18, 0, 0)
+        @user1.schedule.create_event "Event Test", start, 2.hours
+
+        start = DateTime.new(2016, 01, 01, 14, 0, 0)
+        events = @user1.schedule.events_in_period start
+        expect(events.count).to be(3)
+
+        start = DateTime.new(2016, 01, 01, 14, 0, 0)
+        events = @user1.schedule.events_in_period start, start + 3.hours
+        expect(events.count).to be(2)
+
+        start = DateTime.new(2016, 01, 01, 14, 0, 0)
+        events = @user1.schedule.events_in_period start, start + 5.hours
+        expect(events.count).to be(3)
       end
     end
 
