@@ -36,17 +36,28 @@ module SocialFramework
         @users = users
 
         build_edges(start_time, finish_time)
-
-        # build_users(users)
       end
 
       private
 
+      # Verify if finish day is between start day and max duration
+      # ====== Params:
+      # +start_day+:: +Date+ start day to get slots
+      # +finish_day+:: +Date+ finish day to get slots
+      # Returns true is ok or false if no
       def finish_day_ok?(start_day, finish_day)
         finish = start_day + @max_duration
         return finish_day <= finish
       end
 
+      # Build slots whitin a period of time
+      # ====== Params:
+      # +current_time+:: +Datetime+ start date to build slots
+      # +finish_time+:: +Datetime+ finish date to build slots
+      # +start_time+:: +Time+ start hour in days to build slots
+      # +finish_time+:: +Time+ finish hour in days to build slots
+      # +slots_size+:: +Integer+ slots size duration
+      # Returns schedule graph with slots
       def build_slots(current_time, finish_time, start_hour, finish_hour, slots_size)
         while current_time < finish_time
           verterx = GraphElements::Vertex.new(current_time)
@@ -60,13 +71,12 @@ module SocialFramework
         end
       end
 
-      def build_users(users)
-        users.each do |user|
-          @users << GraphElements::Vertex.new(user.id)
-        end
-      end
-
-      def build_edges start_time, finish_time
+      # Build edges to schedule graph
+      # ====== Params:
+      # +start_time+:: +Datetime+ used to get events with that start date
+      # +finish_time+:: +Datetime+ used to get events with that finish date
+      # Returns Schedule graph with edges between slots and users
+      def build_edges(start_time, finish_time)
         @users.each do |user|
           events = user.schedule.events_in_period(start_time, finish_time)
           i = 0
@@ -81,11 +91,15 @@ module SocialFramework
             end
           end
         end
-        f.close
       end
 
+      # Verify if event match with a slot
+      # ====== Params:
+      # +slot+:: +Vertex+ represent a slot in schedule built
+      # Returns true if match or false if no
       def slot_empty?(slot, event)
-        return ((slot.id + @slots_size).to_datetime <= event.start.to_datetime or slot.id >= event.finish.to_datetime)
+        return ((slot.id + @slots_size).to_datetime <= event.start.to_datetime or
+          slot.id >= event.finish.to_datetime)
       end
     end
   end
