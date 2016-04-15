@@ -19,20 +19,21 @@ module SocialFramework
 
       # Init the slots and users in Array
       # ====== Params:
+      # +users+:: +Array+ users to check disponibility
       # +start_day+:: +Date+ start day to get slots
       # +finish_day+:: +Date+ finish day to get slots
       # +start_hour+:: +Time+ start hour at each day to get slots
-      # +finish_hour+:: +Time+ finsh hour at each day to get slots
+      # +finish_hour+:: +Time+ finish hour at each day to get slots
       # +slots_size+:: +Integer+ slots size duration
       # Returns The Graph mounted
-      def build(start_day, finish_day, start_hour, finish_hour, users, slots_size = SocialFramework.slots_size)
+      def build(users, start_day, finish_day, start_hour = Time.parse("00:00"), finish_hour = Time.parse("23:59"), slots_size = SocialFramework.slots_size)
         return unless finish_day_ok? start_day, finish_day
 
         @slots_size = slots_size
         start_time = start_day.to_datetime + start_hour.seconds_since_midnight.seconds
         finish_time = finish_day.to_datetime + finish_hour.seconds_since_midnight.seconds
 
-        build_slots(start_time, finish_time, start_hour, finish_hour, slots_size)
+        build_slots(start_time, finish_time, start_hour, finish_hour)
         @users = users
 
         build_edges(start_time, finish_time)
@@ -54,20 +55,22 @@ module SocialFramework
       # ====== Params:
       # +current_time+:: +Datetime+ start date to build slots
       # +finish_time+:: +Datetime+ finish date to build slots
-      # +start_time+:: +Time+ start hour in days to build slots
-      # +finish_time+:: +Time+ finish hour in days to build slots
-      # +slots_size+:: +Integer+ slots size duration
+      # +start_hour+:: +Time+ start hour in days to build slots
+      # +finish_hour+:: +Time+ finish hour in days to build slots
       # Returns schedule graph with slots
-      def build_slots(current_time, finish_time, start_hour, finish_hour, slots_size)
+      def build_slots(current_time, finish_time, start_hour, finish_hour)
         while current_time < finish_time
-          verterx = GraphElements::Vertex.new(current_time)
-          @slots << verterx
+          slots_quantity = get_slots_quantity(start_hour, finish_hour)
 
-          current_time += slots_size
+          (1..slots_quantity).each do
+            verterx = GraphElements::Vertex.new(current_time)
+            @slots << verterx
 
-          if current_time.seconds_since_midnight >= finish_hour.seconds_since_midnight
-            current_time = current_time.beginning_of_day + start_hour.seconds_since_midnight.seconds + 1.day
+            current_time += @slots_size
+            break if current_time >= finish_time
           end
+
+          current_time = current_time.beginning_of_day + start_hour.seconds_since_midnight.seconds + 1.day if start_hour.seconds_since_midnight > finish_hour.seconds_since_midnight
         end
       end
 
@@ -104,6 +107,21 @@ module SocialFramework
       def slot_empty?(slot, event)
         return ((slot.id + @slots_size).to_datetime <= event.start.to_datetime or
           slot.id >= event.finish.to_datetime)
+      end
+
+      # Calculate the quantity of slot that fit over in a period of time
+      # ====== Params:
+      # +start_hour+:: +Time+ start date to build slots
+      # +finish_hour+:: +Time+ finish date to build slots
+      # Returns the quantity of slots
+      def get_slots_quantity(start_hour, finish_hour)
+        if start_hour.seconds_since_midnight <= finish_hour.seconds_since_midnight
+          hours = finish_hour.seconds_since_midnight - start_hour.seconds_since_midnight
+        else
+          hours = start_hour.seconds_until_end_of_day + finish_hour.seconds_since_midnight + 1.second
+        end
+        
+        return (hours / @slots_size).to_i
       end
     end
   end

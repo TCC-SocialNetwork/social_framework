@@ -8,7 +8,85 @@ module SocialFramework
     end
 
     describe "Build graph" do
+      before(:each) do
+        @user1 = create(:user,username: "user1", email: "user1@mail.com")
+        @user2 = create(:user,username: "user2", email: "user2@mail.com")
+      end
 
+      it "When the events is in one day" do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        @user1.schedule.create_event "title2", start, 1.hour
+
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        @user2.schedule.create_event "title2", start, 2.hours
+
+        start = DateTime.new(2016, 01, 01, 9, 0, 0)
+        @user1.schedule.create_event "title3", start, 1.hour
+
+        start = DateTime.new(2016, 01, 01, 10, 0, 0)
+        @user1.schedule.create_event "title3", start, 1.hour
+
+        start = DateTime.new(2016, 01, 01, 12, 0, 0)
+        @user1.schedule.create_event "title4", start, 1.hour
+
+        @schedule.build([@user1, @user2], Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+          Time.parse("08:00"), Time.parse("14:00"))
+
+        expect(@schedule.slots.count).to be(6)
+        expect(@schedule.slots[0].edges).to be_empty
+        expect(@schedule.slots[1].edges).to be_empty
+        expect(@schedule.slots[2].edges.count).to be(1)
+        expect(@schedule.slots[3].edges.count).to be(2)
+        expect(@schedule.slots[4].edges.count).to be(1)
+        expect(@schedule.slots[5].edges.count).to be(2)
+      end
+
+      it "When the events is in two days" do
+        start = DateTime.new(2016, 01, 01, 23, 0, 0)
+        @user1.schedule.create_event "title2", start, 2.hours
+
+        start = DateTime.new(2016, 01, 01, 22, 0, 0)
+        @user2.schedule.create_event "title3", start, 4.hours
+
+        @schedule.build([@user1, @user2], Date.parse("01/01/2016"), Date.parse("02/01/2016"),
+          Time.parse("21:00"), Time.parse("03:00"))
+
+        expect(@schedule.slots.count).to be(6)
+        expect(@schedule.slots[0].edges.count).to be(2)
+        expect(@schedule.slots[1].edges.count).to be(1)
+        expect(@schedule.slots[2].edges).to be_empty
+        expect(@schedule.slots[3].edges).to be_empty
+        expect(@schedule.slots[4].edges.count).to be(1)
+        expect(@schedule.slots[5].edges.count).to be(2)
+      end
+
+      it "When the events multiple days duration" do
+        start = DateTime.new(2016, 01, 01, 10, 0, 0)
+        @user1.schedule.create_event "title2", start, (1.day + 13.hours)
+
+        start = DateTime.new(2016, 01, 01, 9, 0, 0)
+        @user2.schedule.create_event "title3", start, (1.day + 2.hours)
+
+        @schedule.build([@user1, @user2], Date.parse("01/01/2016"), Date.parse("02/01/2016"))
+
+        expect(@schedule.slots.count).to be(48)
+
+        (0..8).each do |i|
+          expect(@schedule.slots[i].edges.count).to be(2)
+        end
+
+        expect(@schedule.slots[9].edges.count).to be(1)
+
+        (10..34).each do |i|
+          expect(@schedule.slots[i].edges).to be_empty
+        end
+
+        (35..46).each do |i|
+          expect(@schedule.slots[i].edges.count).to be(1)
+
+        end
+        expect(@schedule.slots[47].edges.count).to be(2)
+      end
     end
 
     describe "Build slots" do
@@ -18,7 +96,8 @@ module SocialFramework
       end
 
       it "When slots is in one day" do
-        @schedule.send(:build_slots, @start, @finish, Time.parse("08:00"), Time.parse("11:00"), 1.hour)
+        @schedule.instance_variable_set :@slots_size, 1.hour
+        @schedule.send(:build_slots, @start, @finish, Time.parse("08:00"), Time.parse("11:00"))
         expect(@schedule.slots.count).to be(3)
         expect(@schedule.slots[0].id).to eq(DateTime.new(2016, 01, 01, 8, 0, 0))
         expect(@schedule.slots[1].id).to eq(DateTime.new(2016, 01, 01, 9, 0, 0))
@@ -30,7 +109,6 @@ module SocialFramework
       before(:each) do
         @user1 = create(:user,username: "user1", email: "user1@mail.com")
         @user2 = create(:user,username: "user2", email: "user2@mail.com")
-
 
         @slot1 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 8, 0, 0))
         @slot2 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 9, 0, 0))
@@ -105,6 +183,20 @@ module SocialFramework
 
         result = @schedule.send(:finish_day_ok?, start, finish)
         expect(result).to be(false)
+      end
+    end
+
+    describe "Calculate slots quantity" do
+      it "When start hour is smaller than finish hour" do
+        @schedule.instance_variable_set :@slots_size, 1.hour
+        result = @schedule.send(:get_slots_quantity, Time.parse("03:00"), Time.parse("21:00"))
+        expect(result).to be(18)
+      end
+
+      it "When start hour is bigger than finish hour" do
+        @schedule.instance_variable_set :@slots_size, 1.hour
+        result = @schedule.send(:get_slots_quantity, Time.parse("21:00"), Time.parse("03:00"))
+        expect(result).to be(6)
       end
     end
   end
