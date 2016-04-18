@@ -12,7 +12,7 @@ module SocialFramework
     # +description+:: +String+ event description, default is ""
     # +particular+:: +Boolean+ set event as private or not, default is false
     # Returns event created or nil in error case
-    def create_event title, start, duration = nil, description = "", particular = false
+    def create_event(title, start, duration = nil, description = "", particular = false)
       finish = set_finish_date(start, duration)
       return if finish.nil? or not events_in_period(start, finish).empty?
 
@@ -46,8 +46,7 @@ module SocialFramework
     # +event+:: +Event+ to confirm
     # Returns false if no exist a invitation or has no disponibility or true if could confirm event
     def confirm_event(event)
-      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(event.id, self.id)
-
+      participant_event = get_participant_event(event)
       return false if participant_event.nil? or not events_in_period(event.start, event.finish).empty?
 
       participant_event.confirmed = true
@@ -59,8 +58,8 @@ module SocialFramework
     # +event+:: +Event+ to exit
     # Returns ParticipantEvent destroyed or nil if user is creator
     def exit_event(event)
-      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(event.id, self.id)
-      participant_event.destroy if participant_event.role != "creator"
+      participant_event = get_participant_event(event)
+      participant_event.destroy if not participant_event.nil? and participant_event.role != "creator"
     end
 
     # Remove an event created by self.user
@@ -68,8 +67,20 @@ module SocialFramework
     # +event+:: +Event+ to remove
     # Returns Event destroyed or nil if user is not creator
     def remove_event(event)
-      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(event.id, self.id)
-      event.destroy if participant_event.role == "creator"
+      participant_event = get_participant_event(event)
+      event.destroy if not participant_event.nil? and participant_event.role == "creator"
+    end
+
+    # Enter in an public event
+    # ====== Params:
+    # +event+:: +Event+ to enter
+    # Returns ParticipantEvent created or nil if that event is particular or already exist events in that period
+    def enter_an_event(event)
+      return if event.nil? or event.particular or not events_in_period(event.start, event.finish).empty?
+
+      if get_participant_event(event).nil?
+        ParticipantEvent.create(event: event, schedule: self, confirmed: true, role: "participant")
+      end
     end
 
     private
@@ -86,6 +97,16 @@ module SocialFramework
         return if duration.class != ActiveSupport::Duration or duration < 0 or duration == 0
 
         return start + duration
+      end
+    end
+
+    # Get ParticipantEvent from an event
+    # ====== Params:
+    # +event+:: +Event+ to find ParticipantEvent
+    # Returns ParticipantEvent found or nil if not exist ParticipantEvent
+    def get_participant_event(event)
+      unless event.nil?
+        return ParticipantEvent.find_by_event_id_and_schedule_id(event.id, self.id)
       end
     end
   end

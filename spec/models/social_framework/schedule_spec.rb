@@ -4,6 +4,7 @@ module SocialFramework
   RSpec.describe Schedule, type: :model do
     before(:each) do
       @user1 = create(:user)
+      @user2 = create(:user2)
     end
 
     describe "Create events" do
@@ -100,6 +101,29 @@ module SocialFramework
       end
     end
 
+    describe "Get ParticipantEvent" do
+      it "When pass a nil event" do
+        result = @user1.schedule.send(:get_participant_event, nil)
+        expect(result).to be_nil
+      end
+
+      it "When user are not a participant event" do
+        event = @user1.schedule.create_event("Event Test", DateTime.now)
+        result = @user2.schedule.send(:get_participant_event, event)
+
+        expect(result).to be_nil
+      end
+
+      it "When user are a participant event" do
+        event = @user1.schedule.create_event("Event Test", DateTime.now)
+        result = @user1.schedule.send(:get_participant_event, event)
+
+        expect(result).not_to be_nil
+        expect(result.event).to eq(event)
+        expect(result.schedule).to eq(@user1.schedule)
+      end
+    end
+
     describe "Check disponibility" do
       it "When not exist event" do
         start = DateTime.now
@@ -180,8 +204,6 @@ module SocialFramework
 
     describe "Confirm event" do
       before(:each) do
-        @user2 = create(:user, username: "user2", email: "user2@email.com")
-
         @start = DateTime.now
         @event = @user1.schedule.create_event "Event Test", @start
         @user1.create_relationship(@user2, "r1", true, true)
@@ -218,8 +240,6 @@ module SocialFramework
 
     describe "Remove events" do
       before(:each) do
-        @user2 = create(:user, username: "user2", email: "user2@email.com")
-
         @start = DateTime.now
         @event = @user1.schedule.create_event "Event Test", @start
         @user1.create_relationship(@user2, "r1", true, true)
@@ -250,8 +270,6 @@ module SocialFramework
 
     describe "Exit event" do
       before(:each) do
-        @user2 = create(:user, username: "user2", email: "user2@email.com")
-
         @start = DateTime.now
         @event = @user1.schedule.create_event "Event Test", @start
         @user1.create_relationship(@user2, "r1", true, true)
@@ -273,6 +291,50 @@ module SocialFramework
         @user1.schedule.exit_event(@event)
 
         expect(@event.participant_events.count).to be(2)
+      end
+    end
+
+    describe "Enter in an event" do
+      it "When event is nil" do
+        result = @user1.schedule.enter_an_event(nil)
+        expect(result).to be_nil
+      end
+
+      it "When event is particular" do
+        start = DateTime.now
+        event = @user1.schedule.create_event("Event Test", start, 1.hour, "Event description", true)
+        result = @user2.schedule.enter_an_event(event)
+        expect(result).to be_nil
+      end
+
+      it "When user already have an event in same period" do
+        start = DateTime.now
+        event = @user1.schedule.create_event("Event Test", start)
+        @user2.schedule.create_event("Event Test", start)
+        
+        result = @user2.schedule.enter_an_event(event)
+        expect(result).to be_nil
+      end
+
+      it "When user already are in event" do
+        start = DateTime.now
+        event = @user1.schedule.create_event("Event Test", start)
+        @user1.create_relationship(@user2, "r1", true, true)
+        event.invite(@user1, @user2)
+        @user2.schedule.confirm_event(event)
+
+        result = @user2.schedule.enter_an_event(event)
+        expect(result).to be_nil
+      end
+
+      it "When event is public" do
+        start = DateTime.now
+        event = @user1.schedule.create_event("Event Test", start)
+
+        result = @user2.schedule.enter_an_event(event)
+        expect(result).not_to be_nil
+        expect(result.event).to eq(event)
+        expect(result.schedule).to eq(@user2.schedule)
       end
     end
   end
