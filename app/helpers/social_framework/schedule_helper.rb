@@ -14,6 +14,7 @@ module SocialFramework
       def initialize max_duration = SocialFramework.max_duration_to_schedule_graph
         @slots = Array.new
         @users = Array.new
+        @fixed_users = Array.new
         @max_duration = max_duration
       end
 
@@ -33,12 +34,18 @@ module SocialFramework
         start_time = start_day.to_datetime + start_hour.seconds_since_midnight.seconds
         finish_time = finish_day.to_datetime + finish_hour.seconds_since_midnight.seconds
 
-        build_slots(start_time, finish_time, start_hour, finish_hour)
         build_users(users)
+        build_slots(start_time, finish_time, start_hour, finish_hour)
 
-        build_edges(start_time, finish_time)
+        unless @fixed_users.empty?
+          build_edges(@fixed_users, start_time, finish_time)
 
-        @slots.sort_by! {|slot| -slot.attributes[:gained_weight]}
+          @slots.select! { |slot| slot.edges.count == @fixed_users.count }
+        end
+
+        build_edges(@users, start_time, finish_time)
+
+        @slots.sort_by! { |slot| -slot.attributes[:gained_weight] }
       end
 
       private
@@ -78,12 +85,13 @@ module SocialFramework
 
       # Build edges to schedule graph
       # ====== Params:
+      # +users+:: +Array+ users to check disponibility
       # +start_time+:: +Datetime+ used to get events with that start date
       # +finish_time+:: +Datetime+ used to get events with that finish date
       # Returns Schedule graph with edges between slots and users
-      def build_edges(start_time, finish_time)
-        @users.each do |user|
-          schedule = SocialFramework::Schedule.find_by_user_id user.id
+      def build_edges(users, start_time, finish_time)
+        users.each do |user|
+          schedule = SocialFramework::Schedule.find_or_create_by(user_id: user.id)
 
           events = schedule.events_in_period(start_time, finish_time)
           i = 0
@@ -91,10 +99,10 @@ module SocialFramework
           @slots.each do |slot|
             if events.empty? or slot_empty?(slot, events[i])
               slot.add_edge(user)
-              slot.attributes[:gained_weight] += user.attributes[:weight] 
+              slot.attributes[:gained_weight] += user.attributes[:weight] if user.attributes[:weight] != :fixed
             end
-
-            if (slot.id + @slots_size).to_datetime >= events[i].finish.to_datetime and events[i] != events.last
+            if not events.empty? and((slot.id + @slots_size).to_datetime >= events[i].finish.to_datetime and
+              events[i] != events.last)
               i += 1
             end
           end
@@ -131,9 +139,14 @@ module SocialFramework
       # Returns the users vertices
       def build_users(users)
         users.each do |user, weight|
-          weight = SocialFramework.max_weight_schedule if weight.nil?
+          if weight != :fixed and (weight.nil? or weight > SocialFramework.max_weight_schedule)
+            weight = SocialFramework.max_weight_schedule
+          end
+
           vertex = GraphElements::Vertex.new(user.id, {weight: weight})
-          @users << vertex
+
+          array = (weight == :fixed ? @fixed_users : @users)
+          array << vertex
         end
       end
     end

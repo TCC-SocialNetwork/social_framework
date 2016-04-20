@@ -11,6 +11,8 @@ module SocialFramework
       before(:each) do
         @user1 = create(:user,username: "user1", email: "user1@mail.com")
         @user2 = create(:user,username: "user2", email: "user2@mail.com")
+        @user3 = create(:user,username: "user3", email: "user3@mail.com")
+        @user4 = create(:user,username: "user4", email: "user4@mail.com")
       end
 
       it "When the events is in one day" do
@@ -102,6 +104,99 @@ module SocialFramework
         expect(@schedule.slots[2].edges.count).to be(1)
         expect(@schedule.slots[2].attributes[:gained_weight]).to be(3)
       end
+
+      it "When exist fixed users" do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        @user1.schedule.create_event "title1", start, 2.hours
+
+        hash = Hash[[@user1, @user2].map {|k| [k, nil]}]
+        hash[@user1] = :fixed
+
+        @schedule.build(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+          Time.parse("08:00"), Time.parse("11:00"))
+
+        fixed_users = @schedule.instance_variable_get :@fixed_users
+        users = @schedule.instance_variable_get :@users
+
+        expect(fixed_users.count).to be(1)
+        expect(users.count).to be(1)
+        expect(@schedule.slots.count).to be(1)
+        expect(@schedule.slots.first.edges.count).to be(2)
+      end
+
+      it "When is not possible group the fixed users" do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        @user1.schedule.create_event "title1", start, 2.hours
+
+        start = DateTime.new(2016, 01, 01, 10, 0, 0)
+        @user2.schedule.create_event "title1", start, 1.hours
+
+        hash = Hash[[@user1, @user2].map {|k| [k, :fixed]}]
+        @schedule.build(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+          Time.parse("08:00"), Time.parse("11:00"))
+
+        fixed_users = @schedule.instance_variable_get :@fixed_users
+        users = @schedule.instance_variable_get :@users
+
+        expect(fixed_users.count).to be(2)
+        expect(users).to be_empty
+        expect(@schedule.slots).to be_empty
+      end
+
+      it "When exist multiple users fixed" do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        @user1.schedule.create_event "title1", start, 1.hours
+
+        start = DateTime.new(2016, 01, 01, 11, 0, 0)
+        @user2.schedule.create_event "title1", start, 1.hours
+
+        start = DateTime.new(2016, 01, 01, 9, 0, 0)
+        @user3.schedule.create_event "title1", start, 1.hours
+
+        start = DateTime.new(2016, 01, 01, 10, 0, 0)
+        @user4.schedule.create_event "title1", start, 1.hours
+
+        hash = Hash[[@user1, @user2].map {|k| [k, :fixed]}]
+        hash[@user3] = 5
+        hash[@user4] = 8
+
+        @schedule.build(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+          Time.parse("08:00"), Time.parse("12:00"))
+
+        fixed_users = @schedule.instance_variable_get :@fixed_users
+        users = @schedule.instance_variable_get :@users
+
+        expect(fixed_users.count).to be(2)
+        expect(users.count).to be(2)
+        expect(@schedule.slots.count).to be(2)
+        expect(@schedule.slots.first.attributes[:gained_weight]).to be(8)
+        expect(@schedule.slots.last.attributes[:gained_weight]).to be(5)
+      end
+
+      it "When users weight is bigger than fixed users" do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        @user1.schedule.create_event "title1", start, 3.hours
+
+        start = DateTime.new(2016, 01, 01, 11, 0, 0)
+        @user2.schedule.create_event "title1", start, 1.hours
+
+        start = DateTime.new(2016, 01, 01, 11, 0, 0)
+        @user3.schedule.create_event "title1", start, 1.hours
+
+        hash = Hash[[@user2, @user3].map {|k| [k, nil]}]
+        hash[@user1] = :fixed
+
+        @schedule.build(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+          Time.parse("08:00"), Time.parse("12:00"))
+
+        fixed_users = @schedule.instance_variable_get :@fixed_users
+        users = @schedule.instance_variable_get :@users
+
+        expect(fixed_users.count).to be(1)
+        expect(users.count).to be(2)
+        expect(@schedule.slots.count).to be(1)
+        expect(@schedule.slots.first.attributes[:gained_weight]).to be(0)
+      end
     end
 
     describe "Build slots" do
@@ -136,8 +231,9 @@ module SocialFramework
         @user1.schedule.create_event("title1", DateTime.new(2016, 01, 01, 8, 0, 0), 1.hour)
         @user2.schedule.create_event("title2", DateTime.new(2016, 01, 01, 10, 0, 0), 1.hour)
         @schedule.send(:build_users, [@user1, @user2])
+        users = @schedule.instance_variable_get :@users
 
-        @schedule.send(:build_edges, DateTime.new(2016, 01, 01, 8, 0, 0), DateTime.new(2016, 01, 01, 11, 0, 0))
+        @schedule.send(:build_edges, users, DateTime.new(2016, 01, 01, 8, 0, 0), DateTime.new(2016, 01, 01, 11, 0, 0))
 
         expect(@slot1.edges.count).to be(1)
         expect(@slot2.edges.count).to be(2)
@@ -148,8 +244,9 @@ module SocialFramework
         @user1.schedule.create_event("title1", DateTime.new(2016, 01, 01, 8, 0, 0), 3.hours)
         @user2.schedule.create_event("title2", DateTime.new(2016, 01, 01, 8, 0, 0), 3.hours)
         @schedule.send(:build_users, [@user1, @user2])
+        users = @schedule.instance_variable_get :@users
 
-        @schedule.send(:build_edges, DateTime.new(2016, 01, 01, 8, 0, 0), DateTime.new(2016, 01, 01, 11, 0, 0))
+        @schedule.send(:build_edges, users, DateTime.new(2016, 01, 01, 8, 0, 0), DateTime.new(2016, 01, 01, 11, 0, 0))
 
         expect(@slot1.edges).to be_empty
         expect(@slot2.edges).to be_empty
@@ -165,8 +262,9 @@ module SocialFramework
         hash[@user2] = 7
 
         @schedule.send(:build_users, hash)
+        users = @schedule.instance_variable_get :@users
 
-        @schedule.send(:build_edges, DateTime.new(2016, 01, 01, 8, 0, 0), DateTime.new(2016, 01, 01, 11, 0, 0))
+        @schedule.send(:build_edges, users, DateTime.new(2016, 01, 01, 8, 0, 0), DateTime.new(2016, 01, 01, 11, 0, 0))
 
         expect(@slot1.attributes[:gained_weight]).to be(7)
         expect(@slot2.attributes[:gained_weight]).to be(12)
@@ -256,6 +354,21 @@ module SocialFramework
         expect(users.count).to be(2)
         expect(users.first.attributes[:weight]).to be(5)
         expect(users.last.attributes[:weight]).to be(9)
+      end
+
+      it "When exist fixed users" do
+        hash = {}
+        hash[@user1] = 5
+        hash[@user2] = :fixed
+        @schedule.send(:build_users, hash)
+
+        users = @schedule.instance_variable_get :@users
+        fixed_users = @schedule.instance_variable_get :@fixed_users
+
+        expect(users.count).to be(1)
+        expect(users.first.attributes[:weight]).to be(5)
+
+        expect(fixed_users.count).to be(1)
       end
     end
   end
