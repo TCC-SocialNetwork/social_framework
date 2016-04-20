@@ -33,12 +33,12 @@ module SocialFramework
           Time.parse("08:00"), Time.parse("14:00"))
 
         expect(@schedule.slots.count).to be(6)
-        expect(@schedule.slots[0].edges).to be_empty
-        expect(@schedule.slots[1].edges).to be_empty
+        expect(@schedule.slots[0].edges.count).to be(2)
+        expect(@schedule.slots[1].edges.count).to be(2)
         expect(@schedule.slots[2].edges.count).to be(1)
-        expect(@schedule.slots[3].edges.count).to be(2)
-        expect(@schedule.slots[4].edges.count).to be(1)
-        expect(@schedule.slots[5].edges.count).to be(2)
+        expect(@schedule.slots[3].edges.count).to be(1)
+        expect(@schedule.slots[4].edges).to be_empty
+        expect(@schedule.slots[5].edges).to be_empty
       end
 
       it "When the events is in two days" do
@@ -53,11 +53,11 @@ module SocialFramework
 
         expect(@schedule.slots.count).to be(6)
         expect(@schedule.slots[0].edges.count).to be(2)
-        expect(@schedule.slots[1].edges.count).to be(1)
-        expect(@schedule.slots[2].edges).to be_empty
-        expect(@schedule.slots[3].edges).to be_empty
-        expect(@schedule.slots[4].edges.count).to be(1)
-        expect(@schedule.slots[5].edges.count).to be(2)
+        expect(@schedule.slots[1].edges.count).to be(2)
+        expect(@schedule.slots[2].edges.count).to be(1)
+        expect(@schedule.slots[3].edges.count).to be(1)
+        expect(@schedule.slots[4].edges).to be_empty
+        expect(@schedule.slots[5].edges).to be_empty
       end
 
       it "When the events multiple days duration" do
@@ -71,21 +71,36 @@ module SocialFramework
 
         expect(@schedule.slots.count).to be(48)
 
-        (0..8).each do |i|
+        (0..9).each do |i|
           expect(@schedule.slots[i].edges.count).to be(2)
         end
 
-        expect(@schedule.slots[9].edges.count).to be(1)
+        (10..22).each do |i|
+          expect(@schedule.slots[i].edges.count).to be(1)
+        end
 
-        (10..34).each do |i|
+        (23..47).each do |i|
           expect(@schedule.slots[i].edges).to be_empty
         end
+      end
 
-        (35..46).each do |i|
-          expect(@schedule.slots[i].edges.count).to be(1)
+      it "When the users have weight" do
+        @user1.schedule.create_event("title1", DateTime.new(2016, 01, 01, 8, 0, 0), 1.hours)
+        @user2.schedule.create_event("title2", DateTime.new(2016, 01, 01, 10, 0, 0), 1.hours)
 
-        end
-        expect(@schedule.slots[47].edges.count).to be(2)
+        hash = {}
+        hash[@user1] = 3
+        hash[@user2] = 8
+        @schedule.build(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+          Time.parse("08:00"), Time.parse("11:00"))
+
+        expect(@schedule.slots.count).to be(3)
+        expect(@schedule.slots[0].edges.count).to be(2)
+        expect(@schedule.slots[0].attributes[:gained_weight]).to be(11)
+        expect(@schedule.slots[1].edges.count).to be(1)
+        expect(@schedule.slots[1].attributes[:gained_weight]).to be(8)
+        expect(@schedule.slots[2].edges.count).to be(1)
+        expect(@schedule.slots[2].attributes[:gained_weight]).to be(3)
       end
     end
 

@@ -37,6 +37,8 @@ module SocialFramework
         build_users(users)
 
         build_edges(start_time, finish_time)
+
+        @slots.sort_by! {|slot| -slot.attributes[:gained_weight]}
       end
 
       private
