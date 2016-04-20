@@ -34,7 +34,7 @@ module SocialFramework
         finish_time = finish_day.to_datetime + finish_hour.seconds_since_midnight.seconds
 
         build_slots(start_time, finish_time, start_hour, finish_hour)
-        @users = users
+        build_users(users)
 
         build_edges(start_time, finish_time)
       end
@@ -63,7 +63,7 @@ module SocialFramework
           slots_quantity = get_slots_quantity(start_hour, finish_hour)
 
           (1..slots_quantity).each do
-            verterx = GraphElements::Vertex.new(current_time)
+            verterx = GraphElements::Vertex.new(current_time, {gained_weight: 0})
             @slots << verterx
 
             current_time += @slots_size
@@ -81,20 +81,19 @@ module SocialFramework
       # Returns Schedule graph with edges between slots and users
       def build_edges(start_time, finish_time)
         @users.each do |user|
-          events = user.schedule.events_in_period(start_time, finish_time)
+          schedule = SocialFramework::Schedule.find_by_user_id user.id
+
+          events = schedule.events_in_period(start_time, finish_time)
           i = 0
 
           @slots.each do |slot|
-            if events.empty?
+            if events.empty? or slot_empty?(slot, events[i])
               slot.add_edge(user)
-            else
-              if slot_empty?(slot, events[i])
-                slot.add_edge(user)
-              end
+              slot.attributes[:gained_weight] += user.attributes[:weight] 
+            end
 
-              if (slot.id + @slots_size).to_datetime >= events[i].finish.to_datetime and events[i] != events.last
-                i += 1
-              end
+            if (slot.id + @slots_size).to_datetime >= events[i].finish.to_datetime and events[i] != events.last
+              i += 1
             end
           end
         end
@@ -122,6 +121,18 @@ module SocialFramework
         end
         
         return (hours / @slots_size).to_i
+      end
+
+      # Build vertecies to each user with weight
+      # ====== Params:
+      # +users+:: +Hash+ to add weight, key is user and value is weight, can be a simple Array, in this case all users will have the max weight
+      # Returns the users vertices
+      def build_users(users)
+        users.each do |user, weight|
+          weight = SocialFramework.max_weight_schedule if weight.nil?
+          vertex = GraphElements::Vertex.new(user.id, {weight: weight})
+          @users << vertex
+        end
       end
     end
   end

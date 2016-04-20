@@ -110,17 +110,17 @@ module SocialFramework
         @user1 = create(:user,username: "user1", email: "user1@mail.com")
         @user2 = create(:user,username: "user2", email: "user2@mail.com")
 
-        @slot1 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 8, 0, 0))
-        @slot2 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 9, 0, 0))
-        @slot3 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 10, 0, 0))
+        @slot1 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 8, 0, 0), {gained_weight: 0})
+        @slot2 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 9, 0, 0), {gained_weight: 0})
+        @slot3 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 10, 0, 0), {gained_weight: 0})
         @schedule.instance_variable_set :@slots, [@slot1, @slot2, @slot3]
         @schedule.instance_variable_set :@slots_size, 1.hour
-        @schedule.instance_variable_set :@users, [@user1, @user2]
       end
 
       it "When users have empty slots" do
         @user1.schedule.create_event("title1", DateTime.new(2016, 01, 01, 8, 0, 0), 1.hour)
         @user2.schedule.create_event("title2", DateTime.new(2016, 01, 01, 10, 0, 0), 1.hour)
+        @schedule.send(:build_users, [@user1, @user2])
 
         @schedule.send(:build_edges, DateTime.new(2016, 01, 01, 8, 0, 0), DateTime.new(2016, 01, 01, 11, 0, 0))
 
@@ -132,12 +132,30 @@ module SocialFramework
       it "When users have empty slots" do
         @user1.schedule.create_event("title1", DateTime.new(2016, 01, 01, 8, 0, 0), 3.hours)
         @user2.schedule.create_event("title2", DateTime.new(2016, 01, 01, 8, 0, 0), 3.hours)
+        @schedule.send(:build_users, [@user1, @user2])
 
         @schedule.send(:build_edges, DateTime.new(2016, 01, 01, 8, 0, 0), DateTime.new(2016, 01, 01, 11, 0, 0))
 
         expect(@slot1.edges).to be_empty
         expect(@slot2.edges).to be_empty
         expect(@slot3.edges).to be_empty
+      end
+
+      it "When the users have weight" do
+        @user1.schedule.create_event("title1", DateTime.new(2016, 01, 01, 8, 0, 0), 1.hour)
+        @user2.schedule.create_event("title2", DateTime.new(2016, 01, 01, 10, 0, 0), 1.hour)
+        
+        hash = {}
+        hash[@user1] = 5
+        hash[@user2] = 7
+
+        @schedule.send(:build_users, hash)
+
+        @schedule.send(:build_edges, DateTime.new(2016, 01, 01, 8, 0, 0), DateTime.new(2016, 01, 01, 11, 0, 0))
+
+        expect(@slot1.attributes[:gained_weight]).to be(7)
+        expect(@slot2.attributes[:gained_weight]).to be(12)
+        expect(@slot3.attributes[:gained_weight]).to be(5)
       end
     end
 
@@ -197,6 +215,32 @@ module SocialFramework
         @schedule.instance_variable_set :@slots_size, 1.hour
         result = @schedule.send(:get_slots_quantity, Time.parse("21:00"), Time.parse("03:00"))
         expect(result).to be(6)
+      end
+    end
+
+    describe "Build users" do
+      before(:each) do
+        @user1 = create(:user,username: "user1", email: "user1@mail.com")
+        @user2 = create(:user,username: "user2", email: "user2@mail.com")
+      end
+
+      it "When is an array" do
+        @schedule.send(:build_users, [@user1, @user2])
+        users = @schedule.instance_variable_get :@users
+        expect(users.count).to be(2)
+        expect(users.first.attributes[:weight]).to be(10)
+        expect(users.last.attributes[:weight]).to be(10)
+      end
+
+      it "When is a hash" do
+        hash = {}
+        hash[@user1] = 5
+        hash[@user2] = 9
+        @schedule.send(:build_users, hash)
+        users = @schedule.instance_variable_get :@users
+        expect(users.count).to be(2)
+        expect(users.first.attributes[:weight]).to be(5)
+        expect(users.last.attributes[:weight]).to be(9)
       end
     end
   end

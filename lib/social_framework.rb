@@ -47,6 +47,10 @@ module SocialFramework
   mattr_accessor :max_duration_to_schedule_graph
   @@max_duration_to_schedule_graph = 1.month
 
+  # Max weight to consider in schedule build
+  mattr_accessor :max_weight_schedule
+  @@max_weight_schedule = 10
+
   # Used to change variables in configuration
   # Retuns a block to self
   def self.setup

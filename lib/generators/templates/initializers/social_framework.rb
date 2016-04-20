@@ -34,4 +34,7 @@ SocialFramework.setup do |config|
 
   # Max size to duration to mount schedule graph
   # config.max_duration_to_schedule_graph = 1.month
+
+  # Max weight to consider in schedule build
+  # config.max_weight_schedule = 10
 end
