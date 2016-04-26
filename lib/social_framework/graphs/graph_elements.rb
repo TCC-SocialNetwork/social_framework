@@ -2,14 +2,15 @@
 module GraphElements
   # Represent graph's vertex
   class Vertex
-    attr_accessor :id, :edges, :visits, :color, :attributes
+    attr_accessor :id, :type, :edges, :visits, :color, :attributes
 
     # Constructor to vertex 
     # ====== Params:
     # +id+:: +Integer+ user id
     # Returns Vertex's Instance
-    def initialize id = 0, attributes = {}
+    def initialize id, type, attributes = {}
       @id = id
+      @type = type
       @edges = Array.new
       @visits = 0
       @color = :white
@@ -19,7 +20,7 @@ module GraphElements
     # Overriding equal method to compare vertex by id
     # Returns true if id is equal or false if not
     def ==(other)
-      self.id == other.id
+      self.id == other.id and self.type == other.type
     end
     
     alias :eql? :==

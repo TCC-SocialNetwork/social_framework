@@ -85,7 +85,7 @@ module SocialFramework
         result = @graph.send(:get_edges, @user1.id, "all")
         expect(result.count).to be(6)
         
-        @graph.network << GraphElements::Vertex.new(@user1.id)
+        @graph.network << GraphElements::Vertex.new(@user1.id, @user1.class.name)
 
         result = @graph.send(:get_edges, @user2.id, "all")
         expect(result.count).to be(2)
@@ -193,6 +193,62 @@ module SocialFramework
         @graph.network.each do |vertex|
           expect(vertex.attributes).to be_empty
         end
+      end
+
+      it "When users have events" do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        event1 = @user1.schedule.create_event("Event1", start, 1.hour)
+        event2 = @user1.schedule.create_event("Event2", start + 1.hour, 1.hour)
+        
+        @user2.schedule.enter_an_event event2
+        @user7.schedule.enter_an_event event1
+
+        event3 = @user2.schedule.create_event("Event3", start + 2.hour, 1.hour)
+
+        @user3.schedule.enter_an_event event3
+
+        event4 = @user4.schedule.create_event("Event4", start + 3.hour, 1.hour)
+
+        @user5.schedule.enter_an_event event4
+
+        event5 = @user5.schedule.create_event("Event5", start + 4.hour, 1.hour)
+
+        @user6.schedule.enter_an_event event5
+
+        @graph.depth = 3
+        @graph.build @user1
+
+        expect(@graph.network.count).to be(12)
+
+        expect(@graph.network[0].type).to eq("SocialFramework::User")
+        expect(@graph.network[0].id).to be(1)
+        expect(@graph.network[1].type).to eq("SocialFramework::User")
+        expect(@graph.network[1].id).to be(2)
+        expect(@graph.network[2].type).to eq("SocialFramework::User")
+        expect(@graph.network[2].id).to be(3)
+        expect(@graph.network[3].type).to eq("SocialFramework::User")
+        expect(@graph.network[3].id).to be(4)
+        expect(@graph.network[4].type).to eq("SocialFramework::User")
+        expect(@graph.network[4].id).to be(7)
+        expect(@graph.network[5].type).to eq("SocialFramework::User")
+        expect(@graph.network[5].id).to be(8)
+
+        expect(@graph.network[6].type).to eq("SocialFramework::Event")
+        expect(@graph.network[6].id).to be(2)
+        expect(@graph.network[7].type).to eq("SocialFramework::Event")
+        expect(@graph.network[7].id).to be(1)
+
+        expect(@graph.network[8].type).to eq("SocialFramework::User")
+        expect(@graph.network[8].id).to be(5)
+
+        expect(@graph.network[9].type).to eq("SocialFramework::Event")
+        expect(@graph.network[9].id).to be(3)
+
+        expect(@graph.network[10].type).to eq("SocialFramework::User")
+        expect(@graph.network[10].id).to be(6)
+
+        expect(@graph.network[11].type).to eq("SocialFramework::Event")
+        expect(@graph.network[11].id).to be(4)
       end
     end
 

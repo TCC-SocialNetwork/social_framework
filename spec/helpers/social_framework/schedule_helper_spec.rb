@@ -220,9 +220,9 @@ module SocialFramework
         @user1 = create(:user,username: "user1", email: "user1@mail.com")
         @user2 = create(:user,username: "user2", email: "user2@mail.com")
 
-        @slot1 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 8, 0, 0), {gained_weight: 0})
-        @slot2 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 9, 0, 0), {gained_weight: 0})
-        @slot3 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 10, 0, 0), {gained_weight: 0})
+        @slot1 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 8, 0, 0), DateTime, {gained_weight: 0})
+        @slot2 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 9, 0, 0), DateTime, {gained_weight: 0})
+        @slot3 = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 10, 0, 0), DateTime, {gained_weight: 0})
         @schedule.instance_variable_set :@slots, [@slot1, @slot2, @slot3]
         @schedule.instance_variable_set :@slots_size, 1.hour
       end
@@ -279,13 +279,13 @@ module SocialFramework
       end
 
       it "When slot match event" do
-        slot = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 10, 0, 0))
+        slot = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 10, 0, 0), DateTime)
         result = @schedule.send(:slot_empty?, slot, @event)
         expect(result).to be(false)
       end
 
       it "When slot not match event" do
-        slot = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 8, 0, 0))
+        slot = GraphElements::Vertex.new(DateTime.new(2016, 01, 01, 8, 0, 0), DateTime)
         result = @schedule.send(:slot_empty?, slot, @event)
         expect(result).to be(true)
       end

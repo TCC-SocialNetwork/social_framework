@@ -41,41 +41,33 @@ module SocialFramework
       # +attributes+:: +Array+ Attributes will be added in vertex
       # +relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String, default is "all" thats represents all relationships existing
       # Returns The graph mounted
-      def build(root, attributes = [:username, :email], relationships = "all")
+      def build(root, attributes = [:username, :email, :title], relationships = "all")
         @root = root
         @network.clear
         vertices = Array.new
 
         attributes_hash = mount_attributes(attributes, root)
-        vertices << {vertex: GraphElements::Vertex.new(@root.id, attributes_hash), depth: 1}
+        vertices << {vertex: GraphElements::Vertex.new(@root.id, @root.class.name, attributes_hash), depth: 1}
 
         until vertices.empty?
           pair = vertices.shift
           current_vertex = pair[:vertex]
           @network << current_vertex
 
-          next if pair[:depth] == @depth
+          next if pair[:depth] == @depth or current_vertex.type == "SocialFramework::Event"
           new_depth = pair[:depth] + 1
 
           edges = get_edges(current_vertex.id, relationships)
 
-          edges.each do |e|
-            user = (e.origin.id == current_vertex.id) ? e.destiny : e.origin
+          edges.each do |edge|
+            user = (edge.origin.id == current_vertex.id) ? edge.destiny : edge.origin
 
-            pair = vertices.select { |p| p[:vertex].id == user.id }.first
+            add_vertex(vertices, current_vertex, new_depth, user, attributes, edge.label, edge.bidirectional)
+          end
 
-            if pair.nil?
-              attributes_hash = mount_attributes(attributes, user)
-              new_vertex = GraphElements::Vertex.new(user.id, attributes_hash)
-            else
-              new_vertex = pair[:vertex]
-            end
-            current_vertex.add_edge new_vertex, e.label
-            new_vertex.add_edge current_vertex, e.label if e.bidirectional
-
-            if pair.nil? and not @network.include? new_vertex
-              vertices << {vertex: new_vertex, depth: new_depth}
-            end
+          events = get_events(current_vertex.id)
+          events.each do |event|
+            add_vertex(vertices, current_vertex, new_depth, event, attributes, "event", false)
           end
         end
       end
@@ -145,15 +137,12 @@ module SocialFramework
 
       # Select all user's edges with the relationships required
       # ====== Params:
-      # +user_id+:: +User+ to find to get edges
+      # +user_id+:: +Integer+ to find to get edges
       # +relationships+:: +Array+ relationships required to select edges
       # Returns Edges selected
       def get_edges(user_id, relationships)
-        begin
-          user = @root.class.find user_id
-        rescue
-          return []
-        end
+        user = get_user user_id
+        return [] if user.nil? 
 
         user.edges.select do |e|
           id = (e.origin.id == user.id) ? e.destiny.id : e.origin.id
@@ -161,7 +150,60 @@ module SocialFramework
           condiction_to_string = (relationships.class == String and (relationships == "all" or e.label == relationships))
           condiction_to_array = (relationships.class == Array and relationships.include? e.label)
 
-          e.active and not @network.include? GraphElements::Vertex.new(id) and (condiction_to_string or condiction_to_array)
+          e.active and not @network.include? GraphElements::Vertex.new(id, user.class.name) and (condiction_to_string or condiction_to_array)
+        end
+      end
+
+      # Get all user's events confirmed
+      # ====== Params:
+      # +user_id+:: +Integer+ to find to get edges
+      # Returns Events found
+      def get_events(user_id)
+        user = get_user user_id
+        return [] if user.nil?
+
+        SocialFramework::Event.joins(:participant_events).where(
+        "social_framework_participant_events.schedule_id = ? AND " +
+        "social_framework_participant_events.confirmed = ?",
+        user.schedule.id, true).order(start: :desc)
+      end
+
+      # Get user by id
+      # ====== Params:
+      # +user_id+:: +Integer+ to find
+      # Returns Events found
+      def get_user(user_id)
+        begin
+          return @root.class.find user_id
+        rescue
+          return nil
+        end
+      end
+
+      # Add vertex in queue
+      # ====== Params:
+      # +vertices+:: +Array+ elements queue
+      # +current_vertex+:: +Vertex+ to add edges
+      # +depth+:: +Integer+ current depth in graph
+      # +element+:: +User+ or +Event+ to add in queue
+      # +attributes+:: +Hash+ attributes required
+      # +label+:: +String+ edge label
+      # +bidirectional+:: +Boolean+ if true create two edges
+      # Returns Events found
+      def add_vertex(vertices, current_vertex, depth, element, attributes, label, bidirectional)
+        pair = vertices.select { |p| p[:vertex].id == element.id and p[:vertex].type == element.class.name }.first
+
+        if pair.nil?
+          attributes_hash = mount_attributes(attributes, element)
+          new_vertex = GraphElements::Vertex.new(element.id, element.class.name, attributes_hash)
+        else
+          new_vertex = pair[:vertex]
+        end
+        current_vertex.add_edge new_vertex, label
+        new_vertex.add_edge current_vertex, label if bidirectional
+
+        if pair.nil? and not @network.include? new_vertex
+          vertices << {vertex: new_vertex, depth: depth}
         end
       end
 

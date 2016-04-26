@@ -72,7 +72,7 @@ module SocialFramework
           slots_quantity = get_slots_quantity(start_hour, finish_hour)
 
           (1..slots_quantity).each do
-            verterx = GraphElements::Vertex.new(current_time, {gained_weight: 0})
+            verterx = GraphElements::Vertex.new(current_time, current_time.class.name, {gained_weight: 0})
             @slots << verterx
 
             current_time += @slots_size
@@ -143,7 +143,7 @@ module SocialFramework
             weight = SocialFramework.max_weight_schedule
           end
 
-          vertex = GraphElements::Vertex.new(user.id, {weight: weight})
+          vertex = GraphElements::Vertex.new(user.id, user.class.name, {weight: weight})
 
           array = (weight == :fixed ? @fixed_users : @users)
           array << vertex
