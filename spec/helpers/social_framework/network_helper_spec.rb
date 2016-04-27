@@ -682,5 +682,34 @@ module SocialFramework
         expect(current_vertex.edges.first.destiny).to eq(@graph.network.first)
       end
     end
+
+    describe "Build condictions" do
+      it "When pass valid atributes" do
+        map = {username: "user", email: "user"}
+        result = @graph.send(:build_condictions, map, SocialFramework::User)
+
+        expect(result).to eq("(lower(username) LIKE :username OR lower(email) LIKE :email)")
+      end
+
+      it "When pass valid and invalid atributes" do
+        map = {username: "user", email: "user", invalid: "invalid"}
+        result = @graph.send(:build_condictions, map, SocialFramework::User)
+
+        expect(result).to eq("(lower(username) LIKE :username OR lower(email) LIKE :email)")
+      end
+
+      it "When pass invalid atributes" do
+        map = {invalid: "invalid"}
+        result = @graph.send(:build_condictions, map, SocialFramework::User)
+
+        expect(result).to eq("()")
+      end
+
+      it "When pass a empty map" do
+        result = @graph.send(:build_condictions, {}, SocialFramework::User)
+
+        expect(result).to eq("()")
+      end
+    end
   end
 end

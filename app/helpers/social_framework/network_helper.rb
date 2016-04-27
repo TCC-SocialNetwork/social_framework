@@ -324,7 +324,7 @@ module SocialFramework
         event_condictions = build_condictions(map, SocialFramework::Event)
 
         begin
-          unless user_condictions.empty?
+          if user_condictions != "()"
             @users_in_database ||= SocialFramework::User.where([user_condictions, map]).to_a
 
             while (@users_found.size + @events_found.size) < @elements_number and not @users_in_database.empty?
@@ -332,7 +332,8 @@ module SocialFramework
             end
           end
 
-          if((@users_found.size + @events_found.size) < @elements_number and not event_condictions.empty?)
+          if((@users_found.size + @events_found.size) < @elements_number and
+            event_condictions != "()")
             map[:particular] = false
             event_condictions += " AND particular = :particular"
             @events_in_database ||= SocialFramework::Event.where([event_condictions, map]).to_a
