@@ -162,10 +162,18 @@ module SocialFramework
         user = get_user user_id
         return [] if user.nil?
 
-        SocialFramework::Event.joins(:participant_events).where(
-        "social_framework_participant_events.schedule_id = ? AND " +
-        "social_framework_participant_events.confirmed = ?",
-        user.schedule.id, true).order(start: :desc)
+        unless user_id == @root.id
+          query = "social_framework_participant_events.schedule_id = ? AND " +
+            "social_framework_participant_events.confirmed = ? AND " +
+            "social_framework_events.particular = ?"
+          SocialFramework::Event.joins(:participant_events).where(query, user.schedule.id,
+            true, false).order(start: :desc)
+        else
+          query = "social_framework_participant_events.schedule_id = ? AND " +
+            "social_framework_participant_events.confirmed = ?"
+          SocialFramework::Event.joins(:participant_events).where(query, user.schedule.id,
+            true).order(start: :desc)
+        end
       end
 
       # Get user by id
@@ -194,16 +202,21 @@ module SocialFramework
         pair = vertices.select { |p| p[:vertex].id == element.id and p[:vertex].type == element.class.name }.first
 
         if pair.nil?
+          # puts "if"
           attributes_hash = mount_attributes(attributes, element)
           new_vertex = GraphElements::Vertex.new(element.id, element.class.name, attributes_hash)
         else
+          # puts "else"
           new_vertex = pair[:vertex]
         end
+        # puts "new_vertex: #{new_vertex.id}"
         current_vertex.add_edge new_vertex, label
         new_vertex.add_edge current_vertex, label if bidirectional
 
         if pair.nil? and not @network.include? new_vertex
+          # puts "segundo if"
           vertices << {vertex: new_vertex, depth: depth}
+          # puts "vertices: #{vertices.count}"
         end
       end
 

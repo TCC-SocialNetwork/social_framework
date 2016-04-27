@@ -37,6 +37,7 @@ module SocialFramework
 
       @graph = NetworkHelper::Graph.get_instance @user1.id
       @graph.instance_variable_set :@root, @user1
+      @graph.network = Array.new
     end
 
     describe "Get edges from an user" do
@@ -491,6 +492,117 @@ module SocialFramework
         @graph.instance_variable_set :@users_number, 5
         @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(1)
+      end
+    end
+
+    describe "Get events" do
+      it "When all events is public" do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        event1 = @user1.schedule.create_event("Event1", start, 1.hour)
+        event2 = @user1.schedule.create_event("Event2", start + 1.hour, 1.hour)
+
+        events = @graph.send(:get_events, @user1.id)
+
+        expect(events.count).to be(2)
+        expect(events.first).to eq(event2)
+        expect(events.last).to eq(event1)
+      end
+
+      it "When root has private events" do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        event1 = @user1.schedule.create_event("Event1", start, 1.hour, "Description1", true)
+        event2 = @user1.schedule.create_event("Event2", start + 1.hour, 1.hour)
+
+        events = @graph.send(:get_events, @user1.id)
+
+        expect(events.count).to be(2)
+        expect(events.first).to eq(event2)
+        expect(events.last).to eq(event1)
+      end
+
+      it "When common user has private events" do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        event1 = @user2.schedule.create_event("Event1", start, 1.hour, "Description1", true)
+        event2 = @user2.schedule.create_event("Event2", start + 1.hour, 1.hour)
+
+        events = @graph.send(:get_events, @user2.id)
+
+        expect(events.count).to be(1)
+        expect(events.first).to eq(event2)
+      end
+    end
+
+    describe "Get user" do
+      it "When pass a valid id" do
+        user = @graph.send(:get_user, 1)
+
+        expect(user).to eq(@user1)
+      end
+
+      it "When pass an invalid id" do
+        user = @graph.send(:get_user, nil)
+
+        expect(user).to be_nil
+
+        user = @graph.send(:get_user, 100)
+
+        expect(user).to be_nil
+      end
+    end
+
+    describe "Add vertex" do
+      it "When the queue is empty" do
+        vertices = Array.new
+        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class.name)
+        @graph.send(:add_vertex, vertices, current_vertex, 1, @user2, [], "r1", true)
+
+        expect(vertices.count).to be(1)
+        expect(vertices.first[:vertex].id).to be(@user2.id)
+        
+        expect(vertices.first[:vertex].edges.count).to be(1)
+        expect(vertices.first[:vertex].edges.first.destiny).to eq(current_vertex)
+
+        expect(current_vertex.edges.count).to be(1)
+        expect(current_vertex.edges.first.destiny).to eq(vertices.first[:vertex])
+      end
+
+      it "When the user is in queue" do
+        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class.name)
+        vertex_user2 = GraphElements::Vertex.new(@user2.id, @user2.class.name)
+
+        vertices = Array.new
+        
+        vertices << {vertex: vertex_user2, depth: 2}
+
+        expect(vertices.count).to be(1)
+        expect(vertices.first[:vertex].id).to be(@user2.id)
+
+        @graph.send(:add_vertex, vertices, current_vertex, 2, @user2, [], "r1", true)
+
+        expect(vertices.count).to be(1)
+        expect(vertices.first[:vertex]).to eq(vertex_user2)
+        
+        expect(vertices.first[:vertex].edges.count).to be(1)
+        expect(vertices.first[:vertex].edges.first.destiny).to eq(current_vertex)
+
+        expect(current_vertex.edges.count).to be(1)
+        expect(current_vertex.edges.first.destiny).to eq(vertices.first[:vertex])
+      end
+
+      it "When the user already is in graph" do
+        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class.name)
+        vertex_user2 = GraphElements::Vertex.new(@user2.id, @user2.class.name)
+        
+        vertices = Array.new
+        
+        @graph.network << vertex_user2
+
+        expect(vertices.count).to be(0)
+
+        @graph.send(:add_vertex, vertices, current_vertex, 2, @user2, [], "r1", true)
+
+        expect(vertices.count).to be(0)
+        expect(current_vertex.edges.first.destiny).to eq(@graph.network.first)
       end
     end
   end
