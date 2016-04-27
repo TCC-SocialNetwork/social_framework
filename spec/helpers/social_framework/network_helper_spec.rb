@@ -447,7 +447,7 @@ module SocialFramework
 
         result = @graph.search map, true, 10
         expect(result[:users].count).to be(9)
-        expect(result[:events].count).to be(4)
+        expect(result[:events].count).to be(5)
       end
 
       it "When pass part of string" do
@@ -483,7 +483,7 @@ module SocialFramework
 
         result = @graph.search(map, true) { |number| number *= 2 }
         expect(result[:users].count).to be(9)
-        expect(result[:events].count).to be(4)
+        expect(result[:events].count).to be(5)
       end
 
       it "When pass adder block" do
@@ -529,7 +529,7 @@ module SocialFramework
 
         result = @graph.search map, true, 10
         expect(result[:users].count).to be(9)
-        expect(result[:events].count).to be(5)
+        expect(result[:events].count).to be(6)
       end
     end
 
@@ -543,15 +543,15 @@ module SocialFramework
         map = {id: 1, username: "u"}
         
         @graph.instance_variable_set :@elements_number, 5
-        @graph.send(:search_users_in_database, map)
+        @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(5)
 
         @graph.instance_variable_set :@elements_number, 9
-        @graph.send(:search_users_in_database, map)
+        @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(9)
 
         @graph.instance_variable_set :@elements_number, 10
-        @graph.send(:search_users_in_database, map)
+        @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(9)
       end
 
@@ -559,7 +559,7 @@ module SocialFramework
         map = {username: "user1"}
         
         @graph.instance_variable_set :@elements_number, 5
-        @graph.send(:search_users_in_database, map)
+        @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(1)
       end
 
@@ -567,7 +567,7 @@ module SocialFramework
         map = {id: 3}
         
         @graph.instance_variable_set :@elements_number, 5
-        @graph.send(:search_users_in_database, map)
+        @graph.send(:search_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(1)
       end
     end

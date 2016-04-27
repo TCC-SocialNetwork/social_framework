@@ -94,8 +94,7 @@ module SocialFramework
         end
 
         search_visit(map) unless @finished_search_in_graph
-        search_users_in_database(map) if (@users_found.size + @events_found.size) < @elements_number and @finished_search_in_graph
-
+        search_in_database(map) if (@users_found.size + @events_found.size) < @elements_number and @finished_search_in_graph
         return {users: @users_found, events: @events_found}
       end
 
@@ -291,6 +290,7 @@ module SocialFramework
         @events_found = Set.new
         @queue = Queue.new
         @users_in_database = nil
+        @events_in_database = nil
         @elements_number = 0
 
         @network.each do |vertex|
@@ -319,31 +319,52 @@ module SocialFramework
       # Continue search in database
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
-      def search_users_in_database(map)
-        condictions = ""
-        
-        map.each do |key, value|
-          next unless @root.respond_to?(key)
-          comparator = (value.class == String ? "LIKE" : "=")
-          column = (value.class == String ? "lower(#{key})" : "#{key}")
-          condictions += " OR " unless condictions.empty?
-          condictions += "#{column} #{comparator} :#{key}"
-          map[key] = "%#{value.downcase}%" if value.class == String
-        end
+      def search_in_database(map)
+        user_condictions = build_condictions(map, SocialFramework::User)
+        event_condictions = build_condictions(map, SocialFramework::Event)
 
-        return if condictions.empty?
-        
         begin
-          @users_in_database ||= @root.class.where([condictions, map]).to_a
+          unless user_condictions.empty?
+            @users_in_database ||= SocialFramework::User.where([user_condictions, map]).to_a
 
-          @finished_search = true if (@users_found.size + @users_in_database.size + @events_found.size) <= @elements_number
+            while (@users_found.size + @events_found.size) < @elements_number and not @users_in_database.empty?
+              @users_found << @users_in_database.shift
+            end
+          end
 
-          while (@users_found.size + @events_found.size) < @elements_number and not @users_in_database.empty?
-            @users_found << @users_in_database.shift
+          if((@users_found.size + @events_found.size) < @elements_number and not event_condictions.empty?)
+            map[:particular] = false
+            event_condictions += " AND particular = :particular"
+            @events_in_database ||= SocialFramework::Event.where([event_condictions, map]).to_a
+
+            while (@users_found.size + @events_found.size) < @elements_number and not @events_in_database.empty?
+              @events_found << @events_in_database.shift
+            end
+            @finished_search = @events_in_database.empty?
           end
         rescue
           Rails.logger.warn "Parameter invalid!"
         end
+      end
+
+      # Create condictions to search in database
+      # ====== Params:
+      # +map+:: +Hash+ with keys and values to compare
+      # +_class+:: +Object+ type class to create condictions
+      # Returns condictions built
+      def build_condictions(map, _class)
+        condictions = "("
+        
+        map.each do |key, value|
+          next unless _class.instance_methods.include?(key)
+          comparator = (value.class == String ? "LIKE" : "=")
+          column = (value.class == String ? "lower(#{key})" : "#{key}")
+          condictions += " OR " if condictions.size > 1
+          condictions += "#{column} #{comparator} :#{key}"
+          map[key] = "%#{value.downcase}%" if value.class == String
+        end
+
+        return (condictions + ")")
       end
     end
   end
