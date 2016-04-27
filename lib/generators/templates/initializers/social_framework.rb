@@ -5,7 +5,7 @@ SocialFramework.setup do |config|
   # config.depth_to_build = 3
 
   # Define the quantity of users to search returns
-  # config.users_number_to_search = 5
+  # config.elements_number_to_search = 5
 
   # Type relationships to suggest a new relationships,
   # can be an string or array with multiple relationships

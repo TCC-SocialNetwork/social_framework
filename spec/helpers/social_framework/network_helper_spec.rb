@@ -86,7 +86,7 @@ module SocialFramework
         result = @graph.send(:get_edges, @user1.id, "all")
         expect(result.count).to be(6)
         
-        @graph.network << GraphElements::Vertex.new(@user1.id, @user1.class.name)
+        @graph.network << GraphElements::Vertex.new(@user1.id, @user1.class)
 
         result = @graph.send(:get_edges, @user2.id, "all")
         expect(result.count).to be(2)
@@ -221,34 +221,34 @@ module SocialFramework
 
         expect(@graph.network.count).to be(12)
 
-        expect(@graph.network[0].type).to eq("SocialFramework::User")
+        expect(@graph.network[0].type).to eq(SocialFramework::User)
         expect(@graph.network[0].id).to be(1)
-        expect(@graph.network[1].type).to eq("SocialFramework::User")
+        expect(@graph.network[1].type).to eq(SocialFramework::User)
         expect(@graph.network[1].id).to be(2)
-        expect(@graph.network[2].type).to eq("SocialFramework::User")
+        expect(@graph.network[2].type).to eq(SocialFramework::User)
         expect(@graph.network[2].id).to be(3)
-        expect(@graph.network[3].type).to eq("SocialFramework::User")
+        expect(@graph.network[3].type).to eq(SocialFramework::User)
         expect(@graph.network[3].id).to be(4)
-        expect(@graph.network[4].type).to eq("SocialFramework::User")
+        expect(@graph.network[4].type).to eq(SocialFramework::User)
         expect(@graph.network[4].id).to be(7)
-        expect(@graph.network[5].type).to eq("SocialFramework::User")
+        expect(@graph.network[5].type).to eq(SocialFramework::User)
         expect(@graph.network[5].id).to be(8)
 
-        expect(@graph.network[6].type).to eq("SocialFramework::Event")
+        expect(@graph.network[6].type).to eq(SocialFramework::Event)
         expect(@graph.network[6].id).to be(2)
-        expect(@graph.network[7].type).to eq("SocialFramework::Event")
+        expect(@graph.network[7].type).to eq(SocialFramework::Event)
         expect(@graph.network[7].id).to be(1)
 
-        expect(@graph.network[8].type).to eq("SocialFramework::User")
+        expect(@graph.network[8].type).to eq(SocialFramework::User)
         expect(@graph.network[8].id).to be(5)
 
-        expect(@graph.network[9].type).to eq("SocialFramework::Event")
+        expect(@graph.network[9].type).to eq(SocialFramework::Event)
         expect(@graph.network[9].id).to be(3)
 
-        expect(@graph.network[10].type).to eq("SocialFramework::User")
+        expect(@graph.network[10].type).to eq(SocialFramework::User)
         expect(@graph.network[10].id).to be(6)
 
-        expect(@graph.network[11].type).to eq("SocialFramework::Event")
+        expect(@graph.network[11].type).to eq(SocialFramework::Event)
         expect(@graph.network[11].id).to be(4)
       end
     end
@@ -305,9 +305,9 @@ module SocialFramework
       end
     end
 
-    describe "Search vertices" do
+    describe "Compare vertex" do
       before(:each) do
-        @graph.build @user1, [:username, :email]
+        @graph.build @user1, [:username, :email, :title]
       end
 
       it "Clean all vertices" do
@@ -350,109 +350,186 @@ module SocialFramework
 
         expect(result).to be(false)
       end
+    end
 
-      it "When users_number should be 0" do
+    describe "Search vertices" do
+      before(:each) do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        event1 = @user1.schedule.create_event("Event1", start, 1.hour)
+        event2 = @user1.schedule.create_event("Event2", start + 1.hour, 1.hour)
+        
+        @user2.schedule.enter_an_event event2
+        @user7.schedule.enter_an_event event1
+
+        event3 = @user2.schedule.create_event("Event3", start + 2.hour, 1.hour)
+
+        @user3.schedule.enter_an_event event3
+
+        event4 = @user4.schedule.create_event("Event4", start + 3.hour, 1.hour)
+
+        @user5.schedule.enter_an_event event4
+
+        event5 = @user5.schedule.create_event("Event5", start + 4.hour, 1.hour)
+
+        @user6.schedule.enter_an_event event5
+
+        @graph.build @user1, [:username, :email, :title]
+      end
+
+      it "When elements_number should be 0" do
         map = {id: 1}
         result = @graph.search map, false, 0
-        expect(result).to be_empty
+        expect(result[:users]).to be_empty
+        expect(result[:events]).to be_empty
       end
 
       it "When pass invalid attribute" do
         map = {invalid: 1}
         result = @graph.search map
-        expect(result).to be_empty
+        expect(result[:users]).to be_empty
+        expect(result[:events]).to be_empty
       end
 
       it "When pass valid and invalid attribute" do
         map = {id: 1, invalid: 1}
         result = @graph.search map
-        expect(result.count).to be(1)
+        expect(result[:users].count).to be(1)
+        expect(result[:events].count).to be(1)
       end
 
       it "When vertex exist" do
         map = {id: 1}
         result = @graph.search map
-        expect(result.count).to be(1)
+        expect(result[:users].count).to be(1)
+        expect(result[:events].count).to be(1)
       end
 
       it "When vertex not exist" do
         map = {id: 0}
         result = @graph.search map
-        expect(result).to be_empty
+        expect(result[:users]).to be_empty
+        expect(result[:events]).to be_empty
       end
 
       it "When vertex not exist in Graph" do
         map = {id: 9}
         result = @graph.search map
-        expect(result.count).to be(1)
+        expect(result[:users].count).to be(1)
+        expect(result[:events]).to be_empty
       end
 
       it "When continue search" do
-        map = {username: "user"}
+        map = {username: "user", title: "event"}
         
         result = @graph.search(map, false, 1)
-        expect(result.count).to be(1)
+        expect(result[:users].count).to be(1)
+        expect(result[:events]).to be_empty
 
-        result = @graph.search(map, true, 2)
-        expect(result.count).to be(3)
+        result = @graph.search(map, true, 6)
+        expect(result[:users].count).to be(6)
+        expect(result[:events].count).to be(1)
       end
 
       it "When search finished" do
-        map = {username: "user"}
+        map = {username: "user", title: "event"}
         
         result = @graph.search map, false, 1
-        expect(result.count).to be(1)
+        expect(result[:users].count).to be(1)
+        expect(result[:events]).to be_empty
 
         result = @graph.search map, true, 8
-        expect(result.count).to be(9)
+        expect(result[:users].count).to be(7)
+        expect(result[:events].count).to be(2)
 
         result = @graph.search map, true, 3
-        expect(result.count).to be(9)
+        expect(result[:users].count).to be(8)
+        expect(result[:events].count).to be(4)
+
+        result = @graph.search map, true, 10
+        expect(result[:users].count).to be(9)
+        expect(result[:events].count).to be(4)
       end
 
       it "When pass part of string" do
-        map = {username: "u"}
+        map = {username: "U", title: "e"}
         
         result = @graph.search map, false, 5
-        expect(result.count).to be(5)
+        expect(result[:users].count).to be(5)
+        expect(result[:events]).to be_empty
 
         result = @graph.search map, true, 5
-        expect(result.count).to be(9)
+        expect(result[:users].count).to be(7)
+        expect(result[:events].count).to be(3)
       end
 
-      it "When pass block time" do
-        map = {username: "user"}
+      it "When pass multiplier block" do
+        map = {username: "user", title: "event"}
         
         result = @graph.search map, false, 1
-        expect(result.count).to be(1)
+        expect(result[:users].count).to be(1)
+        expect(result[:events]).to be_empty
 
         result = @graph.search(map, true) { |number| number *= 2 }
-        expect(result.count).to be(2)
+        expect(result[:users].count).to be(2)
+        expect(result[:events]).to be_empty
 
         result = @graph.search(map, true) { |number| number *= 2 }
-        expect(result.count).to be(4)
+        expect(result[:users].count).to be(4)
+        expect(result[:events]).to be_empty
 
         result = @graph.search(map, true) { |number| number *= 2 }
-        expect(result.count).to be(8)
+        expect(result[:users].count).to be(6)
+        expect(result[:events].count).to be(2)
 
         result = @graph.search(map, true) { |number| number *= 2 }
-        expect(result.count).to be(9)
+        expect(result[:users].count).to be(9)
+        expect(result[:events].count).to be(4)
       end
 
-      it "When pass block sum" do
-        map = {username: "user"}
+      it "When pass adder block" do
+        map = {username: "user", title: "event"}
         
         result = @graph.search map, false, 1
-        expect(result.count).to be(1)
+        expect(result[:users].count).to be(1)
+        expect(result[:events]).to be_empty
 
         result = @graph.search(map, true) { |number| number += 3 }
-        expect(result.count).to be(4)
+        expect(result[:users].count).to be(4)
+        expect(result[:events]).to be_empty
 
         result = @graph.search(map, true) { |number| number += 3 }
-        expect(result.count).to be(7)
+        expect(result[:users].count).to be(6)
+        expect(result[:events].count).to be(1)
 
         result = @graph.search(map, true) { |number| number += 3 }
-        expect(result.count).to be(9)
+        expect(result[:users].count).to be(7)
+        expect(result[:events].count).to be(3)
+      end
+
+      it "When exist private events" do
+        start = DateTime.new(2016, 01, 02, 8, 0, 0)
+        @user1.schedule.create_event("Event1", start, 1.hour, "desc", true)
+        @user2.schedule.create_event("Event2", start, 1.hour, "desc", true)
+
+        @graph.build @user1, [:username, :email, :title]
+
+        map = {username: "user", title: "event"}
+        
+        result = @graph.search map, false, 1
+        expect(result[:users].count).to be(1)
+        expect(result[:events]).to be_empty
+
+        result = @graph.search map, true, 8
+        expect(result[:users].count).to be(6)
+        expect(result[:events].count).to be(3)
+
+        result = @graph.search map, true, 3
+        expect(result[:users].count).to be(8)
+        expect(result[:events].count).to be(4)
+
+        result = @graph.search map, true, 10
+        expect(result[:users].count).to be(9)
+        expect(result[:events].count).to be(5)
       end
     end
 
@@ -465,32 +542,32 @@ module SocialFramework
       it "When search with part of string" do
         map = {id: 1, username: "u"}
         
-        @graph.instance_variable_set :@users_number, 5
-        @graph.send(:search_in_database, map)
+        @graph.instance_variable_set :@elements_number, 5
+        @graph.send(:search_users_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(5)
 
-        @graph.instance_variable_set :@users_number, 9
-        @graph.send(:search_in_database, map)
+        @graph.instance_variable_set :@elements_number, 9
+        @graph.send(:search_users_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(9)
 
-        @graph.instance_variable_set :@users_number, 10
-        @graph.send(:search_in_database, map)
+        @graph.instance_variable_set :@elements_number, 10
+        @graph.send(:search_users_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(9)
       end
 
       it "When search with string" do
         map = {username: "user1"}
         
-        @graph.instance_variable_set :@users_number, 5
-        @graph.send(:search_in_database, map)
+        @graph.instance_variable_set :@elements_number, 5
+        @graph.send(:search_users_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(1)
       end
 
       it "When search with integer" do
         map = {id: 3}
         
-        @graph.instance_variable_set :@users_number, 5
-        @graph.send(:search_in_database, map)
+        @graph.instance_variable_set :@elements_number, 5
+        @graph.send(:search_users_in_database, map)
         expect(@graph.instance_variable_get(:@users_found).count).to be(1)
       end
     end
@@ -553,7 +630,7 @@ module SocialFramework
     describe "Add vertex" do
       it "When the queue is empty" do
         vertices = Array.new
-        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class.name)
+        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class)
         @graph.send(:add_vertex, vertices, current_vertex, 1, @user2, [], "r1", true)
 
         expect(vertices.count).to be(1)
@@ -567,8 +644,8 @@ module SocialFramework
       end
 
       it "When the user is in queue" do
-        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class.name)
-        vertex_user2 = GraphElements::Vertex.new(@user2.id, @user2.class.name)
+        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class)
+        vertex_user2 = GraphElements::Vertex.new(@user2.id, @user2.class)
 
         vertices = Array.new
         
@@ -590,9 +667,9 @@ module SocialFramework
       end
 
       it "When the user already is in graph" do
-        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class.name)
-        vertex_user2 = GraphElements::Vertex.new(@user2.id, @user2.class.name)
-        
+        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class)
+        vertex_user2 = GraphElements::Vertex.new(@user2.id, @user2.class)
+
         vertices = Array.new
         
         @graph.network << vertex_user2

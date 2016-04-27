@@ -47,14 +47,14 @@ module SocialFramework
         vertices = Array.new
 
         attributes_hash = mount_attributes(attributes, root)
-        vertices << {vertex: GraphElements::Vertex.new(@root.id, @root.class.name, attributes_hash), depth: 1}
+        vertices << {vertex: GraphElements::Vertex.new(@root.id, @root.class, attributes_hash), depth: 1}
 
         until vertices.empty?
           pair = vertices.shift
           current_vertex = pair[:vertex]
           @network << current_vertex
 
-          next if pair[:depth] == @depth or current_vertex.type == "SocialFramework::Event"
+          next if pair[:depth] == @depth or current_vertex.type == SocialFramework::Event
           new_depth = pair[:depth] + 1
 
           edges = get_edges(current_vertex.id, relationships)
@@ -76,9 +76,9 @@ module SocialFramework
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
       # +search_in_progress+:: +Boolean+ to continue if true or start a new search
-      # +users_number+:: +Integer+ to limit max search result
+      # +elements_number+:: +Integer+ to limit max search result
       # Returns Set with users found
-      def search(map, search_in_progress = false, users_number = SocialFramework.users_number_to_search)
+      def search(map, search_in_progress = false, elements_number = SocialFramework.elements_number_to_search)
         return @users_found if @finished_search and search_in_progress == true
 
         unless search_in_progress
@@ -88,15 +88,15 @@ module SocialFramework
         end
 
         if block_given? and search_in_progress
-          @users_number = yield @users_number
+          @elements_number = yield @elements_number
         else
-          @users_number += users_number
+          @elements_number += elements_number
         end
 
         search_visit(map) unless @finished_search_in_graph
-        search_in_database(map) if @users_found.size < @users_number and @finished_search_in_graph
+        search_users_in_database(map) if (@users_found.size + @events_found.size) < @elements_number and @finished_search_in_graph
 
-        return @users_found
+        return {users: @users_found, events: @events_found}
       end
 
       # Suggest relationships to root
@@ -150,7 +150,7 @@ module SocialFramework
           condiction_to_string = (relationships.class == String and (relationships == "all" or e.label == relationships))
           condiction_to_array = (relationships.class == Array and relationships.include? e.label)
 
-          e.active and not @network.include? GraphElements::Vertex.new(id, user.class.name) and (condiction_to_string or condiction_to_array)
+          e.active and not @network.include? GraphElements::Vertex.new(id, user.class) and (condiction_to_string or condiction_to_array)
         end
       end
 
@@ -199,24 +199,19 @@ module SocialFramework
       # +bidirectional+:: +Boolean+ if true create two edges
       # Returns Events found
       def add_vertex(vertices, current_vertex, depth, element, attributes, label, bidirectional)
-        pair = vertices.select { |p| p[:vertex].id == element.id and p[:vertex].type == element.class.name }.first
+        pair = vertices.select { |p| p[:vertex].id == element.id and p[:vertex].type == element.class }.first
 
         if pair.nil?
-          # puts "if"
           attributes_hash = mount_attributes(attributes, element)
-          new_vertex = GraphElements::Vertex.new(element.id, element.class.name, attributes_hash)
+          new_vertex = GraphElements::Vertex.new(element.id, element.class, attributes_hash)
         else
-          # puts "else"
           new_vertex = pair[:vertex]
         end
-        # puts "new_vertex: #{new_vertex.id}"
         current_vertex.add_edge new_vertex, label
         new_vertex.add_edge current_vertex, label if bidirectional
 
         if pair.nil? and not @network.include? new_vertex
-          # puts "segundo if"
           vertices << {vertex: new_vertex, depth: depth}
-          # puts "vertices: #{vertices.count}"
         end
       end
 
@@ -242,10 +237,15 @@ module SocialFramework
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
       def search_visit(map)
-        while not @queue.empty? and @users_found.size < @users_number do
+        while not @queue.empty? and (@users_found.size + @events_found.size) < @elements_number do
           root = @queue.pop
-
-          @users_found << @root.class.find(root.id) if compare_vertex(root, map)
+          if compare_vertex(root, map)
+            if root.type == SocialFramework::User
+              @users_found << root.type.find(root.id)
+            elsif root.type == SocialFramework::Event
+              @events_found << root.type.find(root.id)
+            end
+          end
 
           root.edges.each do |edge|
             vertex = edge.destiny
@@ -271,7 +271,7 @@ module SocialFramework
 
           if value.class == String
             condictions = ((not vertex_value.nil? and vertex_value.include? value) or
-              (not vertex.attributes[key].nil? and vertex.attributes[key].include? value))
+              (not vertex.attributes[key].nil? and vertex.attributes[key].downcase.include? value.downcase))
           else
             condictions = ((vertex_value == value) or vertex.attributes[key] == value)
           end
@@ -288,9 +288,10 @@ module SocialFramework
         @finished_search_in_graph = false
         @finished_search = false
         @users_found = Set.new
+        @events_found = Set.new
         @queue = Queue.new
         @users_in_database = nil
-        @users_number = 0
+        @elements_number = 0
 
         @network.each do |vertex|
           vertex.color = :white
@@ -318,22 +319,26 @@ module SocialFramework
       # Continue search in database
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
-      def search_in_database(map)
+      def search_users_in_database(map)
         condictions = ""
         
         map.each do |key, value|
+          next unless @root.respond_to?(key)
           comparator = (value.class == String ? "LIKE" : "=")
+          column = (value.class == String ? "lower(#{key})" : "#{key}")
           condictions += " OR " unless condictions.empty?
-          condictions += "#{key} #{comparator} :#{key}"
-          map[key] = "%#{value}%" if value.class == String
+          condictions += "#{column} #{comparator} :#{key}"
+          map[key] = "%#{value.downcase}%" if value.class == String
         end
 
+        return if condictions.empty?
+        
         begin
           @users_in_database ||= @root.class.where([condictions, map]).to_a
 
-          @finished_search = true if @users_found.size + @users_in_database.size <= @users_number
+          @finished_search = true if (@users_found.size + @users_in_database.size + @events_found.size) <= @elements_number
 
-          while @users_found.size < @users_number and not @users_in_database.empty?
+          while (@users_found.size + @events_found.size) < @elements_number and not @users_in_database.empty?
             @users_found << @users_in_database.shift
           end
         rescue

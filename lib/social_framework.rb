@@ -10,8 +10,8 @@ module SocialFramework
   @@depth_to_build = 3
 
   # Define the quantity of users to search returns
-  mattr_accessor :users_number_to_search
-  @@users_number_to_search = 5
+  mattr_accessor :elements_number_to_search
+  @@elements_number_to_search = 5
   
   # Type relationships to suggest a new relationships,
   # can be an string or array with multiple relationships
