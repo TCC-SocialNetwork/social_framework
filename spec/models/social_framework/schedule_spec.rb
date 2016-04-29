@@ -296,14 +296,14 @@ module SocialFramework
 
     describe "Enter in an event" do
       it "When event is nil" do
-        result = @user1.schedule.enter_an_event(nil)
+        result = @user1.schedule.enter_in_event(nil)
         expect(result).to be_nil
       end
 
       it "When event is particular" do
         start = DateTime.now
         event = @user1.schedule.create_event("Event Test", start, 1.hour, "Event description", true)
-        result = @user2.schedule.enter_an_event(event)
+        result = @user2.schedule.enter_in_event(event)
         expect(result).to be_nil
       end
 
@@ -312,7 +312,7 @@ module SocialFramework
         event = @user1.schedule.create_event("Event Test", start)
         @user2.schedule.create_event("Event Test", start)
         
-        result = @user2.schedule.enter_an_event(event)
+        result = @user2.schedule.enter_in_event(event)
         expect(result).to be_nil
       end
 
@@ -323,7 +323,7 @@ module SocialFramework
         event.invite(@user1, @user2)
         @user2.schedule.confirm_event(event)
 
-        result = @user2.schedule.enter_an_event(event)
+        result = @user2.schedule.enter_in_event(event)
         expect(result).to be_nil
       end
 
@@ -331,7 +331,7 @@ module SocialFramework
         start = DateTime.now
         event = @user1.schedule.create_event("Event Test", start)
 
-        result = @user2.schedule.enter_an_event(event)
+        result = @user2.schedule.enter_in_event(event)
         expect(result).not_to be_nil
         expect(result.event).to eq(event)
         expect(result.schedule).to eq(@user2.schedule)

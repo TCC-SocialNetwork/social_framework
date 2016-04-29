@@ -75,7 +75,7 @@ module SocialFramework
     # ====== Params:
     # +event+:: +Event+ to enter
     # Returns ParticipantEvent created or nil if that event is particular or already exist events in that period
-    def enter_an_event(event)
+    def enter_in_event(event)
       return if event.nil? or event.particular or not events_in_period(event.start, event.finish).empty?
 
       if get_participant_event(event).nil?

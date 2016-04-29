@@ -201,20 +201,20 @@ module SocialFramework
         event1 = @user1.schedule.create_event("Event1", start, 1.hour)
         event2 = @user1.schedule.create_event("Event2", start + 1.hour, 1.hour)
         
-        @user2.schedule.enter_an_event event2
-        @user7.schedule.enter_an_event event1
+        @user2.schedule.enter_in_event event2
+        @user7.schedule.enter_in_event event1
 
         event3 = @user2.schedule.create_event("Event3", start + 2.hour, 1.hour)
 
-        @user3.schedule.enter_an_event event3
+        @user3.schedule.enter_in_event event3
 
         event4 = @user4.schedule.create_event("Event4", start + 3.hour, 1.hour)
 
-        @user5.schedule.enter_an_event event4
+        @user5.schedule.enter_in_event event4
 
         event5 = @user5.schedule.create_event("Event5", start + 4.hour, 1.hour)
 
-        @user6.schedule.enter_an_event event5
+        @user6.schedule.enter_in_event event5
 
         @graph.depth = 3
         @graph.build @user1
@@ -358,20 +358,20 @@ module SocialFramework
         event1 = @user1.schedule.create_event("Event1", start, 1.hour)
         event2 = @user1.schedule.create_event("Event2", start + 1.hour, 1.hour)
         
-        @user2.schedule.enter_an_event event2
-        @user7.schedule.enter_an_event event1
+        @user2.schedule.enter_in_event event2
+        @user7.schedule.enter_in_event event1
 
         event3 = @user2.schedule.create_event("Event3", start + 2.hour, 1.hour)
 
-        @user3.schedule.enter_an_event event3
+        @user3.schedule.enter_in_event event3
 
         event4 = @user4.schedule.create_event("Event4", start + 3.hour, 1.hour)
 
-        @user5.schedule.enter_an_event event4
+        @user5.schedule.enter_in_event event4
 
         event5 = @user5.schedule.create_event("Event5", start + 4.hour, 1.hour)
 
-        @user6.schedule.enter_an_event event5
+        @user6.schedule.enter_in_event event5
 
         @graph.build @user1, [:username, :email, :title]
       end

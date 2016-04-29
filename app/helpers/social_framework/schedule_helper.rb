@@ -101,8 +101,8 @@ module SocialFramework
               slot.add_edge(user)
               slot.attributes[:gained_weight] += user.attributes[:weight] if user.attributes[:weight] != :fixed
             end
-            if not events.empty? and((slot.id + @slots_size).to_datetime >= events[i].finish.to_datetime and
-              events[i] != events.last)
+            if not events.empty? and((slot.id + @slots_size).to_datetime >= events[i].finish.to_datetime)
+              events.clear if events[i] == events.last
               i += 1
             end
           end
