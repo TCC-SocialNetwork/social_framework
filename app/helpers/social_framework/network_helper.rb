@@ -301,16 +301,16 @@ module SocialFramework
       # Mount Hash with required attributes
       # ====== Params:
       # +attributes+:: +Array+ required attributes
-      # +user+:: +User+ to get the value of attributes
+      # +element+:: +Object+ to get the value of attributes
       # Returns a Hash of attributes and values
-      def mount_attributes(attributes, user)
+      def mount_attributes(attributes, element)
         hash = Hash.new
 
         attributes.each do |a|
-          if (user.respond_to? a)
-            hash[a] = user.method(a).call
+          if (element.respond_to? a)
+            hash[a] = element.method(a).call
           else
-            Rails.logger.warn "The user haven't the attribute #{a}"
+            Rails.logger.warn "The #{element.class.name} haven't the attribute #{a}"
           end
         end
         return hash

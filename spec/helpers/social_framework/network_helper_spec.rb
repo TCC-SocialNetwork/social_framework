@@ -109,14 +109,14 @@ module SocialFramework
 
         expect(@graph.network.count).to be(8)
 
-        expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(5)
-        expect(@graph.network.select { |v| v.id == 2 }.first.edges.count).to be(3)
-        expect(@graph.network.select { |v| v.id == 3 }.first.edges.count).to be(2)
-        expect(@graph.network.select { |v| v.id == 4 }.first.edges.count).to be(5)
-        expect(@graph.network.select { |v| v.id == 5 }.first.edges.count).to be(3)
-        expect(@graph.network.select { |v| v.id == 6 }.first.edges.count).to be(3)
-        expect(@graph.network.select { |v| v.id == 7 }.first.edges.count).to be(3)
-        expect(@graph.network.select { |v| v.id == 8 }.first.edges.count).to be(2)
+        expect(@graph.network.select { |v| v.id == @user1.id }.first.edges.count).to be(5)
+        expect(@graph.network.select { |v| v.id == @user2.id }.first.edges.count).to be(3)
+        expect(@graph.network.select { |v| v.id == @user3.id }.first.edges.count).to be(2)
+        expect(@graph.network.select { |v| v.id == @user4.id }.first.edges.count).to be(5)
+        expect(@graph.network.select { |v| v.id == @user5.id }.first.edges.count).to be(3)
+        expect(@graph.network.select { |v| v.id == @user6.id }.first.edges.count).to be(3)
+        expect(@graph.network.select { |v| v.id == @user7.id }.first.edges.count).to be(3)
+        expect(@graph.network.select { |v| v.id == @user8.id }.first.edges.count).to be(2)
 
         labels = ["r1", "r2"]
         intersection = @graph.network.first.edges.first.labels & labels
@@ -128,7 +128,7 @@ module SocialFramework
         @graph.build @user1
         expect(@graph.network.count).to be(1)
 
-        expect(@graph.network.select { |v| v.id == 1 }.first.edges).to be_empty
+        expect(@graph.network.select { |v| v.id == @user1.id }.first.edges).to be_empty
       end
 
       it "When use depth equal 2" do
@@ -136,12 +136,12 @@ module SocialFramework
         @graph.build @user1
         expect(@graph.network.count).to be(6)
         
-        expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(5)
-        expect(@graph.network.select { |v| v.id == 2 }.first.edges.count).to be(1)
-        expect(@graph.network.select { |v| v.id == 3 }.first.edges.count).to be(1)
-        expect(@graph.network.select { |v| v.id == 4 }.first.edges.count).to be(1)
-        expect(@graph.network.select { |v| v.id == 7 }.first.edges.count).to be(1)
-        expect(@graph.network.select { |v| v.id == 8 }.first.edges.count).to be(1)
+        expect(@graph.network.select { |v| v.id == @user1.id }.first.edges.count).to be(5)
+        expect(@graph.network.select { |v| v.id == @user2.id }.first.edges.count).to be(1)
+        expect(@graph.network.select { |v| v.id == @user3.id }.first.edges.count).to be(1)
+        expect(@graph.network.select { |v| v.id == @user4.id }.first.edges.count).to be(1)
+        expect(@graph.network.select { |v| v.id == @user7.id }.first.edges.count).to be(1)
+        expect(@graph.network.select { |v| v.id == @user8.id }.first.edges.count).to be(1)
       end
 
       it "When use depth equal 4" do
@@ -149,15 +149,15 @@ module SocialFramework
         @graph.build @user1
         expect(@graph.network.count).to be(9)
 
-        expect(@graph.network.select { |v| v.id == 1 }.first.edges.count).to be(5)
-        expect(@graph.network.select { |v| v.id == 2 }.first.edges.count).to be(3)
-        expect(@graph.network.select { |v| v.id == 3 }.first.edges.count).to be(2)
-        expect(@graph.network.select { |v| v.id == 4 }.first.edges.count).to be(5)
-        expect(@graph.network.select { |v| v.id == 5 }.first.edges.count).to be(4)
-        expect(@graph.network.select { |v| v.id == 6 }.first.edges.count).to be(5)
-        expect(@graph.network.select { |v| v.id == 7 }.first.edges.count).to be(3)
-        expect(@graph.network.select { |v| v.id == 8 }.first.edges.count).to be(2)
-        expect(@graph.network.select { |v| v.id == 9 }.first.edges.count).to be(1)
+        expect(@graph.network.select { |v| v.id == @user1.id }.first.edges.count).to be(5)
+        expect(@graph.network.select { |v| v.id == @user2.id }.first.edges.count).to be(3)
+        expect(@graph.network.select { |v| v.id == @user3.id }.first.edges.count).to be(2)
+        expect(@graph.network.select { |v| v.id == @user4.id }.first.edges.count).to be(5)
+        expect(@graph.network.select { |v| v.id == @user5.id }.first.edges.count).to be(4)
+        expect(@graph.network.select { |v| v.id == @user6.id }.first.edges.count).to be(5)
+        expect(@graph.network.select { |v| v.id == @user7.id }.first.edges.count).to be(3)
+        expect(@graph.network.select { |v| v.id == @user8.id }.first.edges.count).to be(2)
+        expect(@graph.network.select { |v| v.id == @user9.id }.first.edges.count).to be(1)
       end
 
       it "When use default attributes" do
@@ -222,34 +222,34 @@ module SocialFramework
         expect(@graph.network.count).to be(12)
 
         expect(@graph.network[0].type).to eq(SocialFramework::User)
-        expect(@graph.network[0].id).to be(1)
+        expect(@graph.network[0].id).to be(@user1.id)
         expect(@graph.network[1].type).to eq(SocialFramework::User)
-        expect(@graph.network[1].id).to be(2)
+        expect(@graph.network[1].id).to be(@user2.id)
         expect(@graph.network[2].type).to eq(SocialFramework::User)
-        expect(@graph.network[2].id).to be(3)
+        expect(@graph.network[2].id).to be(@user3.id)
         expect(@graph.network[3].type).to eq(SocialFramework::User)
-        expect(@graph.network[3].id).to be(4)
+        expect(@graph.network[3].id).to be(@user4.id)
         expect(@graph.network[4].type).to eq(SocialFramework::User)
-        expect(@graph.network[4].id).to be(7)
+        expect(@graph.network[4].id).to be(@user7.id)
         expect(@graph.network[5].type).to eq(SocialFramework::User)
-        expect(@graph.network[5].id).to be(8)
+        expect(@graph.network[5].id).to be(@user8.id)
 
         expect(@graph.network[6].type).to eq(SocialFramework::Event)
-        expect(@graph.network[6].id).to be(2)
+        expect(@graph.network[6].id).to be(event2.id)
         expect(@graph.network[7].type).to eq(SocialFramework::Event)
-        expect(@graph.network[7].id).to be(1)
+        expect(@graph.network[7].id).to be(event1.id)
 
         expect(@graph.network[8].type).to eq(SocialFramework::User)
-        expect(@graph.network[8].id).to be(5)
+        expect(@graph.network[8].id).to be(@user5.id)
 
         expect(@graph.network[9].type).to eq(SocialFramework::Event)
-        expect(@graph.network[9].id).to be(3)
+        expect(@graph.network[9].id).to be(event3.id)
 
         expect(@graph.network[10].type).to eq(SocialFramework::User)
-        expect(@graph.network[10].id).to be(6)
+        expect(@graph.network[10].id).to be(@user6.id)
 
         expect(@graph.network[11].type).to eq(SocialFramework::Event)
-        expect(@graph.network[11].id).to be(4)
+        expect(@graph.network[11].id).to be(event4.id)
       end
     end
 
@@ -275,22 +275,22 @@ module SocialFramework
         result = @graph.suggest_relationships "r1", 3
 
         expect(result.count).to be(1)
-        expect(result.first.id).to be(6)
+        expect(result.first.id).to be(@user6.id)
       end
 
       it "With correct erelationship and three common relationships" do
         result = @graph.suggest_relationships "r1", 3
 
         expect(result.count).to be(1)
-        expect(result.first.id).to be(6)
+        expect(result.first.id).to be(@user6.id)
       end
 
       it "With pass multiple relationships" do
         result = @graph.suggest_relationships ["r1", "r2"], 3
 
         expect(result.count).to be(2)
-        expect(result.first.id).to be(5)
-        expect(result.last.id).to be(6)
+        expect(result.first.id).to be(@user5.id)
+        expect(result.last.id).to be(@user6.id)
       end
 
       it "With user6 as root" do
@@ -301,7 +301,7 @@ module SocialFramework
         result = @graph.suggest_relationships "r1", 3
 
         expect(result.count).to be(1)
-        expect(result.first.id).to be(1)
+        expect(result.first.id).to be(@user1.id)
       end
     end
 
@@ -320,7 +320,7 @@ module SocialFramework
 
       it "Compare vertices" do
         vertex = @graph.network[0]
-        result = @graph.send(:compare_vertex, vertex, {id: 1})
+        result = @graph.send(:compare_vertex, vertex, {id: @user1.id})
 
         expect(result).to be(true)
 
@@ -355,29 +355,29 @@ module SocialFramework
     describe "Search vertices" do
       before(:each) do
         start = DateTime.new(2016, 01, 01, 8, 0, 0)
-        event1 = @user1.schedule.create_event("Event1", start, 1.hour)
-        event2 = @user1.schedule.create_event("Event2", start + 1.hour, 1.hour)
+        @event1 = @user1.schedule.create_event("Event1", start, 1.hour)
+        @event2 = @user1.schedule.create_event("Event2", start + 1.hour, 1.hour)
         
-        @user2.schedule.enter_in_event event2
-        @user7.schedule.enter_in_event event1
+        @user2.schedule.enter_in_event @event2
+        @user7.schedule.enter_in_event @event1
 
-        event3 = @user2.schedule.create_event("Event3", start + 2.hour, 1.hour)
+        @event3 = @user2.schedule.create_event("Event3", start + 2.hour, 1.hour)
 
-        @user3.schedule.enter_in_event event3
+        @user3.schedule.enter_in_event @event3
 
-        event4 = @user4.schedule.create_event("Event4", start + 3.hour, 1.hour)
+        @event4 = @user4.schedule.create_event("Event4", start + 3.hour, 1.hour)
 
-        @user5.schedule.enter_in_event event4
+        @user5.schedule.enter_in_event @event4
 
-        event5 = @user5.schedule.create_event("Event5", start + 4.hour, 1.hour)
+        @event5 = @user5.schedule.create_event("Event5", start + 4.hour, 1.hour)
 
-        @user6.schedule.enter_in_event event5
+        @user6.schedule.enter_in_event @event5
 
         @graph.build @user1, [:username, :email, :title]
       end
 
       it "When elements_number should be 0" do
-        map = {id: 1}
+        map = {id: @user1.id}
         result = @graph.search map, false, 0
         expect(result[:users]).to be_empty
         expect(result[:events]).to be_empty
@@ -391,16 +391,20 @@ module SocialFramework
       end
 
       it "When pass valid and invalid attribute" do
-        map = {id: 1, invalid: 1}
+        map = {id: @user1.id, invalid: 1}
         result = @graph.search map
         expect(result[:users].count).to be(1)
+        map = {id: @event1.id, invalid: 1}
+        result = @graph.search map
         expect(result[:events].count).to be(1)
       end
 
       it "When vertex exist" do
-        map = {id: 1}
+        map = {id: @user1.id}
         result = @graph.search map
         expect(result[:users].count).to be(1)
+        map = {id: @event1.id}
+        result = @graph.search map
         expect(result[:events].count).to be(1)
       end
 
@@ -412,7 +416,7 @@ module SocialFramework
       end
 
       it "When vertex not exist in Graph" do
-        map = {id: 9}
+        map = {id: @user9.id}
         result = @graph.search map
         expect(result[:users].count).to be(1)
         expect(result[:events]).to be_empty
@@ -540,7 +544,7 @@ module SocialFramework
       end
 
       it "When search with part of string" do
-        map = {id: 1, username: "u"}
+        map = {id: @user1.id, username: "u"}
         
         @graph.instance_variable_set :@elements_number, 5
         @graph.send(:search_in_database, map)
@@ -564,7 +568,7 @@ module SocialFramework
       end
 
       it "When search with integer" do
-        map = {id: 3}
+        map = {id: @user3.id}
         
         @graph.instance_variable_set :@elements_number, 5
         @graph.send(:search_in_database, map)
@@ -611,7 +615,7 @@ module SocialFramework
 
     describe "Get user" do
       it "When pass a valid id" do
-        user = @graph.send(:get_user, 1)
+        user = @graph.send(:get_user, @user1.id)
 
         expect(user).to eq(@user1)
       end

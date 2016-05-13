@@ -38,7 +38,9 @@ Gemfile.lock
 log
 .byebug_history
 
-spec/dummy/db
+spec/dummy/db/development.sqlite3
+spec/dummy/db/test.sqlite3
+spec/dummy/db/schema.rb
 db/tmp
 
 spec/dummy/script.rb
