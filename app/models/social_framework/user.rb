@@ -4,6 +4,7 @@ module SocialFramework
   class User < ActiveRecord::Base
 
     has_one :schedule
+    has_many :routes
 
     # Username or email to search
     attr_accessor :login
@@ -150,6 +151,28 @@ module SocialFramework
     def schedule
       return if self.id.nil?
       Schedule.find_or_create_by(user: self)
+    end
+
+    # Add a new route to user
+    # ====== Params:
+    # +title+:: +String+ title of route
+    # +locations:: +Array+ of hash with the locations
+    # +mode_of_travel:: +String+ mode of travel, can be: driving, bicycling, walking, transit
+    # Returns Array with users found
+    def add_route(title, locations, mode_of_travel = "driving")
+      begin
+        route = SocialFramework::Route.create user: self, title: title, mode_of_travel: mode_of_travel
+        
+        locations.each do |location|
+          new_location = SocialFramework::Location.create route: route, latitude: location[:latitude],
+              longitude: location[:longitude]
+        end
+        return route
+      rescue
+        route.destroy unless route.nil?
+        Rails.logger.warn "Couldn't create route"
+        return
+      end
     end
   end
 end

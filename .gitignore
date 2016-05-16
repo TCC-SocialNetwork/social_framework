@@ -41,6 +41,8 @@ log
 spec/dummy/db/development.sqlite3
 spec/dummy/db/test.sqlite3
 spec/dummy/db/schema.rb
+spec/dummy/db/social_framework_dev
+spec/dummy/db/social_framework_test
 db/tmp
 
 spec/dummy/script.rb

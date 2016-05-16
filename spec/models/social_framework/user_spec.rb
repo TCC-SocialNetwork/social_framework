@@ -272,5 +272,29 @@ module SocialFramework
         expect(Schedule.count).to be(0)
       end
     end
+
+    describe "Add route" do
+      before(:each) do
+        @user = create(:user)
+        @locations = [{latitude: -15.797940000000001, longitude: -47.866400000000006},
+          {latitude: -15.796880000000002, longitude: -47.869760000000007},
+          {latitude: -15.796370000000001, longitude: -47.871390000000005},
+          {latitude: -15.796080000000002, longitude: -47.872250000000001}]
+      end
+
+      it "When the user haven't a route with same name" do
+        result = @user.add_route("title1", @locations, "walking")
+
+        expect(result).not_to be_nil
+        expect(result.locations.count).to be(4)
+      end
+
+      it "When the user already have a route with same name" do
+        result = @user.add_route("title1", @locations, "walking")
+
+        result = @user.add_route("title1", @locations, "driving")
+        expect(result).to be_nil
+      end
+    end
   end
 end
