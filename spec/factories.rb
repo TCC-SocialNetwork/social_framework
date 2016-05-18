@@ -27,4 +27,16 @@ FactoryGirl.define do
     start DateTime.new(2016, 01, 01, 10, 0, 0)
     finish DateTime.new(2016, 01, 01, 11, 0, 0)
   end
+
+  # Brasilia's downtown, Brazil
+  factory :origin, class: SocialFramework::Location do
+    latitude -15.793538
+    longitude -47.884819
+  end
+
+  # TV Tower - Brasilia, Brazil
+  factory :destiny, class: SocialFramework::Location do
+    latitude -15.790689
+    longitude -47.892941
+  end
 end
