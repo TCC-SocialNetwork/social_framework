@@ -37,4 +37,7 @@ SocialFramework.setup do |config|
 
   # Max weight to consider in schedule build
   # config.max_weight_schedule = 10
+
+  # Max weight to consider in schedule build
+  # config.maximum_deviation = 1000
 end

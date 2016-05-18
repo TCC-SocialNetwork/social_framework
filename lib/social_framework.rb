@@ -51,6 +51,10 @@ module SocialFramework
   mattr_accessor :max_weight_schedule
   @@max_weight_schedule = 10
 
+  # Max weight to consider in schedule build
+  mattr_accessor :maximum_deviation
+  @@maximum_deviation = 1000
+
   # Used to change variables in configuration
   # Retuns a block to self
   def self.setup
