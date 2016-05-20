@@ -38,6 +38,9 @@ SocialFramework.setup do |config|
   # Max weight to consider in schedule build
   # config.max_weight_schedule = 10
 
-  # Max weight to consider in schedule build
-  # config.maximum_deviation = 1000
+  # Represent the principal mode of travel and maximum deviation accepted
+  # config.principal_deviation = {mode: "driving", deviation: 5000}
+
+  # Represent the secondary mode of travel and maximum deviation accepted
+  # config.secondary_deviation = {mode: "walking", deviation: 500}
 end

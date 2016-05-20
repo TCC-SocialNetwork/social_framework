@@ -51,9 +51,13 @@ module SocialFramework
   mattr_accessor :max_weight_schedule
   @@max_weight_schedule = 10
 
-  # Max weight to consider in schedule build
-  mattr_accessor :maximum_deviation
-  @@maximum_deviation = 1000
+  # Represent the principal mode of travel and maximum deviation accepted
+  mattr_accessor :principal_deviation
+  @@principal_deviation = {mode: "driving", deviation: 5000}
+
+  # Represent the secondary mode of travel and maximum deviation accepted
+  mattr_accessor :secondary_deviation
+  @@secondary_deviation = {mode: "walking", deviation: 500}
 
   # Used to change variables in configuration
   # Retuns a block to self
