@@ -283,16 +283,16 @@ module SocialFramework
       end
 
       it "When the user haven't a route with same name" do
-        result = @user.add_route("title1", @locations, "walking")
+        result = @user.add_route("title1", 650, @locations, "walking")
 
         expect(result).not_to be_nil
         expect(result.locations.count).to be(4)
       end
 
       it "When the user already have a route with same name" do
-        result = @user.add_route("title1", @locations, "walking")
+        result = @user.add_route("title1", 650, @locations, "walking")
 
-        result = @user.add_route("title1", @locations, "driving")
+        result = @user.add_route("title1", 650, @locations, "driving")
         expect(result).to be_nil
       end
     end

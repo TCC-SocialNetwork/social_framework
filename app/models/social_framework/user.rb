@@ -156,12 +156,13 @@ module SocialFramework
     # Add a new route to user
     # ====== Params:
     # +title+:: +String+ title of route
+    # +distance:: +Integer+ route size
     # +locations:: +Array+ of hash with the locations
     # +mode_of_travel:: +String+ mode of travel, can be: driving, bicycling, walking, transit
     # Returns Array with users found
-    def add_route(title, locations, mode_of_travel = "driving")
+    def add_route(title, distance, locations, mode_of_travel = "driving")
       begin
-        route = SocialFramework::Route.create user: self, title: title, mode_of_travel: mode_of_travel
+        route = SocialFramework::Route.create user: self, title: title, distance: distance,mode_of_travel: mode_of_travel
         
         locations.each do |location|
           new_location = SocialFramework::Location.create route: route, latitude: location[:latitude],

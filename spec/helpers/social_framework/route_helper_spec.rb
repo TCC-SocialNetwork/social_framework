@@ -32,11 +32,15 @@ module SocialFramework
                     {latitude: -15.792740000000002, longitude: -47.876360000000005},
                     {latitude: -15.792520000000001, longitude: -47.876900000000006}]
 
+      @locations3 = [{latitude: -15.792740000000002, longitude: -47.876360000000005},
+                  {latitude: -15.792520000000001, longitude: -47.876900000000006}]
+
       user1 = create(:user)
       user2 = create(:user2)
 
-      @route1 = user1.add_route("route1", @locations1)
-      @route2 = user2.add_route("route2", @locations2)
+      @route1 = user1.add_route("route1", 1000, @locations1)
+      @route2 = user2.add_route("route2", 1200, @locations2)
+      @route3 = user2.add_route("route3", 63, @locations3)
 
       @route_utils = SocialFramework::RouteHelper::RouteUtils.new
     end
@@ -162,6 +166,33 @@ module SocialFramework
         result = @route_utils.send(:near_points, @route1, @route2, 300)
         expect(result[:origins].count).to be(2)
         expect(result[:destinations]).to be_empty
+      end
+    end
+
+    describe "Principal accept deviation" do
+      it "When accept both" do
+        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2, 5000, "driving")
+        expect(result[:accept]).to be(:both)
+      end
+
+      it "When accept any" do
+        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2, 4000, "driving")
+        expect(result[:accept]).to be(:any)
+      end
+
+      it "When accept origin" do
+        result = @route_utils.send(:principal_accepted_deviation, @route1, @route3, 2200, "driving")
+        expect(result[:accept]).to be(:origin)
+      end
+
+      it "When accept destiny" do
+        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2, 3000, "driving")
+        expect(result[:accept]).to be(:destiny)
+      end
+
+      it "When accept none" do
+        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2, 1000, "driving")
+        expect(result[:accept]).to be(:none)
       end
     end
 

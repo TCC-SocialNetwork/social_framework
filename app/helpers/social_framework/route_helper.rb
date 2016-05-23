@@ -8,20 +8,57 @@ module SocialFramework
           principal_deviation = SocialFramework.principal_deviation,
           secondary_deviation = SocialFramework.secondary_deviation)
 
-          accepted_deviation = secondary_accepted_deviation(principal_route, secondary_route,
-            secondary_deviation[:deviation], secondary_deviation[:mode])
+        principal_accepted_deviation = principal_accepted_deviation(principal_route, secondary_route,
+          principal_deviation[:deviation], principal_deviation[:mode])
+
+        secondary_accepted_deviation = secondary_accepted_deviation(principal_route, secondary_route,
+          secondary_deviation[:deviation], secondary_deviation[:mode])
       end
 
       private
+
+      # Verify the deviations which can be made on principal route
+      # ====== Params:
+      # +principal_route+:: +Route+ who gives a lift
+      # +secondary_route+:: +Route+ who hitchhike
+      # +deviation+:: +Integer+ maximum deviation accepeted to principal route
+      # +mode_of_travel+:: +String+ specify mode of travel
+      # Returns Hash with point and smallest deviation
+      def principal_accepted_deviation(principal_route, secondary_route, deviation, mode_of_travel)
+        distance_with_both = get_distance_with_waypoints(principal_route.locations.first,
+          principal_route.locations.last, [secondary_route.locations.first, secondary_route.locations.last],
+          mode_of_travel)
+
+        if(distance_with_both <= (principal_route.distance + deviation))
+          return {accept: :both, distance: distance_with_both}
+        else
+          distance_with_origin = get_distance_with_waypoints(principal_route.locations.first,
+            principal_route.locations.last, [secondary_route.locations.first], mode_of_travel)
+
+          distance_with_destiny = get_distance_with_waypoints(principal_route.locations.first,
+            principal_route.locations.last, [secondary_route.locations.last], mode_of_travel)
+
+          if(distance_with_origin <= (principal_route.distance + deviation) and
+            distance_with_destiny <= (principal_route.distance + deviation))
+            return {accept: :any, distance_origin: distance_with_origin, distance_destiny: distance_with_destiny}
+          elsif(distance_with_origin <= (principal_route.distance + deviation))
+            return {accept: :origin, distance: distance_with_origin}
+          elsif(distance_with_destiny <= (principal_route.distance + deviation))
+            return {accept: :destiny, distance: distance_with_destiny}
+          else
+            return {accept: :none}
+          end
+        end
+      end
 
       # Verify the deviations which can be made on secondary route
       # ====== Params:
       # +principal_route+:: +Route+ who gives a lift
       # +secondary_route+:: +Route+ who hitchhike
-      # +deviatoin+:: +Integer+ maximum deviation accepeted to secondary route
+      # +deviation+:: +Integer+ maximum deviation accepeted to secondary route
       # +mode_of_travel+:: +String+ specify mode of travel
       # Returns Hash with point and smallest deviation
-      def secondary_accepted_deviation(principal_route, secondary_route, deviation, mode_of_travel = "walking")
+      def secondary_accepted_deviation(principal_route, secondary_route, deviation, mode_of_travel)
         points = near_points(principal_route, secondary_route, deviation)
         origin_deviation = smallest_distance(points[:origins], secondary_route.locations.first, mode_of_travel)
         destiny_deviation = smallest_distance(points[:destinations], secondary_route.locations.last, mode_of_travel)
