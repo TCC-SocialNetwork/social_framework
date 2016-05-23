@@ -4,15 +4,64 @@ module SocialFramework
     # Contains the methods to match routes
     class RouteUtils
 
-      def comparete_routes(principal_route, secondary_route,
+      # Compare the routes to verify if are compatible
+      # ====== Params:
+      # +principal_route+:: +Route+ who gives a lift
+      # +secondary_route+:: +Route+ who hitchhike
+      # +principal_deviation+:: +Hash+ with maximum deviation and mode of travel to principal route
+      # +secondary_deviation+:: +Hash+ with maximum deviation and mode of travel to secondary route
+      # Returns Hash with information of compatibility and necessary distances
+      def compare_routes(principal_route, secondary_route,
           principal_deviation = SocialFramework.principal_deviation,
           secondary_deviation = SocialFramework.secondary_deviation)
 
         principal_accepted_deviation = principal_accepted_deviation(principal_route, secondary_route,
           principal_deviation[:deviation], principal_deviation[:mode])
 
-        secondary_accepted_deviation = secondary_accepted_deviation(principal_route, secondary_route,
-          secondary_deviation[:deviation], secondary_deviation[:mode])
+        result = {compatible: false, principal_route: {deviation: :none,
+            distance: 0}, secondary_route: {deviation: :none, distance: 0}}
+
+        if(principal_accepted_deviation[:accept] == :both)
+          result[:compatible] = true
+          result[:principal_route][:deviation] = :both
+          result[:principal_route][:distance] = principal_accepted_deviation[:distance]
+        else
+          secondary_accepted_deviation = secondary_accepted_deviation(principal_route, secondary_route,
+            secondary_deviation[:deviation], secondary_deviation[:mode])
+
+          principal_destiny = (principal_accepted_deviation[:accept] == :any or principal_accepted_deviation[:accept] == :destiny) 
+          principal_origin = (principal_accepted_deviation[:accept] == :any or principal_accepted_deviation[:accept] == :origin)
+
+          secondary_any = (secondary_accepted_deviation[:accept] == :both or secondary_accepted_deviation[:accept] == :any)
+
+          origin_lower_than_destiny = (secondary_any and (secondary_accepted_deviation[:distance_origin] < secondary_accepted_deviation[:distance_destiny]))
+          
+          secondary_origin = ((principal_destiny and secondary_accepted_deviation[:accept] == :origin) or
+            (secondary_any and principal_destiny))
+
+          secondary_destiny = ((principal_origin and secondary_accepted_deviation[:accept] == :destiny) or
+            (secondary_any and principal_origin))
+
+          if secondary_origin and secondary_destiny
+            secondary_origin = origin_lower_than_destiny
+            secondary_destiny = (not origin_lower_than_destiny)
+          end
+
+          if(secondary_origin)
+            result[:compatible] = true
+            result[:principal_route][:deviation] = :destiny
+            result[:principal_route][:distance] = principal_accepted_deviation[:distance_destiny]
+            result[:secondary_route][:deviation] = :origin
+            result[:secondary_route][:distance] = secondary_accepted_deviation[:distance_origin]
+          elsif(secondary_destiny)
+            result[:compatible] = true
+            result[:principal_route][:deviation] = :origin
+            result[:principal_route][:distance] = principal_accepted_deviation[:distance_origin]
+            result[:secondary_route][:deviation] = :destiny
+            result[:secondary_route][:distance] = secondary_accepted_deviation[:distance_destiny]
+          end
+        end
+        return result
       end
 
       private
@@ -42,9 +91,9 @@ module SocialFramework
             distance_with_destiny <= (principal_route.distance + deviation))
             return {accept: :any, distance_origin: distance_with_origin, distance_destiny: distance_with_destiny}
           elsif(distance_with_origin <= (principal_route.distance + deviation))
-            return {accept: :origin, distance: distance_with_origin}
+            return {accept: :origin, distance_origin: distance_with_origin}
           elsif(distance_with_destiny <= (principal_route.distance + deviation))
-            return {accept: :destiny, distance: distance_with_destiny}
+            return {accept: :destiny, distance_destiny: distance_with_destiny}
           else
             return {accept: :none}
           end
@@ -68,9 +117,9 @@ module SocialFramework
         elsif(deviation >= origin_deviation[:deviation] and deviation >= destiny_deviation[:deviation])
           return {accept: :any, distance_origin: origin_deviation[:deviation], distance_destiny: destiny_deviation[:deviation]}
         elsif(deviation >= origin_deviation[:deviation])
-          return {accept: :origin, distance: origin_deviation[:deviation]}
+          return {accept: :origin, distance_origin: origin_deviation[:deviation]}
         elsif(deviation >= destiny_deviation[:deviation])
-          return {accept: :destiny, distance: destiny_deviation[:deviation]}
+          return {accept: :destiny, distance_destiny: destiny_deviation[:deviation]}
         end
         return {accept: :none}
       end

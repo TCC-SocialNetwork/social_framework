@@ -169,6 +169,99 @@ module SocialFramework
       end
     end
 
+    describe "Compare routes" do
+      it "When the principal accept both" do
+        result = @route_utils.compare_routes(@route1, @route2)
+
+        expect(result[:compatible]).to be(true)
+        expect(result[:principal_route][:deviation]).to be(:both)
+        expect(result[:principal_route][:distance]).to be(5299)
+        expect(result[:secondary_route][:deviation]).to be(:none)
+        expect(result[:secondary_route][:distance]).to be(0)
+      end
+
+      it "When the principal accept any and secondary accept both" do
+        principal = {mode: "driving", deviation: 4000}
+        secondary = {mode: "walking", deviation: 1400}
+        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+
+        expect(result[:compatible]).to be(true)
+        expect(result[:principal_route][:deviation]).to be(:origin)
+        expect(result[:principal_route][:distance]).to be(4836)
+        expect(result[:secondary_route][:deviation]).to be(:destiny)
+        expect(result[:secondary_route][:distance]).to be(628)
+      end
+
+      it "When the principal and secondary accept any" do
+        principal = {mode: "driving", deviation: 4000}
+        secondary = {mode: "walking", deviation: 650}
+        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+
+        expect(result[:compatible]).to be(true)
+        expect(result[:principal_route][:deviation]).to be(:origin)
+        expect(result[:principal_route][:distance]).to be(4836)
+        expect(result[:secondary_route][:deviation]).to be(:destiny)
+        expect(result[:secondary_route][:distance]).to be(628)
+      end
+
+      it "When the principal accept origin and secondary accept any" do
+        principal = {mode: "driving", deviation: 2200}
+        secondary = {mode: "walking", deviation: 650}
+        result = @route_utils.compare_routes(@route1, @route3, principal, secondary)
+
+        expect(result[:compatible]).to be(true)
+        expect(result[:principal_route][:deviation]).to be(:origin)
+        expect(result[:principal_route][:distance]).to be(3184)
+        expect(result[:secondary_route][:deviation]).to be(:destiny)
+        expect(result[:secondary_route][:distance]).to be(628)
+      end
+
+      it "When the principal accept any and secondary accept origin" do
+        principal = {mode: "driving", deviation: 3200}
+        secondary = {mode: "walking", deviation: 500}
+        @route2.locations.first.destroy
+
+        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+
+        expect(result[:compatible]).to be(true)
+        expect(result[:principal_route][:deviation]).to be(:destiny)
+        expect(result[:principal_route][:distance]).to be(3308)
+        expect(result[:secondary_route][:deviation]).to be(:origin)
+        expect(result[:secondary_route][:distance]).to be(417)
+      end
+
+      it "When the principal accept any and secondary accept destiny" do
+        principal = {mode: "driving", deviation: 4000}
+        secondary = {mode: "walking", deviation: 630}
+
+        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+
+        expect(result[:compatible]).to be(true)
+        expect(result[:principal_route][:deviation]).to be(:origin)
+        expect(result[:principal_route][:distance]).to be(4836)
+        expect(result[:secondary_route][:deviation]).to be(:destiny)
+        expect(result[:secondary_route][:distance]).to be(628)
+      end
+
+      it "When the principal accept none and secondary accept destiny" do
+        principal = {mode: "driving", deviation: 1000}
+        secondary = {mode: "walking", deviation: 630}
+
+        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+
+        expect(result[:compatible]).to be(false)
+      end
+
+      it "When the principal accept any and secondary accept none" do
+        principal = {mode: "driving", deviation: 3000}
+        secondary = {mode: "walking", deviation: 500}
+
+        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+
+        expect(result[:compatible]).to be(false)
+      end
+    end
+
     describe "Principal accept deviation" do
       it "When accept both" do
         result = @route_utils.send(:principal_accepted_deviation, @route1, @route2, 5000, "driving")
