@@ -56,14 +56,16 @@ module SocialFramework
     # Returns nil if has no permission or ParcipantEvent removed
     def remove_participant(remover, participant)
       remover = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, remover.schedule.id)
-      participant = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, participant.schedule.id)
-      return if remover.nil? or participant.nil?
+      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(
+        self.id, participant.schedule.id)
 
-      permission = "remove_#{participant.role}".to_sym
+      return if remover.nil? or participant_event.nil?
 
+      permission = "remove_#{participant_event.role}".to_sym
 
-      if execute_action?(permission, remover, participant, "remove")
-        participant.destroy
+      if execute_action?(permission, remover, participant_event, "remove")
+        self.route.users.delete(participant) unless self.route.nil?
+        participant_event.destroy
       end
     end
 

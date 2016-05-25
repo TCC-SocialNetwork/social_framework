@@ -6,6 +6,7 @@ module SocialFramework
       @user1 = create(:user,username: "user1", email: "user1@mail.com")
       @user2 = create(:user,username: "user2", email: "user2@mail.com")
       @user3 = create(:user,username: "user3", email: "user3@mail.com")
+      @user4 = create(:user,username: "user4", email: "user4@mail.com")
 
       start = DateTime.now
       @event = @user1.schedule.create_event "Event Test", start
@@ -294,21 +295,24 @@ module SocialFramework
     end
 
     describe "Remove participant" do
-      it "When try remove a simple participant" do
+      before(:each) do
         @user1.create_relationship @user2, "r1", true, true
-
+        @user1.create_relationship @user3, "r1", true, true
         @event.invite @user1, @user2
+        @event.invite @user1, @user3
 
+        locations = [{latitude: -15.792740000000002, longitude: -47.876360000000005},
+                  {latitude: -15.792520000000001, longitude: -47.876900000000006}]
+        @route = @user1.add_route("route", 63, locations)
+      end
+
+      it "When try remove a simple participant" do
+        expect(@event.participant_events.count).to be(3)
         @event.remove_participant(@user1, @user2)
-        expect(@event.participant_events.count).to be(1)
+        expect(@event.participant_events.count).to be(2)
       end
 
       it "When try remove an administrator and inviter" do
-        @user1.create_relationship @user2, "r1", true, true
-        @user1.create_relationship @user3, "r1", true, true
-
-        @event.invite @user1, @user2
-        @event.invite @user1, @user3
         @user2.schedule.confirm_event(@event)
         @user3.schedule.confirm_event(@event)
         
@@ -323,22 +327,34 @@ module SocialFramework
       end
 
       it "When try remove without permission" do
-        @user1.create_relationship @user2, "r1", true, true
-
-        @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
 
         @event.remove_participant(@user2, @user1)
-        expect(@event.participant_events.count).to be(2)
+        expect(@event.participant_events.count).to be(3)
       end
 
       it "When pass invalid params" do
-        @user1.create_relationship @user2, "r1", true, true
-        @event.invite @user1, @user2
         @user2.schedule.confirm_event(@event)
-        result = @event.remove_participant(@user1, @user3)
+        result = @event.remove_participant(@user1, @user4)
 
         expect(result).to be_nil
+      end
+
+      it "When event has route" do
+        @user2.schedule.confirm_event(@event)
+        @user3.schedule.confirm_event(@event)
+        @event.add_route(@user1, @route)
+
+        expect(@route.users.count).to be(3)
+        expect(@route.users.include? @user1).to be(true)
+        expect(@route.users.include? @user2).to be(true)
+        expect(@route.users.include? @user3).to be(true)
+
+        @event.remove_participant(@user1, @user2)
+        expect(@route.users.count).to be(2)
+        expect(@route.users.include? @user1).to be(true)
+        expect(@route.users.include? @user2).to be(false)
+        expect(@route.users.include? @user3).to be(true)
       end
     end
 
