@@ -4,7 +4,7 @@ module SocialFramework
   class User < ActiveRecord::Base
 
     has_one :schedule
-    has_many :routes
+    has_and_belongs_to_many :routes
 
     # Username or email to search
     attr_accessor :login
@@ -162,8 +162,10 @@ module SocialFramework
     # Returns Array with users found
     def add_route(title, distance, locations, mode_of_travel = "driving")
       begin
-        route = SocialFramework::Route.create user: self, title: title, distance: distance,mode_of_travel: mode_of_travel
-        
+        route = SocialFramework::Route.new title: title, distance: distance,mode_of_travel: mode_of_travel
+        route.users << self
+        route.save
+
         locations.each do |location|
           new_location = SocialFramework::Location.create route: route, latitude: location[:latitude],
               longitude: location[:longitude]

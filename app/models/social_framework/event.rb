@@ -2,6 +2,7 @@ module SocialFramework
   class Event < ActiveRecord::Base
   	has_many :participant_events
   	has_many :schedules, through: :participant_events
+    has_one :route
 
     # Invite someone to an event
     # # ====== Params:
@@ -10,9 +11,10 @@ module SocialFramework
     # +relationship+:: +String+ relationships types to find users, default is all to consider any relationship, can be an Array too with multiple relationships types
     # Returns nil if inviting has not :invite permission or isn't in event or the new ParticipantEvent created
   	def invite inviting, guest, relationship = SocialFramework.relationship_type_to_invite
-  		participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, inviting.schedule.id)
+  		participant_event = ParticipantEvent.find_by_event_id_and_schedule_id_and_confirmed(
+        self.id, inviting.schedule.id, true)
 
-  		return if participant_event.nil? or not participant_event.confirmed
+  		return if participant_event.nil?
 
       invite_permission = SocialFramework.event_permissions[participant_event.role.to_sym].include? :invite
   		if inviting.relationships(relationship).include?(guest) and  invite_permission
@@ -32,7 +34,7 @@ module SocialFramework
       return false if maker.nil? or participant.nil?
 
       words = permission.to_s.split('_')
-      if has_permission(permission, maker, participant, words.first)
+      if execute_action?(permission, maker, participant, words.first)
         if permission == :make_creator
           maker.role = "admin"
           maker.save
@@ -60,25 +62,50 @@ module SocialFramework
       permission = "remove_#{participant.role}".to_sym
 
 
-      if has_permission(permission, remover, participant, "remove")
+      if execute_action?(permission, remover, participant, "remove")
         participant.destroy
+      end
+    end
+
+    # Add a route to this event
+    # ====== Params:
+    # +user+:: +User+ responsible to add the route to event
+    # +route+:: +Route+ to add to event
+    # Returns nil if inviting has not :add_route permission or isn't in event
+    def add_route(user, route)
+      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id_and(
+        self.id, user.schedule.id, true)
+      return if participant_event.nil?
+
+      if has_permission?(:add_route, participant_event)
+        event.route = route
+        event.save
       end
     end
 
     private
 
-    # Verify if exist permission to some action
+    # Verify if exist permission
     # ====== Params:
     # +permission+:: +Symbol+ permission to verify
     # +requester+:: +User+ responsible to make other user an administrator, should be current_user
-    # +participant+:: +User+ to make administrator
+    # Returns true if has permission or false if no
+    def has_permission? permission, requester
+      requester_permissions = SocialFramework.event_permissions[requester.role.to_sym]
+      return (requester.confirmed and requester_permissions.include? permission)
+    end
+
+    # Verify if can be execute some action
+    # ====== Params:
+    # +permission+:: +Symbol+ permission to verify
+    # +requester+:: +User+ responsible to make other user an administrator, should be current_user
+    # +participant+:: +ParticipantEvent+ to make administrator
     # +action+:: +String+ remove or make to remove or change role
     # Returns true if has permission or false if no
-    def has_permission permission, requester, participant, action
-      requester_permissions = SocialFramework.event_permissions[requester.role.to_sym]
-
-      return (requester.confirmed and (participant.confirmed or action == "remove") and
-                  requester_permissions.include? permission and participant.role != "creator")
+    def execute_action? permission, requester, participant, action
+      permission = has_permission?(permission, requester)
+      return (permission and (participant.confirmed or action == "remove") and
+        participant.role != "creator")
     end
   end
 end

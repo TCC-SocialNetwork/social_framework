@@ -32,9 +32,11 @@ module SocialFramework
   # Define Roles to Events and permissions to each role
   mattr_accessor :event_permissions
   @@event_permissions = { creator: [:remove_event, :remove_admin, :remove_inviter, :remove_participant,
-                                    :invite, :make_admin, :make_inviter, :make_creator],
+                                    :invite, :make_admin, :make_inviter, :make_creator,
+                                    :add_route, :remove_route],
                           admin: [:remove_inviter, :remove_admin, :remove_participant,
-                                  :invite, :make_admin, :make_inviter],
+                                  :invite, :make_admin, :make_inviter,
+                                  :add_route, :remove_route],
                           inviter: [:remove_participant, :invite],
                           participant: []
                         }

@@ -45,5 +45,6 @@ social_framework_dev
 social_framework_test
 db/tmp
 
+spec/dummy/social_framework_test-journal
 spec/dummy/script.rb
 *.txt
