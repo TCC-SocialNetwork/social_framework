@@ -2,7 +2,7 @@ module SocialFramework
   class Event < ActiveRecord::Base
   	has_many :participant_events
   	has_many :schedules, through: :participant_events
-    has_one :route
+    belongs_to :route
 
     # Invite someone to an event
     # # ====== Params:
@@ -73,13 +73,15 @@ module SocialFramework
     # +route+:: +Route+ to add to event
     # Returns nil if inviting has not :add_route permission or isn't in event
     def add_route(user, route)
-      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id_and(
+      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id_and_confirmed(
         self.id, user.schedule.id, true)
       return if participant_event.nil?
 
       if has_permission?(:add_route, participant_event)
-        event.route = route
-        event.save
+        self.route = route
+        relation_users_route
+
+        self.save
       end
     end
 
@@ -106,6 +108,27 @@ module SocialFramework
       permission = has_permission?(permission, requester)
       return (permission and (participant.confirmed or action == "remove") and
         participant.role != "creator")
+    end
+
+    # Add all users in this event to route
+    # Returns route with all users added
+    def relation_users_route
+      return if self.route.nil?
+
+      users.each do |user|
+        self.route.users << user unless self.route.users.include? user
+      end
+    end
+
+    # Get all users confirmed in event
+    # Confirmed event users
+    def users
+      result = Array.new
+      participant_events.each do |participant|
+        result << participant.schedule.user if participant.confirmed
+      end
+
+      return result
     end
   end
 end

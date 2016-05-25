@@ -6,7 +6,7 @@ class CreateSocialFrameworkEvents < ActiveRecord::Migration
       t.timestamp :start
       t.timestamp :finish
       t.boolean :particular, default: false
-      t.references :route
+      t.belongs_to :route
       t.timestamps null: false
     end
   end
