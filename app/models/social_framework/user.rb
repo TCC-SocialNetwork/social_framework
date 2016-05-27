@@ -160,7 +160,7 @@ module SocialFramework
     # +locations:: +Array+ of hash with the locations
     # +mode_of_travel:: +String+ mode of travel, can be: driving, bicycling, walking, transit
     # Returns Array with users found
-    def add_route(title, distance, locations, mode_of_travel = "driving")
+    def create_route(title, distance, locations, mode_of_travel = "driving")
       begin
         route = SocialFramework::Route.new title: title, distance: distance,mode_of_travel: mode_of_travel
         route.users << self

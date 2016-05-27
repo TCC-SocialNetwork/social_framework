@@ -38,9 +38,9 @@ module SocialFramework
       user1 = create(:user)
       user2 = create(:user2)
 
-      @route1 = user1.add_route("route1", 1000, @locations1)
-      @route2 = user2.add_route("route2", 1200, @locations2)
-      @route3 = user2.add_route("route3", 63, @locations3)
+      @route1 = user1.create_route("route1", 1000, @locations1)
+      @route2 = user2.create_route("route2", 1200, @locations2)
+      @route3 = user2.create_route("route3", 63, @locations3)
 
       @route_utils = SocialFramework::RouteHelper::RouteUtils.new
     end

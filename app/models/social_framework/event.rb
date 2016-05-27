@@ -55,6 +55,8 @@ module SocialFramework
     # +participant+:: +User+ to remove
     # Returns nil if has no permission or ParcipantEvent removed
     def remove_participant(remover, participant)
+      return if remover.nil? or participant.nil?
+      
       remover = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, remover.schedule.id)
       participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(
         self.id, participant.schedule.id)

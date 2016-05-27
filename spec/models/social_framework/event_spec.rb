@@ -303,7 +303,7 @@ module SocialFramework
 
         locations = [{latitude: -15.792740000000002, longitude: -47.876360000000005},
                   {latitude: -15.792520000000001, longitude: -47.876900000000006}]
-        @route = @user1.add_route("route", 63, locations)
+        @route = @user1.create_route("route", 63, locations)
       end
 
       it "When try remove a simple participant" do
@@ -334,9 +334,13 @@ module SocialFramework
       end
 
       it "When pass invalid params" do
-        @user2.schedule.confirm_event(@event)
         result = @event.remove_participant(@user1, @user4)
+        expect(result).to be_nil
 
+        result = @event.remove_participant(@user1, nil)
+        expect(result).to be_nil
+
+        result = @event.remove_participant(nil, @user2)
         expect(result).to be_nil
       end
 
@@ -428,7 +432,7 @@ module SocialFramework
 
         locations = [{latitude: -15.792740000000002, longitude: -47.876360000000005},
                   {latitude: -15.792520000000001, longitude: -47.876900000000006}]
-        @route = @user1.add_route("route", 63, locations)
+        @route = @user1.create_route("route", 63, locations)
       end
 
       it "When event hasn't a route" do
@@ -507,7 +511,7 @@ module SocialFramework
 
         locations = [{latitude: -15.792740000000002, longitude: -47.876360000000005},
                   {latitude: -15.792520000000001, longitude: -47.876900000000006}]
-        @route = @user1.add_route("route", 63, locations)
+        @route = @user1.create_route("route", 63, locations)
 
         @event.invite @user1, @user2
         @event.invite @user1, @user3

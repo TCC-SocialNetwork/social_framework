@@ -5,6 +5,11 @@ module SocialFramework
     before(:each) do
       @user1 = create(:user)
       @user2 = create(:user2)
+
+      locations = [{latitude: -15.792740000000002, longitude: -47.876360000000005},
+                  {latitude: -15.792520000000001, longitude: -47.876900000000006}]
+
+      @route = @user1.create_route("route", 63, locations)
     end
 
     describe "Create events" do
@@ -236,6 +241,18 @@ module SocialFramework
         expect(participant.role).to eq("participant")
         expect(participant.confirmed).to be(false)
       end
+
+      it "When event has route" do
+        expect(@event.route).to be_nil
+        @event.add_route(@user1, @route)
+        @event.invite(@user1, @user2)
+
+        expect(@event.route.users.count).to be(1)
+        @user2.schedule.confirm_event(@event)
+
+        expect(@event.route.users.count).to be(2)
+        expect(@event.route.users.include? @user1).to be(true)
+      end
     end
 
     describe "Remove events" do
@@ -253,8 +270,8 @@ module SocialFramework
 
         @user1.schedule.remove_event(@event)
 
-        expect(@user1.schedule.events.count).to be(0)
-        expect(@user2.schedule.events.count).to be(0)
+        expect(@user1.schedule.events).to be_empty
+        expect(@user2.schedule.events).to be_empty
       end
 
       it "When not creator try remove" do
@@ -265,6 +282,14 @@ module SocialFramework
 
         expect(@user1.schedule.events.count).to be(1)
         expect(@user2.schedule.events.count).to be(1)
+      end
+
+      it "When event has route" do
+        @event.add_route(@user1, @route)
+        @user1.schedule.remove_event(@event)
+
+        expect(@user1.routes).to be_empty
+        expect(@user2.routes).to be_empty
       end
     end
 
@@ -291,6 +316,18 @@ module SocialFramework
         @user1.schedule.exit_event(@event)
 
         expect(@event.participant_events.count).to be(2)
+      end
+
+      it "When event has route" do
+        @event.add_route(@user1, @route)
+        expect(@event.route.users.count).to be(2)
+
+        @user2.schedule.exit_event(@event)
+
+        expect(@event.participant_events.count).to be(1)
+        expect(@user2.schedule.events).to be_empty
+        expect(@event.route.users.count).to be(1)
+        expect(@user2.routes).to be_empty
       end
     end
 
@@ -330,11 +367,54 @@ module SocialFramework
       it "When event is public" do
         start = DateTime.now
         event = @user1.schedule.create_event("Event Test", start)
+        participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(event.id, @user2.schedule.id)
 
-        result = @user2.schedule.enter_in_event(event)
-        expect(result).not_to be_nil
-        expect(result.event).to eq(event)
-        expect(result.schedule).to eq(@user2.schedule)
+        expect(participant_event).to be_nil
+
+        @user2.schedule.enter_in_event(event)
+        participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(event.id, @user2.schedule.id)
+
+        expect(participant_event).not_to be_nil        
+        expect(participant_event.event).to eq(event)
+        expect(participant_event.schedule).to eq(@user2.schedule)
+      end
+
+      it "When event has route" do
+        start = DateTime.now
+        event = @user1.schedule.create_event("Event Test", start)
+        event.add_route(@user1, @route)
+
+        expect(event.route.users.count).to be(1)
+        @user2.schedule.enter_in_event(event)
+
+        expect(event.route.users.count).to be(2)
+        expect(@user2.routes.count).to be(1)
+        expect(@user2.routes.include? @route).to be(true)
+      end
+    end
+
+    describe "Relations user route" do
+      before(:each) do
+        start = DateTime.now
+        @event = @user1.schedule.create_event "Event Test", start
+      end
+
+      it "When pass invalid params" do
+        result = @user1.schedule.send(:relation_user_route, nil)
+        expect(result).to be_nil
+      end
+
+      it "When pass event without route" do
+        result = @user1.schedule.send(:relation_user_route, @event)
+        expect(result).to be_nil
+      end
+
+      it "When pass event with route" do
+        @event.add_route(@user1, @route)
+
+        result = @user2.schedule.send(:relation_user_route, @event)
+        expect(result).to be(true)
+        expect(@user2.routes.include? @route).to be(true)
       end
     end
   end

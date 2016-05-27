@@ -49,6 +49,7 @@ module SocialFramework
       participant_event = get_participant_event(event)
       return false if participant_event.nil? or not events_in_period(event.start, event.finish).empty?
 
+      relation_user_route(event)
       participant_event.confirmed = true
       participant_event.save
     end
@@ -58,6 +59,8 @@ module SocialFramework
     # +event+:: +Event+ to exit
     # Returns ParticipantEvent destroyed or nil if user is creator
     def exit_event(event)
+      self.user.routes.delete(event.route) unless event.route.nil?
+
       participant_event = get_participant_event(event)
       participant_event.destroy if not participant_event.nil? and participant_event.role != "creator"
     end
@@ -67,6 +70,7 @@ module SocialFramework
     # +event+:: +Event+ to remove
     # Returns Event destroyed or nil if user is not creator
     def remove_event(event)
+      event.route.destroy unless event.route.nil?
       participant_event = get_participant_event(event)
       event.destroy if not participant_event.nil? and participant_event.role == "creator"
     end
@@ -79,6 +83,7 @@ module SocialFramework
       return if event.nil? or event.particular or not events_in_period(event.start, event.finish).empty?
 
       if get_participant_event(event).nil?
+        relation_user_route(event)
         ParticipantEvent.create(event: event, schedule: self, confirmed: true, role: "participant")
       end
     end
@@ -108,6 +113,17 @@ module SocialFramework
       unless event.nil?
         return ParticipantEvent.find_by_event_id_and_schedule_id(event.id, self.id)
       end
+    end
+
+    # Create a relationship between a user and route
+    # ====== Params:
+    # +event+:: +Event+ to get route
+    # Returns Route added in event
+    def relation_user_route event
+      return if event.nil? or event.route.nil?
+
+      self.user.routes << event.route
+      event.route.save
     end
   end
 end
