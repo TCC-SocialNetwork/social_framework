@@ -1,6 +1,7 @@
 # SocialFramework ![License MIT](https://go-shields.herokuapp.com/license-MIT-blue.png)
 
 ----
+[![Gem Version](https://badge.fury.io/rb/social_framework.svg)](https://badge.fury.io/rb/social_framework)
 [![Build Status](https://travis-ci.org/TCC-SocialNetwork/social_framework.svg)](https://travis-ci.org/TCC-SocialNetwork/social_framework)
 [![Code Climate](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/badges/gpa.svg)](https://codeclimate.com/github/TCC-SocialNetwork/social_framework)
 [![Test Coverage](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/badges/coverage.svg)](https://codeclimate.com/github/TCC-SocialNetwork/social_framework/coverage)
@@ -23,18 +24,10 @@ And in Schedulers, provides resources to define schedules to users and attempts 
 ----
 # Install
 
-> Currently the SocialFramework is not present in RubyGems. To use it you need to clone this repository, the steps to install it are presented below.
-
-> Clone this repository:
-
-```console
-git clone https://github.com/TCC-SocialNetwork/social_framework.git
-```
-
 > Adding the following line in your Gemfile:
 
 ```ruby
-gem 'social_framework', path: 'path/to/social_framework'
+gem 'social_framework'
 ```
 
 > The path described above should be changed to the path you did the clone.
@@ -49,7 +42,7 @@ bundle install
 ----
 # Getting started
 
-> The SocialFramework is based on Devise, which is a ... that provides the users authentication, for a full documentation to Devise see: https://github.com/plataformatec/devise.
+> The SocialFramework is based on Devise, which is a flexible authentication solution for Rails. For a full documentation to Devise see: https://github.com/plataformatec/devise.
 The User class already is implemented in SocialFramework and some changes have been applied, like adding username attribute and the behaviors to relationships betweens users.
 The controllers and views of the Devise also has been changed to add new features.
 

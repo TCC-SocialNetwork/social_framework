@@ -41,7 +41,7 @@ module SocialFramework
         end
 
         role = (words.first == "remove" ? "participant" : words.last)
-        participant.role = role if not words.first == "remove" or participant.role == words.last
+        participant.role = role if words.first == "make" or participant.role == words.last
 
         return participant.save
       end

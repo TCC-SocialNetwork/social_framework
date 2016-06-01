@@ -13,12 +13,11 @@ Gem::Specification.new do |s|
   s.summary     = "Summary"
   s.description = "Framework to build social networks apps base on routes and schedules."
   s.license     = "MIT"
+  s.homepage    = "https://github.com/TCC-SocialNetwork/social_framework"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["spec/**/*"]
 
-  s.add_dependency "rails", "~> 4.2.5"
-  s.add_dependency "devise"
-
-  s.add_development_dependency "sqlite3"
+  s.add_dependency "rails", '~> 4.2'
+  s.add_dependency "devise", '~> 3.5'
 end

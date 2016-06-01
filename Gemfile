@@ -27,5 +27,6 @@ group :test do
   gem "generator_spec"
 end
 
-gem 'devise'
+gem 'sqlite3'
+gem 'devise', '~> 3.5.6'
 gem 'mysql2'

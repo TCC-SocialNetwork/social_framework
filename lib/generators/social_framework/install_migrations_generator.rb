@@ -3,7 +3,7 @@ module SocialFramework
     # Generator to add migrations in the application
     class InstallMigrationsGenerator < Rails::Generators::Base
       class_option :migrations, aliases: "-m", type: :array,
-        desc: "Select specific migrations to generate (edges, users, schedules, events, events_schedules)"
+        desc: "Select specific migrations to generate (edges, users, schedules, events, events_schedules, participant_events, routes, locations)"
 
       source_root File.expand_path('../../../db/migrate', __FILE__)
 
