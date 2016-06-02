@@ -26,16 +26,16 @@ module SocialFramework
     # ====== Params:
     # +maker+:: +User+ responsible to make other user an administrator, should be current_user
     # +participant+:: +User+ to make administrator
-    # +permission+:: +Symbol+ to verify
-    # Returns ParticipantEvent updated or nil if maker has no permissions required
-    def change_participant_role maker, participant, permission
+    # +action+:: +Symbol+ to verify
+    # Returns ParticipantEvent updated or nil if maker has no actions required
+    def change_participant_role maker, participant, action
       maker = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, maker.schedule.id)
       participant = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, participant.schedule.id)
       return false if maker.nil? or participant.nil?
 
-      words = permission.to_s.split('_')
-      if execute_action?(permission, maker, participant, words.first)
-        if permission == :make_creator
+      words = action.to_s.split('_')
+      if execute_action?(action, maker, participant, words.first)
+        if action == :make_creator
           maker.role = "admin"
           maker.save
         end

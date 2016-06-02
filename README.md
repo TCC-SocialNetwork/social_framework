@@ -319,9 +319,116 @@ graph.search(map, true) { |elements_number| elements_number *= 2 }
 > When the search reaches the end of the Graph and not yet found all required users an search in database is done to complete the array.
 
 ----
+## Schedules Module
+
+> This module provides the logic to work with the schedule of social network users, how to create, enter, invite, confirm, exit and remove events.
+
+> The struct of relationships was built as follow: An Schedule belongs to a user and have a many to many association with Event through a Participant_Event, which has a confirmed attribute indicating whether the user has confirmed the event or is pending. Beyond an event be able to be present in various schedules, an event have a title, a description, a date and start time, a date and finish time, can or can not have an associated route and if the evente is particular an another user will only be able participate in the event if it is invited, if not particular any user can enter the event.
+
+> To create a new event uses the method 'create_event', defined in Schedule Class. The following is the method signature.
+
+```ruby
+create_event(title, start, duration = nil, description = "", particular = false)
+```
+
+> If not passed the duration of the event, its description or if is particular this will have its finish as the end of the day the event occurs, its description will be set to an empty string and the event is not particular. These options can be changed passing the respectives parameteres in the method call. For the event be created the user can not have events in your schedule that match with the event time which he wants to create.
+
+> To an user enter in an event should use the method 'enter_in_event', defined in Schedule Class. The following is the method signature.
+
+
+```ruby
+enter_in_event(event)
+```
+
+> It is necessary to pass as a parameter the event that the user wants to enter. So that to the user can enter in event, he can not have events on your schedule that match with the event time which he wants to enter.
+
+> To an user can confirm an invite to enter in an event should use the method 'confirm_event', defined in Schedule Class. The following is the method signature.
+
+```ruby
+confirm_event(event)
+```
+> It is necessary to pass as a parameter the event that the user wants to confirm. So that to the user can enter in event, he can not have events on your schedule that match with the event time wich he wants to confirm.
+
+> To exit an event should invoke the method 'exit_event', defined in Schedule Class. The following is the method signature.
+
+```ruby
+exit_event(event)
+```
+
+> It is necessary to pass as a parameter the event that the user wants to remove from his schedule. But to get out of the event the user can not have the role of 'creator' of the event, if it is the creator of this event must pass the role to another user before leaving the event.
+
+> To remove an event should invoke the method 'remove_event', defined in Schedule Class. The following is the method signature.
+
+```ruby
+remove_event(event)
+```
+
+> It is necessary to pass as a parameter the event that the user wants to remove. But to delete the event the user can have the role of 'creator' of the event.
+
+> To check if an user has events in a defined time interval you can use the method 'events_in_period', defined in Schedule Class. This method return all events that are within the time interval. The following is the method signature.
+
+```ruby
+events_in_period(start, finish = start.end_of_day)
+```
+
+> If not passed the finish of the period as a parameter, this will have its finish as the end of the start day.
+
+> To invite an user to an event should invoke the method 'invite', defined in Schedule Class. The following is the method signature.
+
+```ruby
+invite(inviting, guest, relationship = SocialFramework.relationship_type_to_invite)
+```
+
+> It is necessary to pass as a parameter the user inviting and the user guest, if not passed the type of the relationship between the users will be used the type defined in the configuration file. To invite an user to an event the inviting should be confirmed in event, have the permition to 'invite' and have the guest into your circle of relationships with the specificed type of relationship, should use the type 'all' to any type of relationship.
+
+> To change the role of a participant in an event should invoke the method 'change_participant_role', defined in Schedule Class. The following is the method signature.
+
+```ruby
+change_participant_role(maker, participant, action)
+```
+
+> It is necessary to pass as a parameter the maker will change the role, the participant will have his role changed and the action that the maker will execute, this action should be prefixed 'maker' or 'remove', which indicates whether it is assigned or removed a role respectively, followed by a '_' and the role of action, for example: ':make_admin'. To the changing role be successfully changed the maker must have permission to execute the action. If the action is ':make_creator' the make will receive the paper of 'admin', because should only be an user creator of event.
+
+> To remove a participant of an event should invoke the method 'remove_participant', defined in Schedule Class. The following is the method signature.
+
+```ruby
+remove_participant(remover, participant)
+```
+
+> It is necessary to pass as a parameter the remover will remove an user and the participant will be removed from the event. To the removal is performed successfully the remover must have permission to execute the action.
+
+> To add a route in an event should invoke the method 'add_route', defined in Schedule Class. The following is the method signature.
+
+```ruby
+add_route(user, route)
+```
+
+> It is necessary to pass as a parameter the user will add a route in an event and the route will be added. To the addition is performed successfully the user must have permission to ':add_route'.
+
+> The Schedules Module uses a graph to provide slotes time ordered considering the greater amount of weight slotes. This functionality is present in the 'ScheduleHelper', which includes the Vertex and Edge classes and implements the Graph class.
+
+> In this graph the vertices with the user type only have connection with the vertices with the slot type, and the vertices with the slote type only have connection with the vertices with the user type, thus forming a bipartite graph.
+
+> To build the graph should invoke the method 'build', defined in Schedule Class. The following is the method signature.
+
+```ruby
+build(users, start_day, finish_day, start_hour = Time.parse("00:00"), finish_hour = Time.parse("23:59"), slots_size = SocialFramework.slots_size)
+```
+
+> The parameter 'users' are users who have their schedules analyzed to find the best time for a possible event marking. This parameter can be an array, where no user has weight in the event or can be a Hash where the key is the user and the value is the weight of their presence at the event, this weight has its maximum value defined in the configuration file in the variable 'max_weight_schedule' if the user have the weight set to the symbol ': fixed' this user will have their presence as mandatory in the event, and only the slotes that this user has availability will be analyzed.
+
+> The 'start_day' parameter indicates starting from what day the event will be marked, and the 'finish_day' parameter indicates the day limit for marking the event. The parameter 'start_hour' and 'finish_hour' parameter define a time of day that the event may occur, for example you can set the time from 08:00 to 18:00, if not passed as parameter is considered to the event may be scheduled at any time.
+
+> The 'slote_size' parameter indicates the duration of the slotes, if not passed as a parameter is used the standard time, set in the configuration file and with 1 hour.
+
+> The amount of slotes to be added in the graph depends on the time interval to be analyzed and duration of slotes.
+
+> To create edges between users and slotes is checked if the user has availability on his schedule in the time that slote has, if the user has availability for this slote is created an edge between the user and the slote, and the user weight is added to the weight of slote. The method returns the slotes ordered by the greater weight that each has Slote.
+
+----
 # Authors
 
-* Jefferson Nunes de Sousa Xavier
- * jeffersonx.xavier@gmail.com
 * Álex Silva Mesquita
  * alex.mesquita0608@gmail.com
+* Jefferson Nunes de Sousa Xavier
+ * jeffersonx.xavier@gmail.com

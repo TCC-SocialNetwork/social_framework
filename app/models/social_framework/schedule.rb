@@ -26,19 +26,17 @@ module SocialFramework
       return event
     end
 
-    # Check disponibility in specific time interval
+    # Enter in an public event
     # ====== Params:
-    # +start+:: +DateTime+ event start
-    # +finish+:: +DateTime+ event finish, if nil is start.end_of_day
-    # Returns true if exist disponibility or false if no
-    def events_in_period(start, finish = start.end_of_day)
-      events = SocialFramework::Event.joins(:participant_events).where(
-        "social_framework_participant_events.schedule_id = ? AND " +
-        "social_framework_participant_events.confirmed = ? AND " + 
-        "social_framework_events.start < ? AND " +
-        "social_framework_events.finish > ?", self.id, true, finish, start).order(start: :asc)
+    # +event+:: +Event+ to enter
+    # Returns ParticipantEvent created or nil if that event is particular or already exist events in that period
+    def enter_in_event(event)
+      return if event.nil? or event.particular or not events_in_period(event.start, event.finish).empty?
 
-      return events
+      if get_participant_event(event).nil?
+        relation_user_route(event)
+        ParticipantEvent.create(event: event, schedule: self, confirmed: true, role: "participant")
+      end
     end
 
     # Confirm an event to schedule
@@ -59,10 +57,12 @@ module SocialFramework
     # +event+:: +Event+ to exit
     # Returns ParticipantEvent destroyed or nil if user is creator
     def exit_event(event)
-      self.user.routes.delete(event.route) unless event.route.nil?
-
       participant_event = get_participant_event(event)
-      participant_event.destroy if not participant_event.nil? and participant_event.role != "creator"
+
+      if not participant_event.nil? and participant_event.role != "creator"
+        self.user.routes.delete(event.route) unless event.route.nil?
+        participant_event.destroy
+      end
     end
 
     # Remove an event created by self.user
@@ -70,22 +70,27 @@ module SocialFramework
     # +event+:: +Event+ to remove
     # Returns Event destroyed or nil if user is not creator
     def remove_event(event)
-      event.route.destroy unless event.route.nil?
       participant_event = get_participant_event(event)
-      event.destroy if not participant_event.nil? and participant_event.role == "creator"
+
+      if not participant_event.nil? and participant_event.role == "creator"
+        event.route.destroy unless event.route.nil?
+        event.destroy
+      end
     end
 
-    # Enter in an public event
+    # Check disponibility in specific time interval
     # ====== Params:
-    # +event+:: +Event+ to enter
-    # Returns ParticipantEvent created or nil if that event is particular or already exist events in that period
-    def enter_in_event(event)
-      return if event.nil? or event.particular or not events_in_period(event.start, event.finish).empty?
+    # +start+:: +DateTime+ event start
+    # +finish+:: +DateTime+ event finish, if nil is start.end_of_day
+    # Returns an +Array+ of +Event+ that they are present in the time interval
+    def events_in_period(start, finish = start.end_of_day)
+      events = SocialFramework::Event.joins(:participant_events).where(
+        "social_framework_participant_events.schedule_id = ? AND " +
+        "social_framework_participant_events.confirmed = ? AND " + 
+        "social_framework_events.start < ? AND " +
+        "social_framework_events.finish > ?", self.id, true, finish, start).order(start: :asc)
 
-      if get_participant_event(event).nil?
-        relation_user_route(event)
-        ParticipantEvent.create(event: event, schedule: self, confirmed: true, role: "participant")
-      end
+      return events
     end
 
     private
