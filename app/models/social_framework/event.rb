@@ -1,4 +1,5 @@
 module SocialFramework
+  # Class that represents events that may have a schedule
   class Event < ActiveRecord::Base
   	has_many :participant_events
   	has_many :schedules, through: :participant_events

@@ -7,7 +7,10 @@ module SocialFramework
 
     # Represent the network on a Graph, with Vertices and Edges
     class Graph
-      attr_accessor :network, :depth
+      # Array of verteces
+      attr_accessor :network
+      # Maximum depth graph
+      attr_accessor :depth
 
       class << self
         protected :new
@@ -218,6 +221,7 @@ module SocialFramework
       # ====== Params:
       # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
       # +yield+:: +Block+ to execute when it is on the third level
+      # Returns Nil
       def travel_in_third_depth(type_relationships)
         type_relationships = [type_relationships] if type_relationships.class == String
 
@@ -235,6 +239,7 @@ module SocialFramework
       # Visit vertices in Graph fiding specifcs vertices
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
+      # Returns Nil
       def search_visit(map)
         while not @queue.empty? and (@users_found.size + @events_found.size) < @elements_number do
           root = @queue.pop
@@ -319,6 +324,7 @@ module SocialFramework
       # Continue search in database
       # ====== Params:
       # +map+:: +Hash+ with keys and values to compare
+      # Returns Nil
       def search_in_database(map)
         user_condictions = build_condictions(map, SocialFramework::User)
         event_condictions = build_condictions(map, SocialFramework::Event)

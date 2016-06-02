@@ -5,6 +5,7 @@ module SocialFramework
 
     # Represent the schedule on a Graph, with Vertices and Edges
     class Graph
+      # Array of slots
       attr_accessor :slots
 
       # Init the slots and users in Array

@@ -1,4 +1,5 @@
 module SocialFramework
+  # Class that is the schedule that a user has
   class Schedule < ActiveRecord::Base
     belongs_to :user
     has_many :participant_events

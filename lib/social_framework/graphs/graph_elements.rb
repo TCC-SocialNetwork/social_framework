@@ -2,12 +2,14 @@
 module GraphElements
   # Represent graph's vertex
   class Vertex
+    # The attributes of vertex
     attr_accessor :id, :type, :edges, :visits, :color, :attributes
 
     # Constructor to vertex 
     # ====== Params:
     # +id+:: +Integer+ user id
-    # Returns Vertex's Instance
+    # +type+:: +Class+ of vertex
+    # +attributes+:: +Hash+ aditional attributes of vertex
     def initialize id, type, attributes = {}
       @id = id
       @type = type
