@@ -15,31 +15,61 @@ module SocialFramework
           principal_deviation = SocialFramework.principal_deviation,
           secondary_deviation = SocialFramework.secondary_deviation)
 
-        principal_accepted_deviation = principal_accepted_deviation(principal_route, secondary_route,
+        principal_accepted = principal_accepted_deviation(principal_route, secondary_route,
           principal_deviation[:deviation], principal_deviation[:mode])
 
         result = {compatible: false, principal_route: {deviation: :none,
             distance: 0}, secondary_route: {deviation: :none, distance: 0}}
 
-        if(principal_accepted_deviation[:accept] == :both)
+        if(principal_accepted[:accept] == :both)
           result[:compatible] = true
           result[:principal_route][:deviation] = :both
-          result[:principal_route][:distance] = principal_accepted_deviation[:distance]
+          result[:principal_route][:distance] = principal_accepted[:distance]
         else
-          secondary_accepted_deviation = secondary_accepted_deviation(principal_route, secondary_route,
+          secondary_origin, secondary_destiny, secondary_accepted = condictions_secondary_deviation(principal_route,
+            secondary_route, principal_accepted, secondary_deviation)
+
+          if(secondary_origin)
+            result[:compatible] = true
+            result[:principal_route][:deviation] = :destiny
+            result[:principal_route][:distance] = principal_accepted[:distance_destiny]
+            result[:secondary_route][:deviation] = :origin
+            result[:secondary_route][:distance] = secondary_accepted[:distance_origin]
+          elsif(secondary_destiny)
+            result[:compatible] = true
+            result[:principal_route][:deviation] = :origin
+            result[:principal_route][:distance] = principal_accepted[:distance_origin]
+            result[:secondary_route][:deviation] = :destiny
+            result[:secondary_route][:distance] = secondary_accepted[:distance_destiny]
+          end
+        end
+        return result
+      end
+
+      private
+
+      # Verify the the condiction to the secondary route
+      # ====== Params:
+      # +principal_route+:: +Route+ who gives a lift
+      # +secondary_route+:: +Route+ who hitchhike
+      # +principal_accepted_deviation+:: +Hash+ with point and smallest deviation
+      # +secondary_deviation+:: +Hash+ with maximum deviation and mode of travel to secondary route
+      # Returns If the secondary can change origin, If the secondary can change destiny and A Hash with point and smallest deviation
+      def condictions_secondary_deviation(principal_route, secondary_route, principal_accepted_deviation, secondary_deviation)
+        secondary_accepted = secondary_accepted_deviation(principal_route, secondary_route,
             secondary_deviation[:deviation], secondary_deviation[:mode])
 
           principal_destiny = (principal_accepted_deviation[:accept] == :any or principal_accepted_deviation[:accept] == :destiny) 
           principal_origin = (principal_accepted_deviation[:accept] == :any or principal_accepted_deviation[:accept] == :origin)
 
-          secondary_any = (secondary_accepted_deviation[:accept] == :both or secondary_accepted_deviation[:accept] == :any)
+          secondary_any = (secondary_accepted[:accept] == :both or secondary_accepted[:accept] == :any)
 
-          origin_lower_than_destiny = (secondary_any and (secondary_accepted_deviation[:distance_origin] < secondary_accepted_deviation[:distance_destiny]))
+          origin_lower_than_destiny = (secondary_any and (secondary_accepted[:distance_origin] < secondary_accepted[:distance_destiny]))
           
-          secondary_origin = ((principal_destiny and secondary_accepted_deviation[:accept] == :origin) or
+          secondary_origin = ((principal_destiny and secondary_accepted[:accept] == :origin) or
             (secondary_any and principal_destiny))
 
-          secondary_destiny = ((principal_origin and secondary_accepted_deviation[:accept] == :destiny) or
+          secondary_destiny = ((principal_origin and secondary_accepted[:accept] == :destiny) or
             (secondary_any and principal_origin))
 
           if secondary_origin and secondary_destiny
@@ -47,24 +77,8 @@ module SocialFramework
             secondary_destiny = (not origin_lower_than_destiny)
           end
 
-          if(secondary_origin)
-            result[:compatible] = true
-            result[:principal_route][:deviation] = :destiny
-            result[:principal_route][:distance] = principal_accepted_deviation[:distance_destiny]
-            result[:secondary_route][:deviation] = :origin
-            result[:secondary_route][:distance] = secondary_accepted_deviation[:distance_origin]
-          elsif(secondary_destiny)
-            result[:compatible] = true
-            result[:principal_route][:deviation] = :origin
-            result[:principal_route][:distance] = principal_accepted_deviation[:distance_origin]
-            result[:secondary_route][:deviation] = :destiny
-            result[:secondary_route][:distance] = secondary_accepted_deviation[:distance_destiny]
-          end
-        end
-        return result
+          return secondary_origin, secondary_destiny, secondary_accepted
       end
-
-      private
 
       # Verify the deviations which can be made on principal route
       # ====== Params:
@@ -78,7 +92,7 @@ module SocialFramework
           principal_route.locations.last, [secondary_route.locations.first, secondary_route.locations.last],
           mode_of_travel)
 
-        if(distance_with_both <= (principal_route.distance + deviation))
+        if((not distance_with_both.nil?) and distance_with_both <= (principal_route.distance + deviation))
           return {accept: :both, distance: distance_with_both}
         else
           distance_with_origin = get_distance_with_waypoints(principal_route.locations.first,
@@ -87,12 +101,12 @@ module SocialFramework
           distance_with_destiny = get_distance_with_waypoints(principal_route.locations.first,
             principal_route.locations.last, [secondary_route.locations.last], mode_of_travel)
 
-          if(distance_with_origin <= (principal_route.distance + deviation) and
+          if((not distance_with_origin.nil?) and distance_with_origin <= (principal_route.distance + deviation) and
             distance_with_destiny <= (principal_route.distance + deviation))
             return {accept: :any, distance_origin: distance_with_origin, distance_destiny: distance_with_destiny}
-          elsif(distance_with_origin <= (principal_route.distance + deviation))
+          elsif((not distance_with_origin.nil?) and distance_with_origin <= (principal_route.distance + deviation))
             return {accept: :origin, distance_origin: distance_with_origin}
-          elsif(distance_with_destiny <= (principal_route.distance + deviation))
+          elsif((not distance_with_destiny.nil?) and distance_with_destiny <= (principal_route.distance + deviation))
             return {accept: :destiny, distance_destiny: distance_with_destiny}
           else
             return {accept: :none}
@@ -163,7 +177,7 @@ module SocialFramework
             waypoint += "#{w.latitude},#{w.longitude}"
           end
 
-          params = "mode=#{mode_of_travel}&origin=#{origin}&destination=#{destination}&waypoints=#{waypoint}"
+          params = "mode=#{mode_of_travel}&origin=#{origin}&destination=#{destination}&waypoints=#{waypoint}&key= AIzaSyBcMn7Awv_OKT3LWvAHtkwERPNSwkNBqpM "
           
           url = URI.parse("https://maps.googleapis.com/maps/api/directions/json?#{params}")
 
@@ -193,7 +207,7 @@ module SocialFramework
           origins = "#{origin.latitude},#{origin.longitude}"
           destinations = "#{destiny.latitude},#{destiny.longitude}"
 
-          params = "mode=#{mode_of_travel}&origins=#{origins}&destinations=#{destinations}"
+          params = "mode=#{mode_of_travel}&origins=#{origins}&destinations=#{destinations}&key= AIzaSyBcMn7Awv_OKT3LWvAHtkwERPNSwkNBqpM "
           
           url = URI.parse("https://maps.googleapis.com/maps/api/distancematrix/json?#{params}")
 
