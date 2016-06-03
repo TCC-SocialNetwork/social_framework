@@ -426,6 +426,56 @@ build(users, start_day, finish_day, start_hour = Time.parse("00:00"), finish_hou
 > To create edges between users and slotes is checked if the user has availability on his schedule in the time that slote has, if the user has availability for this slote is created an edge between the user and the slote, and the user weight is added to the weight of slote. The method returns the slotes ordered by the greater weight that each has Slote.
 
 ----
+## Routes Module
+
+> This module provides the logic to work with routes. It's used the Google Maps API to provide the principal features to this module, like build a route and get locations with latitude and longitude.
+
+> Currently, it's available to users create routes. That can be done with the following method, present in User class:
+
+```ruby
+create_route(title, distance, locations, mode_of_travel = "driving")
+```
+
+> The params are route title, route distance, locations is a array with all points of latitude and longitude to build route, must be passed like this:
+
+```ruby
+locations = [{latitude: -15.792740000000002, longitude: -47.876360000000005},
+         {latitude: -15.792520000000001, longitude: -47.876900000000006}]
+```
+
+> And mode_of_travel represents the type to build route, can be 'driving', 'bycicling', 'walking' or 'transit', the value default is 'driving' to travels with car.
+
+> That module also provides a feature to verify the compatibility between two routes. To do this call the method 'compare_routes' present in 'route_helper.rb'.
+
+```ruby
+compare_routes(principal_route, secondary_route,
+          principal_deviation = SocialFramework.principal_deviation,
+          secondary_deviation = SocialFramework.secondary_deviation)
+```
+
+> This method is used to verify if two routes can be connected in just one route. The param principal_route represent the route that will be updated to auxliar the secondary_route if possible, when the principal_route can not be updated the on tries to update the secondary_route to achieve the goal.
+The others params principal_deviation and secondary_deviation represent a map with mode_of_travel and maximum deviation to routes, the maximum deviation is the distance that a route can be diverted to achieve the goal.
+The default values to principal_deviation and secondary_deviation are present in initializer 'social_framework.rb' and can be updated.
+
+> It's returned a map with the compatibility information, like this:
+
+```ruby
+{compatible: false, principal_route: {deviation: :none,
+            distance: 0}, secondary_route: {deviation: :none, distance: 0}}
+```
+
+> Compatible is false if routes are incompatible or true if are compatible. The deviation represent where the route can be diverted, can be 'none', 'both', 'origin' or 'destiny', and distance is value to deviation to any route.
+
+> The routes also can be related with events. To this call the method 'add_route' present in Event class.
+
+```ruby
+add_route(user, route)
+```
+
+> The first param is the user in event that invoked the method, it's necessary that user has the 'add_route' permission in event (the event permissions are defined in initializer 'social_framework.rb'). The second param is the route to add to the event.
+When a route is added to an event all users in this event receive that route.
+
+----
 # Authors
 
 * Álex Silva Mesquita
