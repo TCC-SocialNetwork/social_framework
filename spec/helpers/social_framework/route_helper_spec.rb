@@ -42,7 +42,7 @@ module SocialFramework
       @route2 = user2.create_route("route2", 1200, @locations2)
       @route3 = user2.create_route("route3", 63, @locations3)
 
-      @route_utils = SocialFramework::RouteHelper::RouteUtils.new
+      @route_utils = SocialFramework::RouteHelper::RouteStrategyDefault.new
     end
 
     describe "Get distance beteewn two locations from a mode of travel" do
@@ -330,6 +330,22 @@ module SocialFramework
         result = @route_utils.send(:smallest_distance, [], @route2.locations.first, "walking")
         expect(result[:deviation]).to be_nil
         expect(result[:point]).to be_nil
+      end
+    end
+
+    describe "Using RouteContext" do
+      before(:each) do
+        @context = SocialFramework::RouteHelper::RouteContext.new SocialFramework::RouteHelper::RouteStrategyDefault
+      end
+
+      it "When the principal accept both" do
+        result = @context.compare_routes(@route1, @route2)
+
+        expect(result[:compatible]).to be(true)
+        expect(result[:principal_route][:deviation]).to be(:both)
+        expect(result[:principal_route][:distance]).to be(5299)
+        expect(result[:secondary_route][:deviation]).to be(:none)
+        expect(result[:secondary_route][:distance]).to be(0)
       end
     end
   end

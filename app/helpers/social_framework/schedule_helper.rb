@@ -182,7 +182,7 @@ module SocialFramework
 
     # Used to define the ScheduleStrategy class
     class ScheduleContext
-      # Initialize the ScheduleStraty class
+      # Initialize the ScheduleStrategy class
       def initialize schedule_strategy
         @strategy = schedule_strategy.new
       end

@@ -398,7 +398,7 @@ module SocialFramework
         start = DateTime.new(2016, 01, 01, 12, 0, 0)
         @user1.schedule.create_event "title4", start, 1.hour
 
-        slots = @schedule.verify_availabilities([@user1, @user2], Date.parse("01/01/2016"),
+        slots = @context.verify_availabilities([@user1, @user2], Date.parse("01/01/2016"),
           Date.parse("01/01/2016"), Time.parse("08:00"), Time.parse("14:00"))
 
         expect(slots.count).to be(6)

@@ -1,8 +1,24 @@
 module SocialFramework
   # Module to work with routes
   module RouteHelper
+
+    # Define a Abstract Class to compare routes
+    class RouteStrategy
+
+      # Compare the routes to verify if are compatible
+      # ====== Params:
+      # +principal_route+:: +Route+ who gives a lift
+      # +secondary_route+:: +Route+ who hitchhike
+      # +principal_deviation+:: +Hash+ with maximum deviation and mode of travel to principal route
+      # +secondary_deviation+:: +Hash+ with maximum deviation and mode of travel to secondary route
+      # Returns NotImplementedError
+      def compare_routes(principal_route, secondary_route, principal_deviation, secondary_deviation)
+        raise 'Must implement method in subclass'
+      end
+    end
+
     # Contains the methods to match routes
-    class RouteUtils
+    class RouteStrategyDefault < RouteStrategy
 
       # Compare the routes to verify if are compatible
       # ====== Params:
@@ -280,6 +296,29 @@ module SocialFramework
         end
 
         return {origins: origins, destinations: destinations}
+      end
+    end
+
+    # Used to define the RouteStrategy class
+    class RouteContext
+
+      # Initialize the RouteStrategy class
+      def initialize route_strategy
+        @route = route_strategy.new
+      end
+
+      # Compare the routes to verify if are compatible
+      # ====== Params:
+      # +principal_route+:: +Route+ who gives a lift
+      # +secondary_route+:: +Route+ who hitchhike
+      # +principal_deviation+:: +Hash+ with maximum deviation and mode of travel to principal route
+      # +secondary_deviation+:: +Hash+ with maximum deviation and mode of travel to secondary route
+      # Returns Hash with information of compatibility and necessary distances
+      def compare_routes(principal_route, secondary_route,
+          principal_deviation = SocialFramework.principal_deviation,
+          secondary_deviation = SocialFramework.secondary_deviation)
+
+        @route.compare_routes(principal_route, secondary_route, principal_deviation, secondary_deviation)
       end
     end
   end
