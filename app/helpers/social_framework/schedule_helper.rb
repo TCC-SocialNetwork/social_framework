@@ -12,7 +12,10 @@ module SocialFramework
       # ====== Params:
       # +max_duration+:: +ActiveSupport::Duration+ used to define max finish day to build graph
       # Returns Graph's Instance
-      def initialize max_duration = SocialFramework.max_duration_to_schedule_graph
+      def initialize(elements_factory = ElementsFactoryDefault,
+        max_duration = SocialFramework.max_duration_to_schedule_graph)
+      
+        @elements_factory = elements_factory.new
         @slots = Array.new
         @users = Array.new
         @fixed_users = Array.new
@@ -73,7 +76,7 @@ module SocialFramework
           slots_quantity = get_slots_quantity(start_hour, finish_hour)
 
           (1..slots_quantity).each do
-            verterx = GraphElements::Vertex.new(current_time, current_time.class, {gained_weight: 0})
+            verterx = @elements_factory.create_vertex(current_time, current_time.class, {gained_weight: 0})
             @slots << verterx
 
             current_time += @slots_size
@@ -144,7 +147,7 @@ module SocialFramework
             weight = SocialFramework.max_weight_schedule
           end
 
-          vertex = GraphElements::Vertex.new(user.id, user.class, {weight: weight})
+          vertex = @elements_factory.create_vertex(user.id, user.class, {weight: weight})
 
           array = (weight == :fixed ? @fixed_users : @users)
           array << vertex

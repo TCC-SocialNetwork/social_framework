@@ -19,12 +19,13 @@ module SocialFramework
       # Get graph instance to user logged
       # ====== Params:
       # +id+:: +Integer+ Id of the user logged
+      # +elements_factory+:: +String+ Represent the factory class name to build
       # Returns Graph object
-      def self.get_instance(id)
+      def self.get_instance(id, elements_factory = ElementsFactoryDefault)
         @@instances ||= {}
         
         if @@instances[id].nil?
-          @@instances[id] = Graph.new
+          @@instances[id] = Graph.new elements_factory
         end
 
         return @@instances[id]
@@ -50,7 +51,7 @@ module SocialFramework
         vertices = Array.new
 
         attributes_hash = mount_attributes(attributes, root)
-        vertices << {vertex: GraphElements::Vertex.new(@root.id, @root.class, attributes_hash), depth: 1}
+        vertices << {vertex: @elements_factory.create_vertex(@root.id, @root.class, attributes_hash), depth: 1}
 
         until vertices.empty?
           pair = vertices.shift
@@ -131,8 +132,11 @@ module SocialFramework
       protected
 
       # Init the network in Array
+      # ====== Params:
+      # +elements_factory+:: +String+ Represent the factory class name to build
       # Returns Graph's Instance
-      def initialize
+      def initialize elements_factory
+        @elements_factory = elements_factory.new
         @network = Array.new
         @depth = SocialFramework.depth_to_build
       end
@@ -152,7 +156,7 @@ module SocialFramework
           condiction_to_string = (relationships.class == String and (relationships == "all" or e.label == relationships))
           condiction_to_array = (relationships.class == Array and relationships.include? e.label)
 
-          e.active and not @network.include? GraphElements::Vertex.new(id, user.class) and (condiction_to_string or condiction_to_array)
+          e.active and not @network.include? @elements_factory.create_vertex(id, user.class) and (condiction_to_string or condiction_to_array)
         end
       end
 
@@ -205,7 +209,7 @@ module SocialFramework
 
         if pair.nil?
           attributes_hash = mount_attributes(attributes, element)
-          new_vertex = GraphElements::Vertex.new(element.id, element.class, attributes_hash)
+          new_vertex = @elements_factory.create_vertex(element.id, element.class, attributes_hash)
         else
           new_vertex = pair[:vertex]
         end

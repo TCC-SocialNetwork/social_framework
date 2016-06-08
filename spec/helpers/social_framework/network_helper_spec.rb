@@ -86,7 +86,7 @@ module SocialFramework
         result = @graph.send(:get_edges, @user1.id, "all")
         expect(result.count).to be(6)
         
-        @graph.network << GraphElements::Vertex.new(@user1.id, @user1.class)
+        @graph.network << GraphElements::VertexDefault.new(@user1.id, @user1.class)
 
         result = @graph.send(:get_edges, @user2.id, "all")
         expect(result.count).to be(2)
@@ -634,7 +634,7 @@ module SocialFramework
     describe "Add vertex" do
       it "When the queue is empty" do
         vertices = Array.new
-        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class)
+        current_vertex = GraphElements::VertexDefault.new(@user1.id, @user1.class)
         @graph.send(:add_vertex, vertices, current_vertex, 1, @user2, [], "r1", true)
 
         expect(vertices.count).to be(1)
@@ -648,8 +648,8 @@ module SocialFramework
       end
 
       it "When the user is in queue" do
-        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class)
-        vertex_user2 = GraphElements::Vertex.new(@user2.id, @user2.class)
+        current_vertex = GraphElements::VertexDefault.new(@user1.id, @user1.class)
+        vertex_user2 = GraphElements::VertexDefault.new(@user2.id, @user2.class)
 
         vertices = Array.new
         
@@ -671,8 +671,8 @@ module SocialFramework
       end
 
       it "When the user already is in graph" do
-        current_vertex = GraphElements::Vertex.new(@user1.id, @user1.class)
-        vertex_user2 = GraphElements::Vertex.new(@user2.id, @user2.class)
+        current_vertex = GraphElements::VertexDefault.new(@user1.id, @user1.class)
+        vertex_user2 = GraphElements::VertexDefault.new(@user2.id, @user2.class)
 
         vertices = Array.new
         
