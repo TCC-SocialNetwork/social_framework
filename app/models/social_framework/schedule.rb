@@ -94,7 +94,7 @@ module SocialFramework
       return events
     end
 
-    private
+    protected
 
     # Set finish date from duration
     # ====== Params:

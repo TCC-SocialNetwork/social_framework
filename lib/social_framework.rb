@@ -9,6 +9,12 @@ module SocialFramework
   mattr_accessor :depth_to_build
   @@depth_to_build = 3
 
+  # Define the attributes to build vertex in network graph,
+  # That attributes must exist in User or Event classes,
+  # Are used to search elements in graph
+  mattr_accessor :attributes_to_build_graph
+  @@attributes_to_build_graph = [:username, :email, :title]
+
   # Define the quantity of users to search returns
   mattr_accessor :elements_number_to_search
   @@elements_number_to_search = 5

@@ -90,7 +90,7 @@ module SocialFramework
       end
     end
 
-    private
+    protected
 
     # Verify if exist permission
     # ====== Params:

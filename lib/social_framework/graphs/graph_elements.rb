@@ -62,8 +62,6 @@ module GraphElements
       self.id == other.id and self.type == other.type
     end
     
-    alias :eql? :==
-    
     # Overriding hash method to always equals
     # Returns id hash
     def hash

@@ -4,6 +4,11 @@ SocialFramework.setup do |config|
   # Define the quantity of levels on mount graph to search
   # config.depth_to_build = 3
 
+  # Define the attributes to build vertex in network graph,
+  # That attributes must exist in User or Event classes,
+  # Are used to search elements in graph
+  # config.attributes_to_build_graph = [:username, :email, :title]
+
   # Define the quantity of users to search returns
   # config.elements_number_to_search = 5
 
