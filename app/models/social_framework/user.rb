@@ -17,7 +17,8 @@ module SocialFramework
     # Get all related edges with origin or destiny equal self
     # Returns Related edges with self
     def edges
-      Edge.where(["(origin_id = :id AND bidirectional = :not_bidirectional) OR
+      edge_class = ModelFabric.get_class(SocialFramework.edge_class)
+      edge_class.where(["(origin_id = :id AND bidirectional = :not_bidirectional) OR
         (bidirectional = :bidirectional AND (origin_id = :id OR destiny_id = :id))",
         { id: id, bidirectional: true, not_bidirectional: false }])
     end
@@ -58,13 +59,14 @@ module SocialFramework
     # Returns true if relationship created or false if no
     def create_relationship(destiny, label, bidirectional=true, active=false)
       return false if destiny.nil? or destiny == self
-      
-      edge = Edge.where(["(origin_id = :origin_id AND destiny_id = :destiny_id OR 
+      edge_class = ModelFabric.get_class(SocialFramework.edge_class)
+
+      edge = edge_class.where(["(origin_id = :origin_id AND destiny_id = :destiny_id OR 
         destiny_id = :origin_id AND origin_id = :destiny_id) AND label = :label",
         { origin_id: self.id, destiny_id: destiny.id, label: label }]).first
 
       if edge.nil?
-        edge = Edge.create origin: self, destiny: destiny, active: active,
+        edge = edge_class.create origin: self, destiny: destiny, active: active,
           bidirectional: bidirectional, label: label
 
         return (not edge.nil?)
@@ -80,8 +82,9 @@ module SocialFramework
     # Returns Edge destroyed between the users
     def remove_relationship(destiny, label)
       return if destiny.nil? or destiny == self
+      edge_class = ModelFabric.get_class(SocialFramework.edge_class)
 
-      edge = Edge.where(["(origin_id = :origin_id AND destiny_id = :destiny_id OR 
+      edge = edge_class.where(["(origin_id = :origin_id AND destiny_id = :destiny_id OR 
         destiny_id = :origin_id AND origin_id = :destiny_id) AND label = :label",
         { origin_id: self.id, destiny_id: destiny.id, label: label }]).first
 
@@ -150,7 +153,8 @@ module SocialFramework
     # Return user schedule
     def schedule
       return if self.id.nil?
-      Schedule.find_or_create_by(user: self)
+      schedule_class = ModelFabric.get_class(SocialFramework.schedule_class)
+      schedule_class.find_or_create_by(user: self)
     end
 
     # Add a new route to user
@@ -162,12 +166,15 @@ module SocialFramework
     # Returns Array with users found
     def create_route(title, distance, locations, mode_of_travel = "driving")
       begin
-        route = SocialFramework::Route.new title: title, distance: distance,mode_of_travel: mode_of_travel
+        route_class = ModelFabric.get_class(SocialFramework.route_class)
+        location_class = ModelFabric.get_class(SocialFramework.location_class)
+
+        route = route_class.new title: title, distance: distance,mode_of_travel: mode_of_travel
         route.users << self
         route.save
 
         locations.each do |location|
-          new_location = SocialFramework::Location.create route: route, latitude: location[:latitude],
+          new_location = location_class.create route: route, latitude: location[:latitude],
               longitude: location[:longitude]
         end
         return route

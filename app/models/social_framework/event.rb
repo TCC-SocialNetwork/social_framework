@@ -12,14 +12,14 @@ module SocialFramework
     # +relationship+:: +String+ relationships types to find users, default is all to consider any relationship, can be an Array too with multiple relationships types
     # Returns nil if inviting has not :invite permission or isn't in event or the new ParticipantEvent created
   	def invite inviting, guest, relationship = SocialFramework.relationship_type_to_invite
-  		participant_event = ParticipantEvent.find_by_event_id_and_schedule_id_and_confirmed(
+  		participant_event = participant_event_class.find_by_event_id_and_schedule_id_and_confirmed(
         self.id, inviting.schedule.id, true)
 
   		return if participant_event.nil?
 
       invite_permission = SocialFramework.event_permissions[participant_event.role.to_sym].include? :invite
   		if inviting.relationships(relationship).include?(guest) and  invite_permission
-      	ParticipantEvent.create(event: self, schedule: guest.schedule, confirmed: false, role: "participant")
+      	participant_event_class.create(event: self, schedule: guest.schedule, confirmed: false, role: "participant")
       end
   	end
 
@@ -30,8 +30,8 @@ module SocialFramework
     # +action+:: +Symbol+ to verify
     # Returns ParticipantEvent updated or nil if maker has no actions required
     def change_participant_role maker, participant, action
-      maker = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, maker.schedule.id)
-      participant = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, participant.schedule.id)
+      maker = participant_event_class.find_by_event_id_and_schedule_id(self.id, maker.schedule.id)
+      participant = participant_event_class.find_by_event_id_and_schedule_id(self.id, participant.schedule.id)
       return false if maker.nil? or participant.nil?
 
       words = action.to_s.split('_')
@@ -58,8 +58,8 @@ module SocialFramework
     def remove_participant(remover, participant)
       return if remover.nil? or participant.nil?
       
-      remover = ParticipantEvent.find_by_event_id_and_schedule_id(self.id, remover.schedule.id)
-      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id(
+      remover = participant_event_class.find_by_event_id_and_schedule_id(self.id, remover.schedule.id)
+      participant_event = participant_event_class.find_by_event_id_and_schedule_id(
         self.id, participant.schedule.id)
 
       return if remover.nil? or participant_event.nil?
@@ -78,7 +78,7 @@ module SocialFramework
     # +route+:: +Route+ to add to event
     # Returns nil if inviting has not :add_route permission or isn't in event
     def add_route(user, route)
-      participant_event = ParticipantEvent.find_by_event_id_and_schedule_id_and_confirmed(
+      participant_event = participant_event_class.find_by_event_id_and_schedule_id_and_confirmed(
         self.id, user.schedule.id, true)
       return if participant_event.nil?
 
@@ -134,6 +134,12 @@ module SocialFramework
       end
 
       return result
+    end
+
+    # Build ParticipantEvent class defined
+    # Returns ParticipantEvent class
+    def participant_event_class
+      ModelFabric.get_class(SocialFramework.participant_event_class)
     end
   end
 end

@@ -3,6 +3,7 @@ module SocialFramework
     isolate_namespace SocialFramework
 
     config.autoload_paths += %W(#{config.root}/lib/social_framework/graphs/)
+    config.autoload_paths += %W(#{config.root}/lib/social_framework/fabrics/)
 
     unless /[\w]+$/.match(Dir.pwd).to_s == "social_framework"
       initializer :append_migrations do |app|

@@ -17,11 +17,12 @@ module SocialFramework
       finish = set_finish_date(start, duration)
       return if finish.nil? or not events_in_period(start, finish).empty?
 
-      event = Event.create(title: title, start: start, finish: finish,
+      event_class = ModelFabric.get_class(SocialFramework.event_class)
+      event = event_class.create(title: title, start: start, finish: finish,
           description: description, particular: particular)
 
       unless event.nil?
-        ParticipantEvent.create(event: event, schedule: self, confirmed: true, role: "creator")
+        participant_event_class.create(event: event, schedule: self, confirmed: true, role: "creator")
       end
 
       return event
@@ -36,7 +37,7 @@ module SocialFramework
 
       if get_participant_event(event).nil?
         relation_user_route(event)
-        ParticipantEvent.create(event: event, schedule: self, confirmed: true, role: "participant")
+        participant_event_class.create(event: event, schedule: self, confirmed: true, role: "participant")
       end
     end
 
@@ -85,7 +86,8 @@ module SocialFramework
     # +finish+:: +DateTime+ event finish, if nil is start.end_of_day
     # Returns an +Array+ of +Event+ that they are present in the time interval
     def events_in_period(start, finish = start.end_of_day)
-      events = SocialFramework::Event.joins(:participant_events).where(
+      event_class = ModelFabric.get_class(SocialFramework.event_class)
+      events = event_class.joins(:participant_events).where(
         "social_framework_participant_events.schedule_id = ? AND " +
         "social_framework_participant_events.confirmed = ? AND " + 
         "social_framework_events.start < ? AND " +
@@ -117,7 +119,7 @@ module SocialFramework
     # Returns ParticipantEvent found or nil if not exist ParticipantEvent
     def get_participant_event(event)
       unless event.nil?
-        return ParticipantEvent.find_by_event_id_and_schedule_id(event.id, self.id)
+        return participant_event_class.find_by_event_id_and_schedule_id(event.id, self.id)
       end
     end
 
@@ -130,6 +132,12 @@ module SocialFramework
 
       self.user.routes << event.route
       event.route.save
+    end
+
+    # Build ParticipantEvent class defined
+    # Returns ParticipantEvent class
+    def participant_event_class
+      ModelFabric.get_class(SocialFramework.participant_event_class)
     end
   end
 end

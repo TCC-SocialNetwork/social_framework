@@ -193,7 +193,7 @@ module SocialFramework
             waypoint += "#{w.latitude},#{w.longitude}"
           end
 
-          params = "mode=#{mode_of_travel}&origin=#{origin}&destination=#{destination}&waypoints=#{waypoint}&key= AIzaSyBcMn7Awv_OKT3LWvAHtkwERPNSwkNBqpM "
+          params = "mode=#{mode_of_travel}&origin=#{origin}&destination=#{destination}&waypoints=#{waypoint}&key=#{SocialFramework.google_key}"
           
           url = URI.parse("https://maps.googleapis.com/maps/api/directions/json?#{params}")
 
@@ -223,7 +223,7 @@ module SocialFramework
           origins = "#{origin.latitude},#{origin.longitude}"
           destinations = "#{destiny.latitude},#{destiny.longitude}"
 
-          params = "mode=#{mode_of_travel}&origins=#{origins}&destinations=#{destinations}&key= AIzaSyBcMn7Awv_OKT3LWvAHtkwERPNSwkNBqpM "
+          params = "mode=#{mode_of_travel}&origins=#{origins}&destinations=#{destinations}&key=#{SocialFramework.google_key}"
           
           url = URI.parse("https://maps.googleapis.com/maps/api/distancematrix/json?#{params}")
 

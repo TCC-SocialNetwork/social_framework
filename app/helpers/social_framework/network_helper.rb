@@ -102,7 +102,7 @@ module SocialFramework
           current_vertex = pair[:vertex]
           @network << current_vertex
 
-          next if pair[:depth] == @depth or current_vertex.type == SocialFramework::Event
+          next if pair[:depth] == @depth or current_vertex.type == ModelFabric.get_class(SocialFramework.event_class)
           new_depth = pair[:depth] + 1
 
           edges = get_edges(current_vertex.id, relationships)
@@ -202,16 +202,18 @@ module SocialFramework
         user = get_user user_id
         return [] if user.nil?
 
+        event_class = ModelFabric.get_class(SocialFramework.event_class)
+
         unless user_id == @root.id
           query = "social_framework_participant_events.schedule_id = ? AND " +
             "social_framework_participant_events.confirmed = ? AND " +
             "social_framework_events.particular = ?"
-          SocialFramework::Event.joins(:participant_events).where(query, user.schedule.id,
+          event_class.joins(:participant_events).where(query, user.schedule.id,
             true, false).order(start: :desc)
         else
           query = "social_framework_participant_events.schedule_id = ? AND " +
             "social_framework_participant_events.confirmed = ?"
-          SocialFramework::Event.joins(:participant_events).where(query, user.schedule.id,
+          event_class.joins(:participant_events).where(query, user.schedule.id,
             true).order(start: :desc)
         end
       end
@@ -282,9 +284,9 @@ module SocialFramework
         while not @queue.empty? and (@users_found.size + @events_found.size) < @elements_number do
           root = @queue.pop
           if compare_vertex(root, map)
-            if root.type == SocialFramework::User
+            if root.type == ModelFabric.get_class(SocialFramework.user_class)
               @users_found << root.type.find(root.id)
-            elsif root.type == SocialFramework::Event
+            elsif root.type == ModelFabric.get_class(SocialFramework.event_class)
               @events_found << root.type.find(root.id)
             end
           end
@@ -364,12 +366,12 @@ module SocialFramework
       # +map+:: +Hash+ with keys and values to compare
       # Returns Nil
       def search_in_database(map)
-        user_condictions = build_condictions(map, SocialFramework::User)
-        event_condictions = build_condictions(map, SocialFramework::Event)
+        user_condictions = build_condictions(map, ModelFabric.get_class(SocialFramework.user_class))
+        event_condictions = build_condictions(map, ModelFabric.get_class(SocialFramework.event_class))
 
         begin
           if user_condictions != "()"
-            @users_in_database ||= SocialFramework::User.where([user_condictions, map]).to_a
+            @users_in_database ||= ModelFabric.get_class(SocialFramework.user_class).where([user_condictions, map]).to_a
 
             while (@users_found.size + @events_found.size) < @elements_number and not @users_in_database.empty?
               @users_found << @users_in_database.shift
@@ -380,7 +382,7 @@ module SocialFramework
             event_condictions != "()")
             map[:particular] = false
             event_condictions += " AND particular = :particular"
-            @events_in_database ||= SocialFramework::Event.where([event_condictions, map]).to_a
+            @events_in_database ||= ModelFabric.get_class(SocialFramework.event_class).where([event_condictions, map]).to_a
 
             while (@users_found.size + @events_found.size) < @elements_number and not @events_in_database.empty?
               @events_found << @events_in_database.shift

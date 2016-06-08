@@ -67,6 +67,45 @@ module SocialFramework
   mattr_accessor :secondary_deviation
   @@secondary_deviation = {mode: "walking", deviation: 500}
 
+  # User class name
+  # Use this when extends the default User to use other classes
+  mattr_accessor :user_class
+  @@user_class = 'SocialFramework::User'
+
+  # Schedule class name
+  # Use this when extends the default Schedule to use other classes
+  mattr_accessor :schedule_class
+  @@schedule_class = 'SocialFramework::Schedule'
+
+  # Event class name
+  # Use this when extends the default Event to use other classes
+  mattr_accessor :event_class
+  @@event_class = 'SocialFramework::Event'
+
+  # Route class name
+  # Use this when extends the default Route to use other classes
+  mattr_accessor :route_class
+  @@route_class = 'SocialFramework::Route'
+
+  # Edge class name
+  # Use this when extends the default Edge to use other classes
+  mattr_accessor :edge_class
+  @@edge_class = 'SocialFramework::Edge'
+
+  # Location class name
+  # Use this when extends the default Location to use other classes
+  mattr_accessor :location_class
+  @@location_class = 'SocialFramework::Location'
+
+  # ParticipantEvent class name
+  # Use this when extends the default ParticipantEvent to use other classes
+  mattr_accessor :participant_event_class
+  @@participant_event_class = 'SocialFramework::ParticipantEvent'
+
+  # Google key to use Google Maps API, you can define a environment variable
+  mattr_accessor :google_key
+  @@google_key = ' AIzaSyBcMn7Awv_OKT3LWvAHtkwERPNSwkNBqpM '
+
   # Used to change variables in configuration
   # Retuns a block to self
   def self.setup

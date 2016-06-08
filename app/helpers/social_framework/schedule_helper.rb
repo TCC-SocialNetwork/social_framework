@@ -119,7 +119,7 @@ module SocialFramework
       # Returns Schedule graph with edges between slots and users
       def build_edges(users, start_time, finish_time)
         users.each do |user|
-          schedule = SocialFramework::Schedule.find_or_create_by(user_id: user.id)
+          schedule = ModelFabric.get_class(SocialFramework.schedule_class).find_or_create_by(user_id: user.id)
 
           events = schedule.events_in_period(start_time, finish_time)
           i = 0
