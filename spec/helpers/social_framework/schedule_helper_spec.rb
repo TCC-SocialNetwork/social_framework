@@ -4,10 +4,10 @@ require 'rails_helper'
 module SocialFramework
   RSpec.describe ScheduleHelper, type: :helper do
     before(:each) do
-      @schedule = ScheduleHelper::Graph.new
+      @schedule = ScheduleHelper::ScheduleStrategyDefault.new
     end
 
-    describe "Build graph" do
+    describe "Verify Availabilities" do
       before(:each) do
         @user1 = create(:user,username: "user1", email: "user1@mail.com")
         @user2 = create(:user,username: "user2", email: "user2@mail.com")
@@ -31,16 +31,16 @@ module SocialFramework
         start = DateTime.new(2016, 01, 01, 12, 0, 0)
         @user1.schedule.create_event "title4", start, 1.hour
 
-        @schedule.build([@user1, @user2], Date.parse("01/01/2016"), Date.parse("01/01/2016"),
-          Time.parse("08:00"), Time.parse("14:00"))
+        slots = @schedule.verify_availabilities([@user1, @user2], Date.parse("01/01/2016"),
+          Date.parse("01/01/2016"), Time.parse("08:00"), Time.parse("14:00"))
 
-        expect(@schedule.slots.count).to be(6)
-        expect(@schedule.slots[0].edges.count).to be(2)
-        expect(@schedule.slots[1].edges.count).to be(2)
-        expect(@schedule.slots[2].edges.count).to be(1)
-        expect(@schedule.slots[3].edges.count).to be(1)
-        expect(@schedule.slots[4].edges).to be_empty
-        expect(@schedule.slots[5].edges).to be_empty
+        expect(slots.count).to be(6)
+        expect(slots[0].edges.count).to be(2)
+        expect(slots[1].edges.count).to be(2)
+        expect(slots[2].edges.count).to be(1)
+        expect(slots[3].edges.count).to be(1)
+        expect(slots[4].edges).to be_empty
+        expect(slots[5].edges).to be_empty
       end
 
       it "When the events is in two days" do
@@ -50,16 +50,16 @@ module SocialFramework
         start = DateTime.new(2016, 01, 01, 22, 0, 0)
         @user2.schedule.create_event "title3", start, 4.hours
 
-        @schedule.build([@user1, @user2], Date.parse("01/01/2016"), Date.parse("02/01/2016"),
-          Time.parse("21:00"), Time.parse("03:00"))
+        slots = @schedule.verify_availabilities([@user1, @user2], Date.parse("01/01/2016"),
+          Date.parse("02/01/2016"), Time.parse("21:00"), Time.parse("03:00"))
 
-        expect(@schedule.slots.count).to be(6)
-        expect(@schedule.slots[0].edges.count).to be(2)
-        expect(@schedule.slots[1].edges.count).to be(2)
-        expect(@schedule.slots[2].edges.count).to be(1)
-        expect(@schedule.slots[3].edges.count).to be(1)
-        expect(@schedule.slots[4].edges).to be_empty
-        expect(@schedule.slots[5].edges).to be_empty
+        expect(slots.count).to be(6)
+        expect(slots[0].edges.count).to be(2)
+        expect(slots[1].edges.count).to be(2)
+        expect(slots[2].edges.count).to be(1)
+        expect(slots[3].edges.count).to be(1)
+        expect(slots[4].edges).to be_empty
+        expect(slots[5].edges).to be_empty
       end
 
       it "When the events multiple days duration" do
@@ -69,20 +69,20 @@ module SocialFramework
         start = DateTime.new(2016, 01, 01, 9, 0, 0)
         @user2.schedule.create_event "title3", start, (1.day + 2.hours)
 
-        @schedule.build([@user1, @user2], Date.parse("01/01/2016"), Date.parse("02/01/2016"))
+        slots = @schedule.verify_availabilities([@user1, @user2], Date.parse("01/01/2016"), Date.parse("02/01/2016"))
 
-        expect(@schedule.slots.count).to be(48)
+        expect(slots.count).to be(48)
 
         (0..9).each do |i|
-          expect(@schedule.slots[i].edges.count).to be(2)
+          expect(slots[i].edges.count).to be(2)
         end
 
         (10..22).each do |i|
-          expect(@schedule.slots[i].edges.count).to be(1)
+          expect(slots[i].edges.count).to be(1)
         end
 
         (23..47).each do |i|
-          expect(@schedule.slots[i].edges).to be_empty
+          expect(slots[i].edges).to be_empty
         end
       end
 
@@ -93,16 +93,16 @@ module SocialFramework
         hash = {}
         hash[@user1] = 3
         hash[@user2] = 8
-        @schedule.build(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+        slots = @schedule.verify_availabilities(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
           Time.parse("08:00"), Time.parse("11:00"))
 
-        expect(@schedule.slots.count).to be(3)
-        expect(@schedule.slots[0].edges.count).to be(2)
-        expect(@schedule.slots[0].attributes[:gained_weight]).to be(11)
-        expect(@schedule.slots[1].edges.count).to be(1)
-        expect(@schedule.slots[1].attributes[:gained_weight]).to be(8)
-        expect(@schedule.slots[2].edges.count).to be(1)
-        expect(@schedule.slots[2].attributes[:gained_weight]).to be(3)
+        expect(slots.count).to be(3)
+        expect(slots[0].edges.count).to be(2)
+        expect(slots[0].attributes[:gained_weight]).to be(11)
+        expect(slots[1].edges.count).to be(1)
+        expect(slots[1].attributes[:gained_weight]).to be(8)
+        expect(slots[2].edges.count).to be(1)
+        expect(slots[2].attributes[:gained_weight]).to be(3)
       end
 
       it "When exist fixed users" do
@@ -112,7 +112,7 @@ module SocialFramework
         hash = Hash[[@user1, @user2].map {|k| [k, nil]}]
         hash[@user1] = :fixed
 
-        @schedule.build(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+        slots = @schedule.verify_availabilities(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
           Time.parse("08:00"), Time.parse("11:00"))
 
         fixed_users = @schedule.instance_variable_get :@fixed_users
@@ -120,8 +120,8 @@ module SocialFramework
 
         expect(fixed_users.count).to be(1)
         expect(users.count).to be(1)
-        expect(@schedule.slots.count).to be(1)
-        expect(@schedule.slots.first.edges.count).to be(2)
+        expect(slots.count).to be(1)
+        expect(slots.first.edges.count).to be(2)
       end
 
       it "When is not possible group the fixed users" do
@@ -132,7 +132,7 @@ module SocialFramework
         @user2.schedule.create_event "title1", start, 1.hours
 
         hash = Hash[[@user1, @user2].map {|k| [k, :fixed]}]
-        @schedule.build(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+        slots = @schedule.verify_availabilities(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
           Time.parse("08:00"), Time.parse("11:00"))
 
         fixed_users = @schedule.instance_variable_get :@fixed_users
@@ -140,7 +140,7 @@ module SocialFramework
 
         expect(fixed_users.count).to be(2)
         expect(users).to be_empty
-        expect(@schedule.slots).to be_empty
+        expect(slots).to be_empty
       end
 
       it "When exist multiple users fixed" do
@@ -160,7 +160,7 @@ module SocialFramework
         hash[@user3] = 5
         hash[@user4] = 8
 
-        @schedule.build(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+        slots = @schedule.verify_availabilities(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
           Time.parse("08:00"), Time.parse("12:00"))
 
         fixed_users = @schedule.instance_variable_get :@fixed_users
@@ -168,9 +168,9 @@ module SocialFramework
 
         expect(fixed_users.count).to be(2)
         expect(users.count).to be(2)
-        expect(@schedule.slots.count).to be(2)
-        expect(@schedule.slots.first.attributes[:gained_weight]).to be(8)
-        expect(@schedule.slots.last.attributes[:gained_weight]).to be(5)
+        expect(slots.count).to be(2)
+        expect(slots.first.attributes[:gained_weight]).to be(8)
+        expect(slots.last.attributes[:gained_weight]).to be(5)
       end
 
       it "When users weight is bigger than fixed users" do
@@ -186,7 +186,7 @@ module SocialFramework
         hash = Hash[[@user2, @user3].map {|k| [k, nil]}]
         hash[@user1] = :fixed
 
-        @schedule.build(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
+        slots = @schedule.verify_availabilities(hash, Date.parse("01/01/2016"), Date.parse("01/01/2016"),
           Time.parse("08:00"), Time.parse("12:00"))
 
         fixed_users = @schedule.instance_variable_get :@fixed_users
@@ -194,8 +194,8 @@ module SocialFramework
 
         expect(fixed_users.count).to be(1)
         expect(users.count).to be(2)
-        expect(@schedule.slots.count).to be(1)
-        expect(@schedule.slots.first.attributes[:gained_weight]).to be(0)
+        expect(slots.count).to be(1)
+        expect(slots.first.attributes[:gained_weight]).to be(0)
       end
     end
 
@@ -208,10 +208,12 @@ module SocialFramework
       it "When slots is in one day" do
         @schedule.instance_variable_set :@slots_size, 1.hour
         @schedule.send(:build_slots, @start, @finish, Time.parse("08:00"), Time.parse("11:00"))
-        expect(@schedule.slots.count).to be(3)
-        expect(@schedule.slots[0].id).to eq(DateTime.new(2016, 01, 01, 8, 0, 0))
-        expect(@schedule.slots[1].id).to eq(DateTime.new(2016, 01, 01, 9, 0, 0))
-        expect(@schedule.slots[2].id).to eq(DateTime.new(2016, 01, 01, 10, 0, 0))
+        slots = @schedule.instance_variable_get :@slots
+
+        expect(slots.count).to be(3)
+        expect(slots[0].id).to eq(DateTime.new(2016, 01, 01, 8, 0, 0))
+        expect(slots[1].id).to eq(DateTime.new(2016, 01, 01, 9, 0, 0))
+        expect(slots[2].id).to eq(DateTime.new(2016, 01, 01, 10, 0, 0))
       end
     end
 
@@ -369,6 +371,43 @@ module SocialFramework
         expect(users.first.attributes[:weight]).to be(5)
 
         expect(fixed_users.count).to be(1)
+      end
+    end
+
+    describe "Using ScheduleContext" do
+      before(:each) do
+        @context = SocialFramework::ScheduleHelper::ScheduleContext.new SocialFramework::ScheduleHelper::ScheduleStrategyDefault
+        
+        @user1 = create(:user,username: "user1", email: "user1@mail.com")
+        @user2 = create(:user,username: "user2", email: "user2@mail.com")
+      end
+
+      it "When using default params" do
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        @user1.schedule.create_event "title2", start, 1.hour
+
+        start = DateTime.new(2016, 01, 01, 8, 0, 0)
+        @user2.schedule.create_event "title2", start, 2.hours
+
+        start = DateTime.new(2016, 01, 01, 9, 0, 0)
+        @user1.schedule.create_event "title3", start, 1.hour
+
+        start = DateTime.new(2016, 01, 01, 10, 0, 0)
+        @user1.schedule.create_event "title3", start, 1.hour
+
+        start = DateTime.new(2016, 01, 01, 12, 0, 0)
+        @user1.schedule.create_event "title4", start, 1.hour
+
+        slots = @schedule.verify_availabilities([@user1, @user2], Date.parse("01/01/2016"),
+          Date.parse("01/01/2016"), Time.parse("08:00"), Time.parse("14:00"))
+
+        expect(slots.count).to be(6)
+        expect(slots[0].edges.count).to be(2)
+        expect(slots[1].edges.count).to be(2)
+        expect(slots[2].edges.count).to be(1)
+        expect(slots[3].edges.count).to be(1)
+        expect(slots[4].edges).to be_empty
+        expect(slots[5].edges).to be_empty
       end
     end
   end

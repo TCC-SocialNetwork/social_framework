@@ -3,26 +3,49 @@ module SocialFramework
   module ScheduleHelper
     autoload :GraphElements, 'graph_elements'
 
-    # Represent the schedule on a Graph, with Vertices and Edges
-    class Graph
-      # Array of slots
-      attr_accessor :slots
-
+    # Define a Abstract Class to build slots to schedule
+    class ScheduleStrategy
       # Init the slots and users in Array
       # ====== Params:
+      # +elements_factory+:: +String+ Represent the factory class name to build
       # +max_duration+:: +ActiveSupport::Duration+ used to define max finish day to build graph
       # Returns Graph's Instance
       def initialize(elements_factory = ElementsFactoryDefault,
         max_duration = SocialFramework.max_duration_to_schedule_graph)
-      
         @elements_factory = elements_factory.new
         @slots = Array.new
-        @users = Array.new
-        @fixed_users = Array.new
         @max_duration = max_duration
       end
 
+      # Build slots to verify availabilities
+      # ====== Params:
+      # +users+:: +Array+ users to check disponibility
+      # +start_day+:: +Date+ start day to get slots
+      # +finish_day+:: +Date+ finish day to get slots
+      # +start_hour+:: +Time+ start hour at each day to get slots
+      # +finish_hour+:: +Time+ finish hour at each day to get slots
+      # +slots_size+:: +Integer+ slots size duration
+      # Returns NotImplementedError
+      def verify_availabilities(users, start_day, finish_day, start_hour, finish_hour, slots_size)
+        raise 'Must implement method in subclass'
+      end
+    end
+
+    # Represent the schedule on a Graph, with Vertices and Edges
+    class ScheduleStrategyDefault < ScheduleStrategy
       # Init the slots and users in Array
+      # ====== Params:
+      # +elements_factory+:: +String+ Represent the factory class name to build
+      # +max_duration+:: +ActiveSupport::Duration+ used to define max finish day to build graph
+      # Returns Graph's Instance
+      def initialize(elements_factory = ElementsFactoryDefault,
+        max_duration = SocialFramework.max_duration_to_schedule_graph)
+        super
+        @users = Array.new
+        @fixed_users = Array.new
+      end
+
+      # Build slots to verify availabilities
       # ====== Params:
       # +users+:: +Array+ users to check disponibility
       # +start_day+:: +Date+ start day to get slots
@@ -31,7 +54,9 @@ module SocialFramework
       # +finish_hour+:: +Time+ finish hour at each day to get slots
       # +slots_size+:: +Integer+ slots size duration
       # Returns The Graph mounted
-      def build(users, start_day, finish_day, start_hour = Time.parse("00:00"), finish_hour = Time.parse("23:59"), slots_size = SocialFramework.slots_size)
+      def verify_availabilities(users, start_day, finish_day, start_hour = Time.parse("00:00"),
+        finish_hour = Time.parse("23:59"), slots_size = SocialFramework.slots_size)
+
         return unless finish_day_ok? start_day, finish_day
 
         @slots_size = slots_size
@@ -152,6 +177,21 @@ module SocialFramework
           array = (weight == :fixed ? @fixed_users : @users)
           array << vertex
         end
+      end
+    end
+
+    # Used to define the ScheduleStrategy class
+    class ScheduleContext
+      # Initialize the ScheduleStraty class
+      def initialize schedule_strategy
+        @strategy = schedule_strategy.new
+      end
+
+      # Build slots to verify availabilities
+      def verify_availabilities(users, start_day, finish_day, start_hour = Time.parse("00:00"),
+        finish_hour = Time.parse("23:59"), slots_size = SocialFramework.slots_size)
+
+        @strategy.verify_availabilities(users, start_day, finish_day, start_hour, finish_hour, slots_size)
       end
     end
   end
