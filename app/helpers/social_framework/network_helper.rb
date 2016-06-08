@@ -5,8 +5,8 @@ module SocialFramework
   module NetworkHelper
     autoload :GraphElements, 'graph_elements'
 
-    # Represent the network on a Graph, with Vertices and Edges
-    class Graph
+    # Define a Abstract Class to Network Graph
+    class GraphStrategy
       # Array of verteces
       attr_accessor :network
       # Maximum depth graph
@@ -21,11 +21,11 @@ module SocialFramework
       # +id+:: +Integer+ Id of the user logged
       # +elements_factory+:: +String+ Represent the factory class name to build
       # Returns Graph object
-      def self.get_instance(id, elements_factory = ElementsFactoryDefault)
+      def self.get_instance(id, elements_factory)
         @@instances ||= {}
         
         if @@instances[id].nil?
-          @@instances[id] = Graph.new elements_factory
+          @@instances[id] = GraphStrategyDefault.new elements_factory
         end
 
         return @@instances[id]
@@ -39,6 +39,50 @@ module SocialFramework
         @@instances.delete(id)
       end
 
+      # Mount a graph from an user
+      # ====== Params:
+      # +root+:: +User+ Root user to mount graph
+      # +attributes+:: +Array+ Attributes will be added in vertex
+      # +relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String, default is "all" thats represents all relationships existing
+      # Returns NotImplementedError
+      def build(root, attributes, relationships)
+        raise 'Must implement method in subclass'
+      end
+
+      # Search users with values specified in a map
+      # ====== Params:
+      # +map+:: +Hash+ with keys and values to compare
+      # +search_in_progress+:: +Boolean+ to continue if true or start a new search
+      # +elements_number+:: +Integer+ to limit max search result
+      # Returns NotImplementedError
+      def search(map, search_in_progress, elements_number)
+        raise 'Must implement method in subclass'
+      end
+
+      # Suggest relationships to root
+      # ====== Params:
+      # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
+      # +amount_relationships+:: +Integer+ quantity of relationships to suggest a new relationship
+      # Returns NotImplementedError
+      def suggest_relationships(type_relationships, amount_relationships)
+        raise 'Must implement method in subclass'
+      end
+
+      protected
+
+      # Init the network in Array
+      # ====== Params:
+      # +elements_factory+:: +String+ Represent the factory class name to build
+      # Returns Graph's Instance
+      def initialize elements_factory
+        @elements_factory = elements_factory.new
+        @network = Array.new
+        @depth = SocialFramework.depth_to_build
+      end
+    end
+
+    # Represent the network on a Graph, with Vertices and Edges
+    class GraphStrategyDefault < GraphStrategy
       # Mount a graph from an user
       # ====== Params:
       # +root+:: +User+ Root user to mount graph
@@ -130,16 +174,6 @@ module SocialFramework
       end
 
       protected
-
-      # Init the network in Array
-      # ====== Params:
-      # +elements_factory+:: +String+ Represent the factory class name to build
-      # Returns Graph's Instance
-      def initialize elements_factory
-        @elements_factory = elements_factory.new
-        @network = Array.new
-        @depth = SocialFramework.depth_to_build
-      end
 
       # Select all user's edges with the relationships required
       # ====== Params:
@@ -376,6 +410,47 @@ module SocialFramework
         end
 
         return (condictions + ")")
+      end
+    end
+
+    # Used to define the GraphStrategy class
+    class GraphContext
+
+      attr_accessor :graph
+
+      # Initialize the GraphStrategy class
+      def initialize id, graph_strategy = GraphStrategyDefault, elements_factory = ElementsFactoryDefault
+        @graph = graph_strategy.get_instance id, elements_factory
+      end
+
+      # Mount a graph from an user
+      # ====== Params:
+      # +root+:: +User+ Root user to mount graph
+      # +attributes+:: +Array+ Attributes will be added in vertex
+      # +relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String, default is "all" thats represents all relationships existing
+      # Returns The graph mounted
+      def build(root, attributes = SocialFramework.attributes_to_build_graph, relationships = "all")
+        @graph.build(root, attributes, relationships)
+      end
+
+      # Search users with values specified in a map
+      # ====== Params:
+      # +map+:: +Hash+ with keys and values to compare
+      # +search_in_progress+:: +Boolean+ to continue if true or start a new search
+      # +elements_number+:: +Integer+ to limit max search result
+      # Returns Set with users found
+      def search(map, search_in_progress = false, elements_number = SocialFramework.elements_number_to_search)
+        @graph.search(map, search_in_progress, elements_number)
+      end
+
+      # Suggest relationships to root
+      # ====== Params:
+      # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
+      # +amount_relationships+:: +Integer+ quantity of relationships to suggest a new relationship
+      # Returns +Array+ with the vertices to suggestions
+      def suggest_relationships(type_relationships = SocialFramework.relationship_type_to_suggest,
+        amount_relationships = SocialFramework.amount_relationship_to_suggest)
+        @graph.suggest_relationships(type_relationships, amount_relationships)
       end
     end
   end

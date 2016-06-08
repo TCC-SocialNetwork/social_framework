@@ -35,7 +35,7 @@ module SocialFramework
       @user6.create_relationship @user8, "r1", true, true
       @user6.create_relationship @user9, "r1", true, true
 
-      @graph = NetworkHelper::Graph.get_instance @user1.id
+      @graph = NetworkHelper::GraphStrategyDefault.get_instance @user1.id, ElementsFactoryDefault
       @graph.instance_variable_set :@root, @user1
       @graph.network = Array.new
     end
@@ -294,7 +294,7 @@ module SocialFramework
       end
 
       it "With user6 as root" do
-        @graph = NetworkHelper::Graph.get_instance @user6.id
+        @graph = NetworkHelper::GraphStrategyDefault.get_instance @user6.id, ElementsFactoryDefault
         @graph.instance_variable_set :@root, @user6
         @graph.build @user6
 
@@ -713,6 +713,49 @@ module SocialFramework
         result = @graph.send(:build_condictions, {}, SocialFramework::User)
 
         expect(result).to eq("()")
+      end
+    end
+
+    describe "Using GraphContext" do
+      before(:each) do
+        @context = NetworkHelper::GraphContext.new @user1.id
+      end
+
+      it "Build Graph When use default depth" do
+        @context.build @user1
+
+        expect(@context.graph.network.count).to be(8)
+
+        expect(@context.graph.network.select { |v| v.id == @user1.id }.first.edges.count).to be(5)
+        expect(@context.graph.network.select { |v| v.id == @user2.id }.first.edges.count).to be(3)
+        expect(@context.graph.network.select { |v| v.id == @user3.id }.first.edges.count).to be(2)
+        expect(@context.graph.network.select { |v| v.id == @user4.id }.first.edges.count).to be(5)
+        expect(@context.graph.network.select { |v| v.id == @user5.id }.first.edges.count).to be(3)
+        expect(@context.graph.network.select { |v| v.id == @user6.id }.first.edges.count).to be(3)
+        expect(@context.graph.network.select { |v| v.id == @user7.id }.first.edges.count).to be(3)
+        expect(@context.graph.network.select { |v| v.id == @user8.id }.first.edges.count).to be(2)
+
+        labels = ["r1", "r2"]
+        intersection = @context.graph.network.first.edges.first.labels & labels
+        expect(intersection.count).to be(labels.count)
+      end
+
+      it "Search Vertices When vertex exist" do
+        @context.build @user1
+
+        map = {id: @user1.id}
+        result = @context.search map
+        
+        expect(result[:users].count).to be(1)
+        expect(result[:events].count).to be(0)
+      end
+
+      it "Suggest Relationships With correct relationship and three common relationships" do
+        @context.build @user1
+        result = @context.suggest_relationships "r1", 3
+
+        expect(result.count).to be(1)
+        expect(result.first.id).to be(@user6.id)
       end
     end
   end

@@ -136,14 +136,14 @@ module SocialFramework
 
     # Get my intance graph
     # Returns Graph instance
-    def graph
-      graph = NetworkHelper::Graph.get_instance(id)
+    def graph(graph_strategy = NetworkHelper::GraphStrategyDefault, elements_factory = ElementsFactoryDefault)
+      graph_context = NetworkHelper::GraphContext.new(self.id, graph_strategy, elements_factory)
 
-      if graph.network.empty?
-        graph.build(self)
+      if graph_context.graph.network.empty?
+        graph_context.graph.build(self)
       end
 
-      return graph
+      return graph_context.graph
     end
 
     # Create user schedule if not exists

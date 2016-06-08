@@ -303,7 +303,7 @@ module SocialFramework
     class RouteContext
 
       # Initialize the RouteStrategy class
-      def initialize route_strategy
+      def initialize route_strategy = RouteStrategyDefault
         @route = route_strategy.new
       end
 

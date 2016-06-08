@@ -10,8 +10,7 @@ module SocialFramework
       # +elements_factory+:: +String+ Represent the factory class name to build
       # +max_duration+:: +ActiveSupport::Duration+ used to define max finish day to build graph
       # Returns Graph's Instance
-      def initialize(elements_factory = ElementsFactoryDefault,
-        max_duration = SocialFramework.max_duration_to_schedule_graph)
+      def initialize(elements_factory, max_duration)
         @elements_factory = elements_factory.new
         @slots = Array.new
         @max_duration = max_duration
@@ -183,8 +182,9 @@ module SocialFramework
     # Used to define the ScheduleStrategy class
     class ScheduleContext
       # Initialize the ScheduleStrategy class
-      def initialize schedule_strategy
-        @strategy = schedule_strategy.new
+      def initialize(schedule_strategy = ScheduleStrategyDefault, elements_factory = ElementsFactoryDefault,
+        max_duration = SocialFramework.max_duration_to_schedule_graph)
+        @strategy = schedule_strategy.new(elements_factory, max_duration)
       end
 
       # Build slots to verify availabilities
