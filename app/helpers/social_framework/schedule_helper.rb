@@ -49,7 +49,7 @@ module SocialFramework
         @slots.sort_by! { |slot| -slot.attributes[:gained_weight] }
       end
 
-      private
+      protected
 
       # Verify if finish day is between start day and max duration
       # ====== Params:

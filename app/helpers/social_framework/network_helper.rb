@@ -82,7 +82,7 @@ module SocialFramework
       # +elements_number+:: +Integer+ to limit max search result
       # Returns Set with users found
       def search(map, search_in_progress = false, elements_number = SocialFramework.elements_number_to_search)
-        return @users_found if @finished_search and search_in_progress == true
+        return {users: @users_found, events: @events_found} if @finished_search and search_in_progress == true
 
         unless search_in_progress
           clean_vertices

@@ -46,7 +46,7 @@ module SocialFramework
         return result
       end
 
-      private
+      protected
 
       # Verify the the condiction to the secondary route
       # ====== Params:
