@@ -16,7 +16,7 @@
 
 > SocialFramework is divided into three modules, which are: Users, Routes and Schedulers.
 In Users module the principal resources to users are provided, like authentication, register, relationships and searchs.
-In Routes the Framework provides resources to define routes to users in different situations and provides ways to work this.
+In Routes module the Framework provides resources to check the compatibility routes.
 And in Schedulers, provides resources to define schedules to users and attempts to relate this schedules.
 
 > Therefore, the SocialFramework can help build general or specifics social networks in a way faster and practical and without not worry with recurring problems in this type of system.
@@ -30,8 +30,7 @@ And in Schedulers, provides resources to define schedules to users and attempts 
 gem 'social_framework'
 ```
 
-> The path described above should be changed to the path you did the clone.
-After adding gem in your Gemfile, intall it with the command:
+> After adding the gem in your Gemfile, intall it with the command:
 
 ```console
 bundle install
@@ -43,10 +42,10 @@ bundle install
 # Getting started
 
 > The SocialFramework is based on Devise, which is a flexible authentication solution for Rails. For a full documentation to Devise see: https://github.com/plataformatec/devise.
-The User class already is implemented in SocialFramework and some changes have been applied, like adding username attribute and the behaviors to relationships betweens users.
+The User class already is implemented in SocialFramework and some changes have been applied, like adding username attribute and the behaviors to relationships between users.
 The controllers and views of the Devise also has been changed to add new features.
 
-> Initially, some files should be added to app. These files represent the settings to SocialFramework and Devise with initializers, the i18n file to Devise, the routes and the views registrations and sessions to create and authenticate users.
+> Initially, some files should be added to app. These files represent the settings to SocialFramework and Devise as initializers, the i18n file to Devise, the routes and the views registrations and sessions to create and authenticate users.
 To this you should execute:
 
 ```console
@@ -274,10 +273,10 @@ The Graph can be accessed from the method 'graph' present in User class.
 In sign_in action the Graph is built with the User logged like root. The Graph is built until the depth specified in initializer 'social_framework.rb' in variable 'depth_to_build', the value default is three. The following is the method signature to build graph.
 
 ```ruby
-build(root, attributes = [:username, :email], relationships = "all")
+build(root, attributes = [:username, :email, :title], relationships = "all")
 ```
 
-> The attributes are user attributes thats will be mapped to vertices, for default contains 'username' and 'email', the attribute 'id' already is passed mandatorily. Relationships are the type of relationships to build the Graph, should be a string or an array, "all" is to build Graph with any relationships. In sign_in action the Graph is built with attributes 'username' and 'email', beyond 'id'.
+> The attributes are user and event attributes thats will be mapped to vertices, for default contains 'username', 'email' and 'title', the attribute 'id' already is passed mandatorily. Relationships are the type of relationships to build the Graph, should be a string or an array, "all" is to build Graph with any relationships. In sign_in action the Graph is built with attributes 'username', 'email' and 'title', beyond 'id'.
 
 > With the Graph built it's possible suggest relationships. To this it's analyzed the third level in graph finding common relationships with type specified in initializer 'social_framework.rb' in variable 'relationship_type_to_suggest', the value default is 'friend', the variable 'amount_relationship_to_suggest' specifies the value to use to suggest relationships, the default value is five. The following is the method signature.
 
@@ -294,14 +293,14 @@ suggest_relationships(type_relationships = SocialFramework.relationship_type_to_
 search(map, search_in_progress = false, elements_number = SocialFramework.elements_number_to_search)
 ```
 
-> It's passed a map to be used in search, this map represent keys and values to compare vertices, for example, the map '{username: 'user', email: 'user'}' will cause an search with any vertice thats contains the string 'user' in username or email.
-The param 'search_in_progress' is used to continue a search finding more results, to do this pass true. And, the param 'elements_number' define the quantity of users to return, this value is specified in initializer 'social_framework.rb' in variable 'elements_number_to_search', the value default is five.
+> It's passed a map to be used in search, this map represent keys and values to compare vertices, for example, the map '{username: 'user', email: 'user', title: 'event'}' will cause an search with any vertice thats contains the string 'user' in username or email or thats contains the string 'event' in title.
+The param 'search_in_progress' is used to continue a search finding more results, to do this pass true. And, the param 'elements_number' define the quantity of results to return, this value is specified in initializer 'social_framework.rb' in variable 'elements_number_to_search', the value default is five.
 
 > An example to continue searchs is shown below. For default, when you continue a search the 'elements_number' param is used to increase the maximum size to results found.
-In this case the first call returns the first five users found in graph, the second call returns more ten users and the final array has size fifteen.
+In this case the first call returns the first five elements found in graph, the second call returns more ten elements and the final size is fifteen. The return is a hash with two keys, the first is 'users' and its value is found array of users and the second is 'events' and its value is an array of events found.
 
 ```ruby
-map = {username: 'user', email: 'user'}
+map = {username: 'user', email: 'user', title: 'event'}
 graph.search(map)
 graph.search(map, true, 10)
 ```
@@ -309,14 +308,14 @@ graph.search(map, true, 10)
 > You can change the default behavior to continue searchs passing a block to method, this block will indicate how the 'elements_number' must be increased. For example:
 
 ```ruby
-map = {username: 'user', email: 'user'}
+map = {username: 'user', email: 'user', title: 'event'}
 graph.search(map, false, 1)
 graph.search(map, true) { |elements_number| elements_number *= 2 }
 ```
 
-> In that case the 'elements_number' will double every call search method with this block. Therefore, the first call returns one user due to the value passed, the second two, the third four, and so on.
+> In that case the 'elements_number' will double every call search method with this block. Therefore, the first call returns one element due to the value passed, the second two, the third four, and so on.
 
-> When the search reaches the end of the Graph and not yet found all required users an search in database is done to complete the array.
+> When the search reaches the end of the Graph and not yet found all required elements an search in database is done to complete the hash.
 
 ----
 ## Schedules Module
