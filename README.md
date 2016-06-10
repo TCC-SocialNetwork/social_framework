@@ -320,7 +320,7 @@ graph.search(map, true) { |elements_number| elements_number *= 2 }
 
 > This module provides the logic to work with the schedule of social network users, how to create, enter, invite, confirm, exit and remove events.
 
-> The struct of relationships was built as follow: An Schedule belongs to a user and have a many to many association with Event through a Participant_Event, which has a confirmed attribute indicating whether the user has confirmed the event or is pending. Beyond an event be able to be present in various schedules, an event have a title, a description, a date and start time, a date and finish time, can or can not have an associated route and if the evente is particular an another user will only be able participate in the event if it is invited, if not particular any user can enter the event.
+> The struct of relationships was built as follow: An Schedule belongs to a user and have a many to many association with Event through a Participant_Event, which has a confirmed attribute indicating whether the user has confirmed the event or is pending. Beyond an event be able to be present in various schedules, an event have a title, a description, a date and start time, a date and finish time, can or can not have an associated route and if the event is particular an another user will only be able participate in the event if it is invited, if not particular any user can enter the event.
 
 > To create a new event uses the method 'create_event', defined in Schedule Class. The following is the method signature.
 
@@ -378,7 +378,7 @@ invite(inviting, guest, relationship = SocialFramework.relationship_type_to_invi
 
 > It is necessary to pass as a parameter the user inviting and the user guest, if not passed the type of the relationship between the users will be used the type defined in the configuration file. To invite an user to an event the inviting should be confirmed in event, have the permition to 'invite' and have the guest into your circle of relationships with the specificed type of relationship, should use the type 'all' to any type of relationship.
 
-> To change the role of a participant in an event should invoke the method 'change_participant_role', defined in Schedule Class. The following is the method signature.
+> To change the role of a participant in an event should invoke the method 'change_participant_role', defined in Schedule Class. The following is the method signature:
 
 ```ruby
 change_participant_role(maker, participant, action)
@@ -394,7 +394,7 @@ remove_participant(remover, participant)
 
 > It is necessary to pass as a parameter the remover will remove an user and the participant will be removed from the event. To the removal is performed successfully the remover must have permission to execute the action.
 
-> To add a route in an event should invoke the method 'add_route', defined in Schedule Class. The following is the method signature.
+> To add a route in an event should invoke the method 'add_route', defined in Event Class. The following is the method signature.
 
 ```ruby
 add_route(user, route)
