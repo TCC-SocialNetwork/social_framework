@@ -90,6 +90,19 @@ module SocialFramework
       end
     end
 
+    # Get all users confirmed or not in event
+    # ====== Params:
+    # +confirmed+:: +Boolean+ specify if users are confirmed or no
+    # Event users
+    def users confirmed = true
+      result = Array.new
+      participant_events.each do |participant|
+        result << participant.schedule.user if participant.confirmed == confirmed
+      end
+
+      return result
+    end
+
     protected
 
     # Verify if exist permission
@@ -123,17 +136,6 @@ module SocialFramework
       users.each do |user|
         self.route.users << user unless self.route.users.include? user
       end
-    end
-
-    # Get all users confirmed in event
-    # Confirmed event users
-    def users
-      result = Array.new
-      participant_events.each do |participant|
-        result << participant.schedule.user if participant.confirmed
-      end
-
-      return result
     end
 
     # Build ParticipantEvent class defined

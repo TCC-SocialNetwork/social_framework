@@ -481,7 +481,7 @@ module SocialFramework
       end
     end
 
-    describe "Get users confirmed" do
+    describe "Get users" do
       before(:each) do
         @user1.create_relationship @user2, "r1", true, true
         @user1.create_relationship @user3, "r1", true, true
@@ -491,16 +491,22 @@ module SocialFramework
       end
 
       it "When exist users not confirmed in event" do
-        result = @event.send(:users)
+        result = @event.users
         expect(result.count).to be(1)
+
+        result = @event.users false
+        expect(result.count).to be(2)
       end
 
-      it "When not exist users not confirmed in event" do
+      it "When all users confirmed in event" do
         @user2.schedule.confirm_event(@event)
         @user3.schedule.confirm_event(@event)
 
-        result = @event.send(:users)
+        result = @event.users
         expect(result.count).to be(3)
+
+        result = @event.users false
+        expect(result).to be_empty
       end
     end
 

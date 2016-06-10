@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    social_framework (0.0.2)
+    social_framework (0.0.3)
       devise (~> 3.5)
       rails (~> 4.2)
 
