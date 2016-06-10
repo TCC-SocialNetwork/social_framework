@@ -508,6 +508,14 @@ module SocialFramework
         result = @event.users false
         expect(result).to be_empty
       end
+
+      it "When get just creator" do
+        @user2.schedule.confirm_event(@event)
+        @user3.schedule.confirm_event(@event)
+
+        result = @event.users(true, "creator")
+        expect(result.count).to be(1)
+      end
     end
 
     describe "Add route" do

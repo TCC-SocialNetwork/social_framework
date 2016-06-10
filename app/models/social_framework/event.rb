@@ -12,8 +12,8 @@ module SocialFramework
     # +relationship+:: +String+ relationships types to find users, default is all to consider any relationship, can be an Array too with multiple relationships types
     # Returns nil if inviting has not :invite permission or isn't in event or the new ParticipantEvent created
   	def invite inviting, guest, relationship = SocialFramework.relationship_type_to_invite
-  		participant_event = participant_event_class.find_by_event_id_and_schedule_id_and_confirmed(
-        self.id, inviting.schedule.id, true)
+  		participant_event = participant_event_class.find_by_event_id_and_schedule_id(
+        self.id, inviting.schedule.id)
 
   		return if participant_event.nil?
 
@@ -94,10 +94,12 @@ module SocialFramework
     # ====== Params:
     # +confirmed+:: +Boolean+ specify if users are confirmed or no
     # Event users
-    def users confirmed = true
+    def users confirmed = true, role = "all"
       result = Array.new
       participant_events.each do |participant|
-        result << participant.schedule.user if participant.confirmed == confirmed
+        if (participant.confirmed == confirmed and (participant.role == role or role == "all"))
+          result << participant.schedule.user
+        end
       end
 
       return result
@@ -123,7 +125,7 @@ module SocialFramework
     # +action+:: +String+ remove or make to remove or change role
     # Returns true if has permission or false if no
     def execute_action? permission, requester, participant, action
-      permission = has_permission?(permission, requester)
+      permission = has_permission?(permission.to_sym, requester)
       return (permission and (participant.confirmed or action == "remove") and
         participant.role != "creator")
     end
