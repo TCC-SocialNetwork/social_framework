@@ -146,7 +146,7 @@ devise_for :users, class_name: 'OtherUserClass',
 ## Configuring Migrations
 
 > The User class provides the default attributes username, email and password.
-To add or remove attributes to this or any other class you can add the Migrate in yor app.
+To add or remove attributes to this or any other class you can add the Migrate in your app.
 The SocialFramework provides a generator to do this, in this case you just need execute:
 
 ```console
@@ -193,7 +193,7 @@ All Devise controllers in SocialFramework have prefix Users.
 ## Configuring Routes
 
 > When you override some Devise controller you must be define that new controller in your routes.
-This can be done changing path to controller in deviser_for, like this:
+This can be done changing path to controller in devise_for, like this:
 
 ```ruby
 devise_for :users, class_name: 'SocialFramework::User',
@@ -202,7 +202,7 @@ devise_for :users, class_name: 'SocialFramework::User',
                 passwords: 'users/passwords'}
 ```
 
-> To registrations controller was replaced with a new controller and that controller was added in routes.
+> The registrations controller was replaced with a new controller and that controller was added in routes.
 
 ----
 # Configuring Views
@@ -212,8 +212,6 @@ devise_for :users, class_name: 'SocialFramework::User',
 ```console
 rails generate social_framework:views
 ```
-
-> This command will add all views to your app.
 
 > To add specific views you can use '-v' parameter and pass the views names, like this:
 
@@ -228,12 +226,12 @@ Initially the SocialFramework add views registrations and sessions to your app p
 ----
 # SocialFramework's Modules
 
-> Currently the SocialFramework has one module to Users and Relationships, this module provides authentication, resgistrations, relationships between users and searchs in network mounted.
+> Currently the SocialFramework has modules Users, Schedules and Routes.
 
 ----
 ## Users Module
 
-> This module provides the principal logic to social networks, like create, confirm and remove relationships between users, beyond searchs, registers, updates and athentications.
+> This module provides the principal logic to social networks, like create, confirm and remove relationships between users, beyond searchs, registers, updates and authentications.
 
 > The relationships structure was built with a many to many association between Users through Edges. The Edges has user origin, user destiny, status can be active or inactive, if is bidirectional or not to specify relationships like two-way or one-way and label with the relationship name.
 May be exists multiple relationships between the same users. Each relationship is represent with an Edge.
@@ -276,7 +274,7 @@ In sign_in action the Graph is built with the User logged like root. The Graph i
 build(root, attributes = [:username, :email, :title], relationships = "all")
 ```
 
-> The attributes are user and event attributes thats will be mapped to vertices, for default contains 'username', 'email' and 'title', the attribute 'id' already is passed mandatorily. Relationships are the type of relationships to build the Graph, should be a string or an array, "all" is to build Graph with any relationships. In sign_in action the Graph is built with attributes 'username', 'email' and 'title', beyond 'id'.
+> The parameter root is a User that will be the root of graph, the attributes are user and event attributes thats will be mapped to vertices, for default contains 'username', 'email' and 'title'. Relationships are the type of relationships to build the Graph, should be a string or an array, "all" is to build Graph with any relationships. In sign_in action the Graph is built with attributes 'username', 'email' and 'title', beyond 'id'.
 
 > With the Graph built it's possible suggest relationships. To this it's analyzed the third level in graph finding common relationships with type specified in initializer 'social_framework.rb' in variable 'relationship_type_to_suggest', the value default is 'friend', the variable 'amount_relationship_to_suggest' specifies the value to use to suggest relationships, the default value is five. The following is the method signature.
 
