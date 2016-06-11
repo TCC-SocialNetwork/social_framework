@@ -27,6 +27,16 @@ module SocialFramework
 
         expect(response).to have_http_status(302)
       end
+
+      it "Logout" do
+        user = create(:user)
+        request.env["devise.mapping"] = Devise.mappings[:user]
+        post :create, user: {
+          login: "user@email.com", password: "password"
+        }
+        delete :destroy
+        expect(response).to have_http_status(302)
+      end
     end
   end
 end
