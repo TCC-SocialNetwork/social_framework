@@ -402,7 +402,15 @@ add_route(user, route)
 
 > It is necessary to pass as a parameter the user will add a route in an event and the route will be added. To the addition is performed successfully the user must have permission to ':add_route'.
 
-> The Schedules Module uses a graph to provide slotes time ordered considering the greater amount of weight slotes. This functionality is present in the 'ScheduleHelper', which includes the Vertex and Edge classes and implements the Graph class.
+> To see all users in event confirmed or no it's necessarily call the method 'users' in event class, with the following signature:
+
+```ruby
+users(confirmed = true, role = "all")
+```
+
+> The param 'confirmed' is used to specify is users returned are confirmed in event or no. The param 'role' is used to specify users role, the value "all" define all papers.
+
+> The Schedules Module uses a graph to provide slotes time ordered considering the greater amount of weight slotes. This functionality is present in the 'ScheduleHelper', which includes the class 'ScheduleContext' responssible to invoke the schedule module methods.
 
 > In this graph the vertices with the user type only have connection with the vertices with the slot type, and the vertices with the slote type only have connection with the vertices with the user type, thus forming a bipartite graph.
 
