@@ -30,3 +30,4 @@ end
 gem 'sqlite3'
 gem 'devise', '~> 3.5.6'
 gem 'mysql2'
+gem 'simplecov', :require => false, :group => :test

@@ -125,7 +125,7 @@ module SocialFramework
       # +map+:: +Hash+ with keys and values to compare
       # +search_in_progress+:: +Boolean+ to continue if true or start a new search
       # +elements_number+:: +Integer+ to limit max search result
-      # Returns Set with users found
+      # Returns Hash with users and events found
       def search(map, search_in_progress = false, elements_number = SocialFramework.elements_number_to_search)
         return {users: @users_found, events: @events_found} if @finished_search and search_in_progress == true
 
@@ -150,7 +150,7 @@ module SocialFramework
       # ====== Params:
       # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
       # +amount_relationships+:: +Integer+ quantity of relationships to suggest a new relationship
-      # Returns +Array+ with the vertices to suggestions
+      # Returns +Array+ with users to suggestions
       def suggest_relationships(type_relationships = SocialFramework.relationship_type_to_suggest,
         amount_relationships = SocialFramework.amount_relationship_to_suggest)
 
@@ -440,7 +440,7 @@ module SocialFramework
       # +map+:: +Hash+ with keys and values to compare
       # +search_in_progress+:: +Boolean+ to continue if true or start a new search
       # +elements_number+:: +Integer+ to limit max search result
-      # Returns Set with users found
+      # Returns Hash with users and events found
       def search(map, search_in_progress = false, elements_number = SocialFramework.elements_number_to_search)
         @graph.search(map, search_in_progress, elements_number)
       end
@@ -449,7 +449,7 @@ module SocialFramework
       # ====== Params:
       # +type_relationships+:: +Array+ labels to find relationships, can be multiple in array or just one in a simple String
       # +amount_relationships+:: +Integer+ quantity of relationships to suggest a new relationship
-      # Returns +Array+ with the vertices to suggestions
+      # Returns +Array+ with users to suggestions
       def suggest_relationships(type_relationships = SocialFramework.relationship_type_to_suggest,
         amount_relationships = SocialFramework.amount_relationship_to_suggest)
         @graph.suggest_relationships(type_relationships, amount_relationships)

@@ -4,7 +4,7 @@ module GraphElements
   # Define abstract methods to Vertex
   class Vertex
     # The attributes of vertex
-    attr_accessor :id, :type, :edges, :visits, :color, :attributes
+    attr_accessor :id, :type, :edges, :attributes
 
     # Constructor to vertex 
     # ====== Params:
@@ -42,6 +42,8 @@ module GraphElements
 
   # Represent graph's vertex
   class VertexDefault < Vertex
+    attr_accessor :visits, :color
+    
     # Constructor to vertex 
     # ====== Params:
     # +id+:: +Integer+ user id
