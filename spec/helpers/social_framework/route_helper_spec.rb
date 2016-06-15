@@ -328,7 +328,6 @@ module SocialFramework
 
       it "When origin points is empty" do
         result = @route_utils.send(:smallest_distance, [], @route2.locations.first, "walking")
-        expect(result[:deviation]).to be_nil
         expect(result[:point]).to be_nil
       end
     end
