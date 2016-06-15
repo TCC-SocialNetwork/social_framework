@@ -163,7 +163,7 @@ module SocialFramework
     # +distance:: +Integer+ route size
     # +locations:: +Array+ of hash with the locations
     # +mode_of_travel:: +String+ mode of travel, can be: driving, bicycling, walking, transit
-    # Returns Array with users found
+    # Returns Route created or nil if break
     def create_route(title, distance, locations, mode_of_travel = "driving")
       begin
         route_class = ModelFabric.get_class(SocialFramework.route_class)

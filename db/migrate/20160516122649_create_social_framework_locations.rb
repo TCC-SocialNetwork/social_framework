@@ -4,8 +4,8 @@ class CreateSocialFrameworkLocations < ActiveRecord::Migration
 
       t.belongs_to :route, null: false
 
-      t.decimal :latitude, null: false
-      t.decimal :longitude, null: false
+      t.decimal :latitude, null: false, precision: 18, scale: 15
+      t.decimal :longitude, null: false, precision: 18, scale: 15
       t.timestamps null: false
     end
   end
