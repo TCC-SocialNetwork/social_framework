@@ -20,6 +20,8 @@ module SocialFramework
     # Contains the methods to match routes
     class RouteStrategyDefault < RouteStrategy
 
+      RATIO_OF_EARTH = 6500000
+      
       # Compare the routes to verify if are compatible
       # ====== Params:
       # +principal_route+:: +Route+ who gives a lift
@@ -161,12 +163,12 @@ module SocialFramework
       # +mode_of_travel+:: +String+ specify mode of travel
       # Returns Hash with point and smallest deviation
       def smallest_distance(origin_points, destiny, mode_of_travel)
-        smallest_distance = nil
+        smallest_distance = RATIO_OF_EARTH
         origin_point = nil
 
         origin_points.each do |origin|
           distance = get_distance(origin, destiny, mode_of_travel)
-          if smallest_distance.nil? or distance < smallest_distance
+          if distance < smallest_distance
             origin_point = origin
             smallest_distance = distance
           end
