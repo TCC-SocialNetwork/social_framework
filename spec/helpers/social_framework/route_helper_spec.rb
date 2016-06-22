@@ -151,19 +151,22 @@ module SocialFramework
 
     describe "Get near points" do
       it "When have near points" do
-        result = @route_utils.send(:near_points, @route1, @route2, 1000)
+        @route2.accepted_deviation = 1000
+        result = @route_utils.send(:near_points, @route1, @route2)
         expect(result[:origins].count).to be(9)
         expect(result[:destinations].count).to be(7)
       end
 
       it "When dont have near points" do
-        result = @route_utils.send(:near_points, @route1, @route2, 100)
+        @route2.accepted_deviation = 100
+        result = @route_utils.send(:near_points, @route1, @route2)
         expect(result[:origins]).to be_empty
         expect(result[:destinations]).to be_empty
       end
 
       it "When don't have near points in destinations" do
-        result = @route_utils.send(:near_points, @route1, @route2, 300)
+        @route2.accepted_deviation = 300
+        result = @route_utils.send(:near_points, @route1, @route2)
         expect(result[:origins].count).to be(2)
         expect(result[:destinations]).to be_empty
       end
@@ -171,6 +174,7 @@ module SocialFramework
 
     describe "Compare routes" do
       it "When the principal accept both" do
+        @route1.accepted_deviation = 5000
         result = @route_utils.compare_routes(@route1, @route2)
 
         expect(result[:compatible]).to be(true)
@@ -181,9 +185,11 @@ module SocialFramework
       end
 
       it "When the principal accept any and secondary accept both" do
-        principal = {mode: "driving", deviation: 4000}
-        secondary = {mode: "walking", deviation: 1400}
-        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+        @route1.accepted_deviation = 4000
+        @route2.accepted_deviation = 1400
+        @route2.mode_of_travel = "walking"
+
+        result = @route_utils.compare_routes(@route1, @route2)
 
         expect(result[:compatible]).to be(true)
         expect(result[:principal_route][:deviation]).to be(:origin)
@@ -193,9 +199,11 @@ module SocialFramework
       end
 
       it "When the principal and secondary accept any" do
-        principal = {mode: "driving", deviation: 4000}
-        secondary = {mode: "walking", deviation: 650}
-        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+        @route1.accepted_deviation = 4000
+        @route2.accepted_deviation = 650
+        @route2.mode_of_travel = "walking"
+
+        result = @route_utils.compare_routes(@route1, @route2)
 
         expect(result[:compatible]).to be(true)
         expect(result[:principal_route][:deviation]).to be(:origin)
@@ -205,9 +213,11 @@ module SocialFramework
       end
 
       it "When the principal accept origin and secondary accept any" do
-        principal = {mode: "driving", deviation: 2200}
-        secondary = {mode: "walking", deviation: 650}
-        result = @route_utils.compare_routes(@route1, @route3, principal, secondary)
+        @route1.accepted_deviation = 2200
+        @route3.accepted_deviation = 650
+        @route3.mode_of_travel = "walking"
+
+        result = @route_utils.compare_routes(@route1, @route3)
 
         expect(result[:compatible]).to be(true)
         expect(result[:principal_route][:deviation]).to be(:origin)
@@ -217,11 +227,12 @@ module SocialFramework
       end
 
       it "When the principal accept any and secondary accept origin" do
-        principal = {mode: "driving", deviation: 3200}
-        secondary = {mode: "walking", deviation: 500}
+        @route1.accepted_deviation = 3200
+        @route2.accepted_deviation = 500
+        @route2.mode_of_travel = "walking"
         @route2.locations.first.destroy
 
-        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+        result = @route_utils.compare_routes(@route1, @route2)
 
         expect(result[:compatible]).to be(true)
         expect(result[:principal_route][:deviation]).to be(:destiny)
@@ -231,10 +242,11 @@ module SocialFramework
       end
 
       it "When the principal accept any and secondary accept destiny" do
-        principal = {mode: "driving", deviation: 4000}
-        secondary = {mode: "walking", deviation: 630}
+        @route1.accepted_deviation = 4000
+        @route2.accepted_deviation = 630
+        @route2.mode_of_travel = "walking"
 
-        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+        result = @route_utils.compare_routes(@route1, @route2)
 
         expect(result[:compatible]).to be(true)
         expect(result[:principal_route][:deviation]).to be(:origin)
@@ -244,19 +256,21 @@ module SocialFramework
       end
 
       it "When the principal accept none and secondary accept destiny" do
-        principal = {mode: "driving", deviation: 1000}
-        secondary = {mode: "walking", deviation: 630}
+        @route1.accepted_deviation = 1000
+        @route2.accepted_deviation = 630
+        @route2.mode_of_travel = "walking"
 
-        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+        result = @route_utils.compare_routes(@route1, @route2)
 
         expect(result[:compatible]).to be(false)
       end
 
       it "When the principal accept any and secondary accept none" do
-        principal = {mode: "driving", deviation: 3000}
-        secondary = {mode: "walking", deviation: 500}
+        @route1.accepted_deviation = 3000
+        @route2.accepted_deviation = 500
+        @route2.mode_of_travel = "walking"
 
-        result = @route_utils.compare_routes(@route1, @route2, principal, secondary)
+        result = @route_utils.compare_routes(@route1, @route2)
 
         expect(result[:compatible]).to be(false)
       end
@@ -264,55 +278,70 @@ module SocialFramework
 
     describe "Principal accept deviation" do
       it "When accept both" do
-        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2, 5000, "driving")
+        @route1.accepted_deviation = 5000
+        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2)
         expect(result[:accept]).to be(:both)
       end
 
       it "When accept any" do
-        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2, 4000, "driving")
+        @route1.accepted_deviation = 4000
+        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2)
         expect(result[:accept]).to be(:any)
       end
 
       it "When accept origin" do
-        result = @route_utils.send(:principal_accepted_deviation, @route1, @route3, 2200, "driving")
+        @route1.accepted_deviation = 2200
+        result = @route_utils.send(:principal_accepted_deviation, @route1, @route3)
         expect(result[:accept]).to be(:origin)
       end
 
       it "When accept destiny" do
-        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2, 3000, "driving")
+        @route1.accepted_deviation = 3000
+        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2)
         expect(result[:accept]).to be(:destiny)
       end
 
       it "When accept none" do
-        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2, 1000, "driving")
+        @route1.accepted_deviation = 1000
+        result = @route_utils.send(:principal_accepted_deviation, @route1, @route2)
         expect(result[:accept]).to be(:none)
       end
     end
 
     describe "Secondary accept deviation" do
       it "When accept both" do
-        result = @route_utils.send(:secondary_accepted_deviation, @route1, @route2, 1400, "walking")
+        @route2.accepted_deviation = 1400
+        @route2.mode_of_travel = "walking"
+        result = @route_utils.send(:secondary_accepted_deviation, @route1, @route2)
         expect(result[:accept]).to be(:both)
       end
 
       it "When accept any" do
-        result = @route_utils.send(:secondary_accepted_deviation, @route1, @route2, 650, "walking")
+        @route2.accepted_deviation = 650
+        @route2.mode_of_travel = "walking"
+        result = @route_utils.send(:secondary_accepted_deviation, @route1, @route2)
         expect(result[:accept]).to be(:any)
       end
 
       it "When accept origin" do
         @route2.locations.first.destroy
-        result = @route_utils.send(:secondary_accepted_deviation, @route1, @route2, 500, "walking")
+        @route2.accepted_deviation = 500
+        @route2.mode_of_travel = "walking"
+        result = @route_utils.send(:secondary_accepted_deviation, @route1, @route2)
         expect(result[:accept]).to be(:origin)
       end
 
       it "When accept destiny" do
-        result = @route_utils.send(:secondary_accepted_deviation, @route1, @route2, 630, "walking")
+        @route2.accepted_deviation = 630
+        @route2.mode_of_travel = "walking"
+        result = @route_utils.send(:secondary_accepted_deviation, @route1, @route2)
         expect(result[:accept]).to be(:destiny)
       end
 
       it "When accept none" do
-        result = @route_utils.send(:secondary_accepted_deviation, @route1, @route2, 500, "walking")
+        @route2.accepted_deviation = 500
+        @route2.mode_of_travel = "walking"
+        result = @route_utils.send(:secondary_accepted_deviation, @route1, @route2)
         expect(result[:accept]).to be(:none)
       end
     end
@@ -338,6 +367,7 @@ module SocialFramework
       end
 
       it "When the principal accept both" do
+        @route1.accepted_deviation = 5000
         result = @context.compare_routes(@route1, @route2)
 
         expect(result[:compatible]).to be(true)

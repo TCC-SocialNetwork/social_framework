@@ -438,7 +438,7 @@ build(users, start_day, finish_day, start_hour = Time.parse("00:00"), finish_hou
 > Currently, it's available to users create routes. That can be done with the following method, present in User class:
 
 ```ruby
-create_route(title, distance, locations, mode_of_travel = "driving")
+create_route(title, distance, locations, mode_of_travel = "driving", accepted_deviation = 0)
 ```
 
 > The params are route title, route distance, locations is a array with all points of latitude and longitude to build route, must be passed like this:
@@ -448,19 +448,15 @@ locations = [{latitude: -15.792740000000002, longitude: -47.876360000000005},
          {latitude: -15.792520000000001, longitude: -47.876900000000006}]
 ```
 
-> And mode_of_travel represents the type to build route, can be 'driving', 'bycicling', 'walking' or 'transit', the value default is 'driving' to travels with car.
+> And mode_of_travel represents the type to build route, can be 'driving', 'bycicling', 'walking' or 'transit', the value default is 'driving' to travels with car. The param accepted_deviation has zero like default value and, represent the maximum accepted deviation to some route.
 
 > That module also provides a feature to verify the compatibility between two routes. To do this call the method 'compare_routes' present in 'route_helper.rb'.
 
 ```ruby
-compare_routes(principal_route, secondary_route,
-          principal_deviation = SocialFramework.principal_deviation,
-          secondary_deviation = SocialFramework.secondary_deviation)
+compare_routes(principal_route, secondary_route)
 ```
 
-> This method is used to verify if two routes can be connected in just one route. The param principal_route represent the route that will be updated to auxliar the secondary_route if possible, when the principal_route can not be updated the on tries to update the secondary_route to achieve the goal.
-The others params principal_deviation and secondary_deviation represent a map with mode_of_travel and maximum deviation to routes, the maximum deviation is the distance that a route can be diverted to achieve the goal.
-The default values to principal_deviation and secondary_deviation are present in initializer 'social_framework.rb' and can be updated.
+> This method is used to verify if two routes can be connected in just one route. The param principal_route represent the route that will be updated to auxliar the secondary_route if possible, when the principal_route can not be updated the on tries to update the secondary_route to achieve the goal. The method uses the attribute `accepted_deviation' in routes to verify if routes can be updated.
 
 > It's returned a map with the compatibility information, like this:
 

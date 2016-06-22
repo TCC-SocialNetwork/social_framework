@@ -4,6 +4,7 @@ class CreateSocialFrameworkRoutes < ActiveRecord::Migration
 
       t.string :title, null: false
       t.integer :distance, null: false
+      t.integer :accepted_deviation, null: false, default: 0
       t.string :mode_of_travel, null: false, default: "driving"
       t.timestamps null: false
     end

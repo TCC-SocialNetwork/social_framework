@@ -163,13 +163,17 @@ module SocialFramework
     # +distance:: +Integer+ route size
     # +locations:: +Array+ of hash with the locations
     # +mode_of_travel:: +String+ mode of travel, can be: driving, bicycling, walking, transit
+    # +accepted_deviation:: +Integer+ maximum accepted deviation to route
     # Returns Route created or nil if break
-    def create_route(title, distance, locations, mode_of_travel = "driving")
+    def create_route(title, distance, locations, mode_of_travel = "driving", accepted_deviation = 0)
       begin
         route_class = ModelFabric.get_class(SocialFramework.route_class)
         location_class = ModelFabric.get_class(SocialFramework.location_class)
 
-        route = route_class.new title: title, distance: distance,mode_of_travel: mode_of_travel
+        return unless mode_of_travel == "driving" or mode_of_travel == "bicycling" or
+                      mode_of_travel == "walking" or mode_of_travel == "transit"
+        route = route_class.new title: title, distance: distance,
+                                mode_of_travel: mode_of_travel, accepted_deviation: accepted_deviation
         route.users << self
         route.save
 

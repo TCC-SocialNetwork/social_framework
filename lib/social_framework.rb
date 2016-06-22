@@ -59,14 +59,6 @@ module SocialFramework
   mattr_accessor :max_weight_schedule
   @@max_weight_schedule = 10
 
-  # Represent the principal mode of travel and maximum deviation accepted
-  mattr_accessor :principal_deviation
-  @@principal_deviation = {mode: "driving", deviation: 5000}
-
-  # Represent the secondary mode of travel and maximum deviation accepted
-  mattr_accessor :secondary_deviation
-  @@secondary_deviation = {mode: "walking", deviation: 500}
-
   # User class name
   # Use this when extends the default User to use other classes
   mattr_accessor :user_class

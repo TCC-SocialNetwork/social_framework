@@ -287,6 +287,13 @@ module SocialFramework
 
         expect(result).not_to be_nil
         expect(result.locations.count).to be(4)
+        expect(@user.routes.first.accepted_deviation).to be(0)
+        expect(@user.routes.first.mode_of_travel).to eq("walking")
+      end
+
+      it "When pass a invalid mode_of_travel" do
+        result = @user.create_route("title1", 650, @locations, "invalid")
+        expect(result).to be_nil
       end
     end
   end
