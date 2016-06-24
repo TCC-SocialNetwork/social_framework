@@ -20,23 +20,17 @@ module SocialFramework
       # ====== Params:
       # +id+:: +Integer+ Id of the user logged
       # +elements_factory+:: +String+ Represent the factory class name to build
-      # Returns Graph object
+      # Returns NotImplementedError
       def self.get_instance(id, elements_factory)
-        @@instances ||= {}
-        
-        if @@instances[id].nil?
-          @@instances[id] = GraphStrategyDefault.new elements_factory
-        end
-
-        return @@instances[id]
+        raise 'Must implement method in subclass'
       end
 
       # Destroy graph instance with id passed
       # ====== Params:
       # +id+:: +Integer+ Id of the user logged
-      # Returns Graph instance removed
+      # Returns NotImplementedError
       def destroy(id)
-        @@instances.delete(id)
+        raise 'Must implement method in subclass'
       end
 
       # Mount a graph from an user
@@ -83,6 +77,29 @@ module SocialFramework
 
     # Represent the network on a Graph, with Vertices and Edges
     class GraphStrategyDefault < GraphStrategy
+      # Get graph instance to user logged
+      # ====== Params:
+      # +id+:: +Integer+ Id of the user logged
+      # +elements_factory+:: +String+ Represent the factory class name to build
+      # Returns Graph object
+      def self.get_instance(id, elements_factory)
+        @@instances ||= {}
+        
+        if @@instances[id].nil?
+          @@instances[id] = GraphStrategyDefault.new elements_factory
+        end
+
+        return @@instances[id]
+      end
+
+      # Destroy graph instance with id passed
+      # ====== Params:
+      # +id+:: +Integer+ Id of the user logged
+      # Returns Graph instance removed
+      def destroy(id)
+        @@instances.delete(id)
+      end
+
       # Mount a graph from an user
       # ====== Params:
       # +root+:: +User+ Root user to mount graph
