@@ -100,7 +100,8 @@ module SocialFramework
           slots_quantity = get_slots_quantity(start_hour, finish_hour)
 
           (1..slots_quantity).each do
-            verterx = @elements_factory.create_vertex(current_time, current_time.class, {gained_weight: 0})
+            verterx = @elements_factory.create_vertex(current_time, current_time.class,
+              {gained_weight: 0, duration: @slots_size})
             @slots << verterx
 
             current_time += @slots_size
